@@ -31,3 +31,10 @@ Desde la raíz:
 - Backend: http://localhost:5000
 
 La integración de Email utiliza IMAP y SMTP configurados desde la pantalla Email de la App.
+
+## Configurar Codex En Otra Máquina
+
+La guía y el instalador para replicar `codex` y `codex-here` están en:
+
+- [Guía de configuración](docs/CODEX_LAPTOP_SETUP.md)
+- `scripts/setup-codex-laptop.ps1`

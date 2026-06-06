@@ -1,0 +1,7 @@
+interface:
+  display_name: "Blockchain Vuln Handoff"
+  short_description: "Run isolated smart contract audits and verify findings"
+  default_prompt: "Use $blockchain-vuln-handoff to run an isolated smart contract audit or verify Slither, Aderyn, Gemini, repo, or contest-scope findings with real PoC evidence."
+
+policy:
+  allow_implicit_invocation: true

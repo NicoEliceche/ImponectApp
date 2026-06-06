@@ -8,6 +8,6 @@ config/.env
 Thumbs.db
 
 MEMORY.md
-Skills/
+/Skills/
 {{WORKSPACE_DIR}}/
 run-openclaw.bat
