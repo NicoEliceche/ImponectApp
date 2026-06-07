@@ -44,12 +44,16 @@ Set-ExecutionPolicy -Scope Process Bypass
 El script:
 
 1. Instala o actualiza la extensión oficial de OpenAI para VS Code.
-2. Crea `C:\Nico\Workspaces`.
+2. Crea `C:\Workspaces`.
 3. Clona el repositorio Blockchain si todavía no existe.
 4. Agrega los comandos al perfil de PowerShell actual sin duplicarlos.
-5. Marca los workspaces como confiables en `$HOME\.codex\config.toml`.
+5. Marca como confiables en `$HOME\.codex\config.toml` todos los repos Git existentes bajo `C:\Workspaces`.
 6. Instala los skills personalizados incluidos en `codex/skills`.
 7. Valida que el ejecutable de Codex esté disponible.
+
+Codex no soporta trust recursivo por carpeta padre. Para obtener ese comportamiento,
+`codex-here` registra automáticamente el repo Git actual como confiable antes de
+abrir Codex, siempre que esté dentro de `C:\Workspaces`. No registra rutas externas.
 
 Para usar otra ruta:
 

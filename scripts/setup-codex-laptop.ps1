@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$WorkspaceRoot = 'C:\Nico\Workspaces',
+    [string]$WorkspaceRoot = 'C:\Workspaces',
     [string]$BlockchainRepoUrl = 'git@github.com:NicoEliceche/Blockchain-Vulnerabilities-Reports.git',
     [string]$BlockchainRepoName = 'Blockchain-Vulnerabilities-Reports',
     [string]$ProfilePath = $PROFILE.CurrentUserCurrentHost,
@@ -51,7 +51,8 @@ function Set-MarkedProfileBlock {
         $nextContent = "$($currentContent.TrimEnd())$separator$markedBlock`r`n"
     }
 
-    Set-Content -LiteralPath $ProfilePath -Value $nextContent -Encoding utf8
+    $nextContent = "$($nextContent.TrimEnd())`r`n"
+    Set-Content -LiteralPath $ProfilePath -Value $nextContent -Encoding utf8 -NoNewline
 }
 
 function Add-TrustedCodexProject {
@@ -69,7 +70,8 @@ function Add-TrustedCodexProject {
         ''
     }
 
-    $escapedPath = $ProjectPath.Replace("'", "''")
+    $normalizedPath = [System.IO.Path]::GetFullPath($ProjectPath).TrimEnd([char[]]@('\', '/')).ToLowerInvariant()
+    $escapedPath = $normalizedPath.Replace("'", "''")
     $header = "[projects.'$escapedPath']"
 
     if ($content -notmatch [regex]::Escape($header)) {
@@ -77,6 +79,14 @@ function Add-TrustedCodexProject {
         $content = "$($content.TrimEnd())$separator$header`r`ntrust_level = `"trusted`"`r`n"
         Set-Content -LiteralPath $ConfigPath -Value $content -Encoding utf8
     }
+}
+
+function Get-GitRepositoryRoots {
+    param([Parameter(Mandatory)][string]$RootPath)
+
+    Get-ChildItem -LiteralPath $RootPath -Force -Recurse -Filter '.git' -ErrorAction SilentlyContinue |
+        ForEach-Object { $PSItem.Parent.FullName } |
+        Sort-Object -Unique
 }
 
 function Install-BundledCodexSkills {
@@ -131,7 +141,10 @@ if (-not (Test-Path -LiteralPath (Join-Path $blockchainRepoPath '.git'))) {
 }
 
 $escapedBlockchainPath = Escape-SingleQuotedPowerShellString $blockchainRepoPath
+$escapedWorkspaceRoot = Escape-SingleQuotedPowerShellString $WorkspaceRoot
 $profileBlock = @"
+`$codexWorkspaceRoot = '$escapedWorkspaceRoot'
+
 function Get-CodexExtensionExe {
     `$extensionRoot = Join-Path `$HOME '.vscode\extensions'
     if (Test-Path -LiteralPath `$extensionRoot) {
@@ -151,11 +164,59 @@ function Get-CodexExtensionExe {
     throw 'codex.exe was not found in VS Code extensions or PATH.'
 }
 
+function Add-CodexTrustedProject {
+    param([Parameter(Mandatory)][string]`$ProjectPath)
+
+    `$normalizedPath = [System.IO.Path]::GetFullPath(`$ProjectPath).TrimEnd([char[]]@('\', '/')).ToLowerInvariant()
+    `$configPath = Join-Path `$HOME '.codex\config.toml'
+    `$configDirectory = Split-Path -Parent `$configPath
+    New-Item -ItemType Directory -Force -Path `$configDirectory | Out-Null
+
+    `$content = if (Test-Path -LiteralPath `$configPath) {
+        Get-Content -Raw -LiteralPath `$configPath
+    } else {
+        ''
+    }
+
+    `$escapedPath = `$normalizedPath.Replace("'", "''")
+    `$header = "[projects.'`$escapedPath']"
+    if (`$content -notmatch [regex]::Escape(`$header)) {
+        `$separator = if ([string]::IsNullOrWhiteSpace(`$content)) { '' } else { "``r``n``r``n" }
+        `$nextContent = `$content.TrimEnd() + `$separator + `$header + "``r``ntrust_level = ``"trusted``"``r``n"
+        Set-Content -LiteralPath `$configPath -Value `$nextContent -Encoding utf8
+    }
+}
+
+function Add-CodexCurrentProjectTrust {
+    `$currentPath = (Get-Location).ProviderPath
+    if (-not `$currentPath) {
+        return
+    }
+
+    `$workspacePath = [System.IO.Path]::GetFullPath(`$codexWorkspaceRoot).TrimEnd([char[]]@('\', '/'))
+    `$candidatePath = [System.IO.Path]::GetFullPath(`$currentPath).TrimEnd([char[]]@('\', '/'))
+    `$isWithinWorkspace = `$candidatePath.Equals(`$workspacePath, [System.StringComparison]::OrdinalIgnoreCase) -or
+        `$candidatePath.StartsWith("`$workspacePath\", [System.StringComparison]::OrdinalIgnoreCase)
+    if (-not `$isWithinWorkspace) {
+        return
+    }
+
+    `$gitRoot = & git -C `$candidatePath rev-parse --show-toplevel 2>`$null
+    `$projectPath = if (`$LASTEXITCODE -eq 0 -and `$gitRoot) {
+        `$gitRoot | Select-Object -First 1
+    } else {
+        `$candidatePath
+    }
+
+    Add-CodexTrustedProject -ProjectPath `$projectPath
+}
+
 function codex {
     & (Get-CodexExtensionExe) --dangerously-bypass-approvals-and-sandbox -C '$escapedBlockchainPath' @args
 }
 
 function codex-here {
+    Add-CodexCurrentProjectTrust
     & (Get-CodexExtensionExe) --dangerously-bypass-approvals-and-sandbox @args
 }
 
@@ -169,6 +230,9 @@ Set-MarkedProfileBlock -ProfilePath $profilePath -Block $profileBlock
 $codexConfigPath = Join-Path $CodexHome 'config.toml'
 Add-TrustedCodexProject -ConfigPath $codexConfigPath -ProjectPath $WorkspaceRoot
 Add-TrustedCodexProject -ConfigPath $codexConfigPath -ProjectPath $blockchainRepoPath
+foreach ($repositoryPath in Get-GitRepositoryRoots -RootPath $WorkspaceRoot) {
+    Add-TrustedCodexProject -ConfigPath $codexConfigPath -ProjectPath $repositoryPath
+}
 Install-BundledCodexSkills -RepositoryRoot $repositoryRoot -TargetCodexHome $CodexHome
 
 . $profilePath
