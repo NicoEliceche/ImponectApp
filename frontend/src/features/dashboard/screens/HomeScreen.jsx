@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import QuickLinks from '../components/QuickLinks';
+import { AssistantChat } from '../../app-assistant';
 import { IconIA, IconSend, IconTrash } from '../../../shared/components/Icons';
 import { sendAiAssistMessage } from '../api/aiAssistApi';
 import * as S from './HomeScreenStyled';
@@ -100,7 +101,10 @@ export const HomeScreen = () => {
       </S.Header>
       
       <S.ContentGrid>
-        <QuickLinks />
+        <S.DashboardColumn>
+          <QuickLinks />
+          <AssistantChat />
+        </S.DashboardColumn>
 
         <S.IAAssistCard>
           <S.IAHeader>

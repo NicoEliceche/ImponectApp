@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useOneDriveExplorer, useOneDriveActions } from '../api/oneDriveApi';
 import { 
   IconFolder, 
@@ -71,6 +71,7 @@ import {
 export const DocumentsScreen = () => {
   const { folderId } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [contextMenu, setContextMenu] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [lastSelectedId, setLastSelectedId] = useState(null);
@@ -104,6 +105,24 @@ export const DocumentsScreen = () => {
 
   // Internal clipboard
   const [clipboard, setClipboard] = useState(null);
+
+  useEffect(() => {
+    const focusId = searchParams.get('focus');
+    if (!focusId || !items?.some(item => item.id === focusId)) return;
+
+    setSelectedIds([focusId]);
+    setLastSelectedId(focusId);
+    requestAnimationFrame(() => {
+      document.querySelector(`[data-document-id="${CSS.escape(focusId)}"]`)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    });
+
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('focus');
+    setSearchParams(nextParams, { replace: true });
+  }, [items, searchParams, setSearchParams]);
 
   const formatSize = (bytes) => {
     if (!bytes) return '-';
@@ -286,7 +305,7 @@ export const DocumentsScreen = () => {
     if (!creationModal.value) return;
     if (creationModal.selectedType === 'folder') createFolder.mutate({ parentId: folderId, name: creationModal.value });
     else createFile.mutate({ parentId: folderId, name: creationModal.value, type: creationModal.selectedType }, {
-      onSuccess: (res) => setCreatedFile(res.data)
+      onSuccess: (file) => setCreatedFile(file)
     });
     setCreationModal(c => ({ ...c, show: false }));
   };
@@ -438,7 +457,7 @@ export const DocumentsScreen = () => {
         {isLoading ? <LoadingState>Cargando archivos...</LoadingState> : (
           <ScrollArea>
             {items?.map(item => (
-              <FileRow key={item.id} $selected={selectedIds.includes(item.id)} draggable onDragStart={(e) => onDragStart(e, item)} onDragOver={(e) => e.preventDefault()} onDrop={(e) => onDrop(e, item)} onClick={(e) => handleSelection(e, item)} onDoubleClick={() => handleAction('open', item)} onContextMenu={(e) => handleContextMenu(e, item)}>
+              <FileRow data-document-id={item.id} key={item.id} $selected={selectedIds.includes(item.id)} draggable onDragStart={(e) => onDragStart(e, item)} onDragOver={(e) => e.preventDefault()} onDrop={(e) => onDrop(e, item)} onClick={(e) => handleSelection(e, item)} onDoubleClick={() => handleAction('open', item)} onContextMenu={(e) => handleContextMenu(e, item)}>
                 <Cell>{item.folder ? <IconFolder style={{ width: '1.25rem', marginRight: '0.5rem', color: '#fbbf24' }} /> : <IconFile style={{ width: '1.25rem', marginRight: '0.5rem', color: '#60a5fa' }} />}{item.name}</Cell>
                 <Cell><StatusBadge>Sincronizado</StatusBadge></Cell>
                 <Cell>{new Date(item.lastModifiedDateTime).toLocaleDateString()}</Cell>

@@ -2,6 +2,20 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const geminiService = require('../services/geminiService');
+const appAssistantService = require('../services/appAssistantService');
+
+router.get('/assistant/status', (req, res) => {
+  res.json(appAssistantService.getCapabilities());
+});
+
+router.post('/assistant/chat', async (req, res) => {
+  try {
+    const result = await appAssistantService.chat(req.body?.messages);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 router.get('/chat/status', (req, res) => {
   res.json(geminiService.getStatus());

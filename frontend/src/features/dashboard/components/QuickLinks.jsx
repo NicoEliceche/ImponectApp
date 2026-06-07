@@ -141,7 +141,7 @@ const QuickLinks = () => {
   const { data: driveItems, error: driveError, refetch: refetchDrive, isFetching: isFetchingDrive } = useQuery({
     queryKey: ['oneDriveExplorer'],
     queryFn: async () => {
-      const res = await fetch('http://localhost:5000/api/onedrive/files');
+      const res = await fetch('/api/onedrive/files');
       if (!res.ok) throw new Error();
       return res.json();
     },

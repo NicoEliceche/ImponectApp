@@ -67,9 +67,12 @@ const extractApiResponse = (payload, model) => {
   };
 };
 
-const chatWithApi = async (messages) => {
+const chatWithApi = async (messages, options = {}) => {
   const apiKey = getApiKey();
   const model = process.env.GEMINI_MODEL || DEFAULT_API_MODEL;
+  const systemInstruction = options.systemInstruction || SYSTEM_INSTRUCTION;
+  const context = options.context ? `\n\nContexto recuperado:\n${options.context}` : '';
+  const tools = options.enableWebSearch === false ? undefined : [{ google_search: {} }];
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: 'POST',
     headers: {
@@ -78,13 +81,13 @@ const chatWithApi = async (messages) => {
     },
     body: JSON.stringify({
       system_instruction: {
-        parts: [{ text: SYSTEM_INSTRUCTION }]
+        parts: [{ text: `${systemInstruction}${context}` }]
       },
       contents: messages.map(message => ({
         role: message.role,
         parts: [{ text: message.content }]
       })),
-      tools: [{ google_search: {} }]
+      tools
     })
   });
 
@@ -96,16 +99,19 @@ const chatWithApi = async (messages) => {
   return extractApiResponse(payload, model);
 };
 
-const buildCliPrompt = (messages) => {
+const buildCliPrompt = (messages, options = {}) => {
   const conversation = messages
     .map(message => `${message.role === 'model' ? 'ASISTENTE' : 'USUARIO'}: ${message.content}`)
     .join('\n\n');
 
-  return `${SYSTEM_INSTRUCTION}\n\nConversación actual:\n${conversation}\n\nRespondé al último mensaje del usuario.`
+  const systemInstruction = options.systemInstruction || SYSTEM_INSTRUCTION;
+  const context = options.context ? `\n\nContexto recuperado:\n${options.context}` : '';
+
+  return `${systemInstruction}${context}\n\nConversación actual:\n${conversation}\n\nRespondé al último mensaje del usuario.`
     .slice(0, MAX_PROMPT_LENGTH);
 };
 
-const chatWithCli = (messages) => {
+const chatWithCli = (messages, options = {}) => {
   const cliScript = getCliScriptPath();
   if (!cliScript) {
     throw new Error('Gemini no está configurado en el servidor.');
@@ -120,7 +126,7 @@ const chatWithCli = (messages) => {
       [
         cliScript,
         '--prompt',
-        buildCliPrompt(messages),
+        buildCliPrompt(messages, options),
         '--output-format',
         'json',
         '--approval-mode',
@@ -164,7 +170,7 @@ const getStatus = () => ({
   provider: getApiKey() ? 'gemini-api' : getCliScriptPath() ? 'gemini-cli' : null
 });
 
-const chat = async (rawMessages) => {
+const chat = async (rawMessages, options = {}) => {
   const messages = normalizeMessages(rawMessages);
   if (messages.length === 0 || messages[messages.length - 1].role !== 'user') {
     throw new Error('La consulta debe terminar con un mensaje del usuario.');
@@ -172,14 +178,14 @@ const chat = async (rawMessages) => {
 
   if (getApiKey()) {
     try {
-      return await chatWithApi(messages);
+      return await chatWithApi(messages, options);
     } catch (error) {
       if (!getCliScriptPath()) throw error;
       console.warn(`Gemini API no disponible, usando Gemini CLI: ${error.message}`);
     }
   }
 
-  return chatWithCli(messages);
+  return chatWithCli(messages, options);
 };
 
 module.exports = {

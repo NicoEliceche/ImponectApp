@@ -1,7 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/onedrive';
+const API_URL = '/api/onedrive';
+
+export const createOneDriveFolder = async ({ parentId = null, name }) => {
+  const response = await axios.post(`${API_URL}/folder`, { parentId, name });
+  return response.data;
+};
+
+export const createOneDriveFile = async ({ parentId = null, name, type }) => {
+  const response = await axios.post(`${API_URL}/file`, { parentId, name, type });
+  return response.data;
+};
 
 export const useOneDriveExplorer = (folderId = null, searchQuery = '') => {
   return useQuery({
@@ -28,9 +38,7 @@ export const useOneDriveActions = () => {
   const queryClient = useQueryClient();
 
   const createFolder = useMutation({
-    mutationFn: async ({ parentId, name }) => {
-      return axios.post(`${API_URL}/folder`, { parentId, name });
-    },
+    mutationFn: createOneDriveFolder,
     onSuccess: () => queryClient.invalidateQueries(['oneDriveExplorer'])
   });
 
@@ -49,9 +57,7 @@ export const useOneDriveActions = () => {
   });
 
   const createFile = useMutation({
-    mutationFn: async ({ parentId, name, type }) => {
-      return axios.post(`${API_URL}/file`, { parentId, name, type });
-    },
+    mutationFn: createOneDriveFile,
     onSuccess: () => queryClient.invalidateQueries(['oneDriveExplorer'])
   });
 

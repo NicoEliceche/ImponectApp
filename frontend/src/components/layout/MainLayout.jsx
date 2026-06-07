@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import styled from 'styled-components';
 import Sidebar from './Sidebar';
 import { AgentModal } from '../../shared/components/AgentModal';
+import { AssistantPanel } from '../../features/app-assistant';
 
 const LayoutWrapper = styled.div`
   display: flex;
@@ -47,6 +48,7 @@ const MainLayout = () => {
           </Container>
         </Main>
       </ContentArea>
+      <AssistantPanel />
       <AgentModal />
     </LayoutWrapper>
   );
