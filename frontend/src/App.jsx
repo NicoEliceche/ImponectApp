@@ -9,6 +9,7 @@ const CRMScreen = lazy(() => import('./features/crm').then(module => ({ default:
 const QuotesScreen = lazy(() => import('./features/quotes').then(module => ({ default: module.QuotesScreen })));
 const CotizadorScreen = lazy(() => import('./features/cotizador').then(module => ({ default: module.CotizadorScreen })));
 const BusinessScreen = lazy(() => import('./features/business').then(module => ({ default: module.BusinessScreen })));
+const CatalogScreen = lazy(() => import('./features/catalog').then(module => ({ default: module.CatalogScreen })));
 const DocumentsScreen = lazy(() => import('./features/documents').then(module => ({ default: module.DocumentsScreen })));
 const EmailScreen = lazy(() => import('./features/email').then(module => ({ default: module.EmailScreen })));
 const ClickUpPortalScreen = lazy(() => import('./features/clickup-portal').then(module => ({ default: module.ClickUpPortalScreen })));

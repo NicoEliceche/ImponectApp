@@ -9,6 +9,7 @@ import {
   IconQuotes, 
   IconCalculator,
   IconBusiness, 
+  IconCatalog,
   IconSettings,
   IconMail,
   IconFolder,
@@ -169,6 +170,7 @@ const navItems = [
   { name: 'PRESUPUESTOS', path: '/quotes', icon: IconQuotes },
   { name: 'COTIZADOR', path: '/cotizador', icon: IconCalculator },
   { name: 'NEGOCIO', path: '/business', icon: IconBusiness },
+  { name: 'CATÁLOGO', path: '/catalog', icon: IconCatalog },
 ];
 
 const Sidebar = () => {
