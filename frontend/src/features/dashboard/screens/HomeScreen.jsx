@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import QuickLinks from '../components/QuickLinks';
-import { AssistantChat } from '../../app-assistant';
 import * as S from './HomeScreenStyled';
 
 export const HomeScreen = () => {
@@ -44,10 +43,7 @@ export const HomeScreen = () => {
         </S.DateContainer>
       </S.Header>
       
-      <S.DashboardColumn>
-        <QuickLinks />
-        <AssistantChat />
-      </S.DashboardColumn>
+      <QuickLinks />
     </S.ScreenWrapper>
   );
 };

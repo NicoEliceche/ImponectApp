@@ -51,13 +51,6 @@ export const DateLabel = styled.p`
   letter-spacing: 0.05em;
 `;
 
-export const DashboardColumn = styled.div`
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing[8]};
-`;
-
 export const Card = styled.div`
   background-color: ${({ theme }) => theme.color.surface};
   padding: ${({ theme }) => theme.spacing[8]};
