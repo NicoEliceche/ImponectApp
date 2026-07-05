@@ -16,6 +16,7 @@ import {
   IconVideo,
   IconDots,
 } from '../../../shared/components/Icons';
+import { publicAsset } from '../../../shared/utils/urls';
 import * as S from './CRMScreenStyled';
 
 const SESSION_FILTER_KEY = 'imponect.chats.channelFilter';
@@ -611,7 +612,7 @@ export const CRMScreen = () => {
           </S.ChatItems>
 
           <S.AccountFooter>
-            <S.AccountAvatar src="/assets/imponect_logo.jpg" alt="Imponect WhatsApp" />
+            <S.AccountAvatar src={publicAsset('assets/imponect_logo.jpg')} alt="Imponect WhatsApp" />
             <S.AccountInfo>
               <strong>Imponect WhatsApp</strong>
               <span>Business Account · {getSyncText(channelById.whatsapp.sync)}</span>

@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import { apiUrl } from '../../../shared/utils/urls';
 
-const API_URL = '/api/onedrive';
+const API_URL = apiUrl('/api/onedrive');
 
 export const createOneDriveFolder = async ({ parentId = null, name }) => {
   const response = await axios.post(`${API_URL}/folder`, { parentId, name });

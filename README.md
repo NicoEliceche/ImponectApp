@@ -32,6 +32,17 @@ Desde la raíz:
 
 La integración de Email utiliza IMAP y SMTP configurados desde la pantalla Email de la App.
 
+## Deploy En GitHub Pages
+
+El frontend se publica con GitHub Actions desde `.github/workflows/deploy-pages.yml`.
+
+1. Pasar el repositorio a público.
+2. En GitHub, ir a `Settings > Pages > Build and deployment` y elegir `GitHub Actions`.
+3. Si el backend está publicado fuera de GitHub Pages, crear la variable de repositorio `VITE_API_BASE_URL` con la URL pública del backend, por ejemplo `https://api.imponect.com`.
+4. Hacer push a `master` o `main`, o ejecutar manualmente el workflow `Deploy Frontend to GitHub Pages`.
+
+La app se compila con base `/ImponectApp/`, por lo que la URL esperada del sitio es `https://nicoeliceche.github.io/ImponectApp/`.
+
 ## Configurar Codex En Otra Máquina
 
 La guía y el instalador para replicar `codex` y `codex-here` están en:

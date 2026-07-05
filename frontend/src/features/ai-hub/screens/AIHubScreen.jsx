@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useUIStore } from '../../../app/stores/uiStore';
+import { apiUrl } from '../../../shared/utils/urls';
 import { 
   IconIA, 
   IconClose, 
@@ -16,7 +17,7 @@ export const AIHubScreen = () => {
   // Fetch agents
   const { data: agents = [], isLoading } = useQuery({
     queryKey: ['aiAgents'],
-    queryFn: () => fetch('http://localhost:5000/api/ai/agents').then(r => r.ok ? r.json() : [])
+    queryFn: () => fetch(apiUrl('/api/ai/agents')).then(r => r.ok ? r.json() : [])
   });
 
   if (launchAgent) {

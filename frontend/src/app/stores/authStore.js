@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { apiUrl } from '../../shared/utils/urls';
 
 export const useAuth = create((set) => ({
   user: null,
@@ -15,7 +16,7 @@ export const useAuth = create((set) => ({
   
   checkConnections: async () => {
     try {
-      const msRes = await fetch('http://localhost:5000/api/auth/microsoft/status');
+      const msRes = await fetch(apiUrl('/api/auth/microsoft/status'));
       const msData = await msRes.json();
       
       set((state) => ({

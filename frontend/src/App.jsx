@@ -26,6 +26,10 @@ const lazyRoute = (Component) => (
   </Suspense>
 );
 
+const routerBasename = import.meta.env.BASE_URL === '/'
+  ? undefined
+  : import.meta.env.BASE_URL.replace(/\/$/, '');
+
 function App() {
   const checkConnections = useAuth(state => state.checkConnections);
 
@@ -34,7 +38,7 @@ function App() {
   }, [checkConnections]);
 
   return (
-    <Router>
+    <Router basename={routerBasename}>
       <Routes>
         <Route path="/clickup-portal" element={lazyRoute(ClickUpPortalScreen)} />
         <Route element={<MainLayout />}>

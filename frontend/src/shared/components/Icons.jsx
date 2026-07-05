@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTheme } from 'styled-components';
+import { publicAsset } from '../utils/urls';
 
 export const IconIA = (props) => (
   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} {...props}>
@@ -396,7 +397,7 @@ const BrandIcon = ({ name, ...props }) => {
   const suffix = theme?.isDark ? '_dorado' : '';
   return (
     <img 
-      src={`/assets/${name}_imponect${suffix}.png`} 
+      src={publicAsset(`assets/${name}_imponect${suffix}.png`)} 
       style={{ 
         width: '18px', 
         height: '18px', 

@@ -1,4 +1,6 @@
-const API_BASE = '/api/email';
+import { apiUrl } from '../../../shared/utils/urls';
+
+const API_BASE = apiUrl('/api/email');
 
 const parseResponse = async (response) => {
   const contentType = response.headers.get('content-type') || '';

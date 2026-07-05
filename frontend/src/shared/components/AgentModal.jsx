@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiUrl } from '../utils/urls';
 import {
   IconClose,
   IconCode,
@@ -314,7 +315,7 @@ export const AgentModal = () => {
   };
 
   const createAgentMutation = useMutation({
-    mutationFn: (newAgent) => fetch('http://localhost:5000/api/ai/agents', {
+    mutationFn: (newAgent) => fetch(apiUrl('/api/ai/agents'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newAgent),
@@ -482,7 +483,7 @@ export const AgentModal = () => {
                       <label>URL del Icono</label>
                       <input
                         type="text"
-                        placeholder="/assets/mi-agente.png"
+                        placeholder="assets/mi-agente.png"
                         value={agentForm.icon_url}
                         onChange={event => updateField('icon_url', event.target.value)}
                       />

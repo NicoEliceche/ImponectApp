@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import styled from 'styled-components';
 import { useThemeStore } from '../../app/stores/themeStore';
+import { publicAsset } from '../../shared/utils/urls';
 import { 
   IconDashboard, 
   IconIA, 
@@ -179,7 +180,7 @@ const Sidebar = () => {
   return (
     <SidebarWrapper>
       <LogoContainer>
-        <LogoImage src="/assets/imponect_logo_white.jpg" alt="Imponect Logo" />
+        <LogoImage src={publicAsset('assets/imponect_logo_white.jpg')} alt="Imponect Logo" />
         <LogoText>IMPONECT</LogoText>
       </LogoContainer>
       

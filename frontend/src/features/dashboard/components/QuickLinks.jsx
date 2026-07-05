@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { IconRefresh } from '../../../shared/components/Icons';
+import { apiUrl, publicAsset } from '../../../shared/utils/urls';
 
 const Card = styled.div`
   background-color: ${({ theme }) => theme.color.surface};
@@ -141,7 +142,7 @@ const QuickLinks = () => {
   const { data: driveItems, error: driveError, refetch: refetchDrive, isFetching: isFetchingDrive } = useQuery({
     queryKey: ['oneDriveExplorer'],
     queryFn: async () => {
-      const res = await fetch('/api/onedrive/files');
+      const res = await fetch(apiUrl('/api/onedrive/files'));
       if (!res.ok) throw new Error();
       return res.json();
     },
@@ -157,7 +158,7 @@ const QuickLinks = () => {
         {/* OneDrive */}
         <MiniCard>
           <MiniHeader>
-            <Logo src="/assets/onedrive_logo.png" alt="OneDrive" />
+            <Logo src={publicAsset('assets/onedrive_logo.png')} alt="OneDrive" />
             <MiniHeaderText>
               <MiniTitle>Documentos (OneDrive)</MiniTitle>
               <StatusText $error={!!driveError}>
@@ -176,7 +177,7 @@ const QuickLinks = () => {
         {/* ClickUp */}
         <MiniCard>
           <MiniHeader>
-            <Logo src="/assets/clickup_logo.png" alt="ClickUp" />
+            <Logo src={publicAsset('assets/clickup_logo.png')} alt="ClickUp" />
             <MiniTitle>Tablero Principal (ClickUp)</MiniTitle>
           </MiniHeader>
           <ActionButton $primary onClick={() => window.open('https://app.clickup.com/90133071152/v/g/2ky5k19g-273', '_blank')}>
@@ -187,7 +188,7 @@ const QuickLinks = () => {
         {/* Web Principal */}
         <MiniCard>
           <MiniHeader>
-            <Logo src="/assets/imponect_logo.jpg" alt="Imponect" />
+            <Logo src={publicAsset('assets/imponect_logo.jpg')} alt="Imponect" />
             <MiniTitle>Web Principal</MiniTitle>
           </MiniHeader>
           <ActionButton $primary onClick={() => window.open('https://www.imponect.com', '_blank')}>
@@ -198,7 +199,7 @@ const QuickLinks = () => {
         {/* Email */}
         <MiniCard>
           <MiniHeader>
-            <Logo src="/assets/imponect_email_logo.svg" alt="Email Imponect" />
+            <Logo src={publicAsset('assets/imponect_email_logo.svg')} alt="Email Imponect" />
             <MiniTitle>Email</MiniTitle>
           </MiniHeader>
           <ActionButton $primary onClick={() => navigate('/email')}>

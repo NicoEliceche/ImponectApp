@@ -1,3 +1,5 @@
+import { apiUrl } from '../../../shared/utils/urls';
+
 const parseResponse = async (response) => {
   const payload = await response.json();
   if (!response.ok) {
@@ -7,7 +9,7 @@ const parseResponse = async (response) => {
 };
 
 export const sendAppAssistantMessage = async (messages) => {
-  const response = await fetch('/api/ai/assistant/chat', {
+  const response = await fetch(apiUrl('/api/ai/assistant/chat'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages })
