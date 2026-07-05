@@ -2,14 +2,14 @@
 
 ## Dashboard
 
-El Dashboard es la pantalla principal de Imponect App. Muestra accesos rápidos a Documentos, ClickUp, la web principal y Email. También contiene IA Assist para consultas generales y el Asistente Imponect para aprender a usar y operar la plataforma.
+El Dashboard es la pantalla principal de Imponect App. Muestra accesos rápidos a Documentos, ClickUp, la web principal y Email. El Asistente Imponect está disponible como chat de IA para aprender a usar y operar la plataforma.
 
 Ruta: `/`
 
 Cómo usar el Dashboard:
 
 1. Usar Accesos Rápidos para abrir Documentos, ClickUp, Imponect.com o Email.
-2. Usar IA Assist para consultas generales que pueden requerir información web.
+2. Usar el Asistente Imponect para consultas operativas, navegación y creación de elementos.
 3. Usar Asistente Imponect para aprender a usar la App o pedirle que navegue y opere funciones permitidas.
 4. Abrir el botón flotante del Asistente Imponect para conservar la conversación mientras se navega por otras pantallas.
 

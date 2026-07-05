@@ -55,6 +55,14 @@ $env:VITE_API_BASE_URL='https://api.imponect.com'
 npm run deploy
 ```
 
+Para que OneDrive, Email, ClickUp y los asistentes funcionen en GitHub Pages, el backend Express también debe estar publicado en una URL HTTPS. GitHub Pages solo sirve el frontend estático; no ejecuta `/api`. En producción, configurar en el backend:
+
+```env
+FRONTEND_URL=https://nicoeliceche.github.io/ImponectApp/
+MICROSOFT_REDIRECT_URI=https://TU_BACKEND_PUBLICO/api/auth/microsoft/callback
+CLICKUP_REDIRECT_URI=https://TU_BACKEND_PUBLICO/api/auth/clickup/callback
+```
+
 ## Configurar Codex En Otra Máquina
 
 La guía y el instalador para replicar `codex` y `codex-here` están en:

@@ -17,8 +17,7 @@ router.get('/callback', async (req, res) => {
     if (!code) throw new Error('No authorization code provided');
     
     await exchangeCodeForToken(code);
-    // Redirect to frontend dashboard
-    res.redirect('http://localhost:5173');
+    res.redirect(process.env.FRONTEND_URL || 'http://localhost:5173');
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

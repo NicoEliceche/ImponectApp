@@ -15,8 +15,7 @@ router.get('/callback', async (req, res) => {
   try {
     const { code } = req.query;
     await exchangeCodeForToken(code);
-    // Redirect to frontend dashboard
-    res.redirect('http://localhost:5173');
+    res.redirect(process.env.FRONTEND_URL || 'http://localhost:5173');
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
