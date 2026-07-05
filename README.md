@@ -34,14 +34,26 @@ La integración de Email utiliza IMAP y SMTP configurados desde la pantalla Emai
 
 ## Deploy En GitHub Pages
 
-El frontend se publica con GitHub Actions desde `.github/workflows/deploy-pages.yml`.
+El frontend se publica igual que `VivenciaGaucha`: se compila `frontend/dist` y se sube el resultado a la rama `gh-pages`.
 
-1. Pasar el repositorio a público.
-2. En GitHub, ir a `Settings > Pages > Build and deployment` y elegir `GitHub Actions`.
-3. Si el backend está publicado fuera de GitHub Pages, crear la variable de repositorio `VITE_API_BASE_URL` con la URL pública del backend, por ejemplo `https://api.imponect.com`.
-4. Hacer push a `master` o `main`, o ejecutar manualmente el workflow `Deploy Frontend to GitHub Pages`.
+1. En GitHub, ir a `Settings > Pages > Build and deployment`.
+2. Elegir `Deploy from a branch`.
+3. Seleccionar `gh-pages` y carpeta `/root`.
+4. Ejecutar:
+
+```powershell
+cd frontend
+npm run deploy
+```
 
 La app se compila con base `/ImponectApp/`, por lo que la URL esperada del sitio es `https://nicoeliceche.github.io/ImponectApp/`.
+
+Si el backend está publicado fuera de GitHub Pages, ejecutar el deploy con `VITE_API_BASE_URL` apuntando a esa URL pública, por ejemplo:
+
+```powershell
+$env:VITE_API_BASE_URL='https://api.imponect.com'
+npm run deploy
+```
 
 ## Configurar Codex En Otra Máquina
 
