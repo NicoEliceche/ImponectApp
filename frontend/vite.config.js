@@ -41,7 +41,7 @@ export default defineConfig({
         name: 'Imponect App',
         short_name: 'Imponect',
         description: 'Gestión integral de negocio',
-        theme_color: '#4f46e5',
+        theme_color: '#00334d',
         icons: [
           {
             src: 'pwa-192x192.png',
