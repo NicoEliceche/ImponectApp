@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useOneDriveExplorer, useOneDriveActions } from '../api/oneDriveApi';
+import { getRuntimeDiagnostics } from '../../../shared/utils/urls';
+import { logClientEvent } from '../../../shared/utils/clientLogger';
 import { 
   IconFolder, 
   IconFile, 
@@ -65,8 +67,28 @@ import {
   ControlBar,
   VolumeGroup,
   ProgressContainer,
-  Timeline
+  Timeline,
+  ErrorState,
+  ErrorTitle,
+  ErrorMessage,
+  ErrorMeta,
+  ErrorActions,
+  DiagnosticBtn
 } from './DocumentsScreenStyled';
+
+const getDocumentsErrorMessage = (error, runtime) => {
+  if (!error) return null;
+
+  if (runtime.isGithubPages && runtime.usesRelativeApi && error.status === 404) {
+    return 'El frontend publicado en GitHub Pages esta intentando llamar /api/onedrive dentro de GitHub Pages. Ese host solo sirve archivos estaticos, no ejecuta el backend Express. Para sincronizar OneDrive en produccion necesitamos publicar el backend en una URL HTTPS y configurar VITE_API_BASE_URL al hacer deploy.';
+  }
+
+  if (error.status === 401) {
+    return 'OneDrive respondio que no hay una sesion/token valido. Hay que volver a conectar Microsoft desde el backend publico.';
+  }
+
+  return error.message || 'No se pudo sincronizar OneDrive.';
+};
 
 export const DocumentsScreen = () => {
   const { folderId } = useParams();
@@ -100,11 +122,21 @@ export const DocumentsScreen = () => {
   const [path, setPath] = useState([{ id: null, name: 'IMPONECT' }]);
 
   // Fetch items based on folder or search
-  const { data: items, isLoading, refetch, isFetching } = useOneDriveExplorer(folderId, searchQuery);
+  const { data: items, isLoading, error, refetch, isFetching } = useOneDriveExplorer(folderId, searchQuery);
   const { createFolder, deleteItem, renameItem, createFile, moveItem, copyItem } = useOneDriveActions();
+  const runtimeDiagnostics = useMemo(() => getRuntimeDiagnostics(), [folderId]);
+  const documentsErrorMessage = getDocumentsErrorMessage(error, runtimeDiagnostics);
 
   // Internal clipboard
   const [clipboard, setClipboard] = useState(null);
+
+  useEffect(() => {
+    logClientEvent('info', 'documents.screen', 'Documents screen rendered', {
+      folderId: folderId || null,
+      searchQuery,
+      runtime: runtimeDiagnostics,
+    });
+  }, [folderId, searchQuery, runtimeDiagnostics]);
 
   useEffect(() => {
     const focusId = searchParams.get('focus');
@@ -454,7 +486,29 @@ export const DocumentsScreen = () => {
           <HeaderCell>Peso</HeaderCell>
           <HeaderCell>Duración</HeaderCell>
         </FileHeader>
-        {isLoading ? <LoadingState>Cargando archivos...</LoadingState> : (
+        {documentsErrorMessage ? (
+          <ErrorState>
+            <ErrorTitle>No se pudo sincronizar OneDrive</ErrorTitle>
+            <ErrorMessage>{documentsErrorMessage}</ErrorMessage>
+            <ErrorMeta>{JSON.stringify({
+              status: error?.status || null,
+              apiBaseUrl: runtimeDiagnostics.apiBaseUrl,
+              usesRelativeApi: runtimeDiagnostics.usesRelativeApi,
+              href: runtimeDiagnostics.href,
+              details: error?.details || null
+            }, null, 2)}</ErrorMeta>
+            <ErrorActions>
+              <DiagnosticBtn $primary onClick={() => refetch()}>
+                <IconRefresh className={isFetching ? 'animate-spin' : ''} />
+                Reintentar
+              </DiagnosticBtn>
+              <DiagnosticBtn onClick={() => navigate('/logs')}>
+                <IconFile />
+                Ver logs
+              </DiagnosticBtn>
+            </ErrorActions>
+          </ErrorState>
+        ) : isLoading ? <LoadingState>Cargando archivos...</LoadingState> : (
           <ScrollArea>
             {items?.map(item => (
               <FileRow data-document-id={item.id} key={item.id} $selected={selectedIds.includes(item.id)} draggable onDragStart={(e) => onDragStart(e, item)} onDragOver={(e) => e.preventDefault()} onDrop={(e) => onDrop(e, item)} onClick={(e) => handleSelection(e, item)} onDoubleClick={() => handleAction('open', item)} onContextMenu={(e) => handleContextMenu(e, item)}>

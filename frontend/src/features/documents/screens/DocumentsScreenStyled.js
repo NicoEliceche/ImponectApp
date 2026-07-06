@@ -445,6 +445,75 @@ export const LoadingState = styled.div`
   text-align: center;
 `;
 
+export const ErrorState = styled.div`
+  margin: ${({ theme }) => theme.spacing[6]};
+  padding: ${({ theme }) => theme.spacing[5]};
+  border: 1px solid ${({ theme }) => theme.color.error};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.color.errorLight};
+  color: ${({ theme }) => theme.color.error};
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing[3]};
+`;
+
+export const ErrorTitle = styled.h2`
+  margin: 0;
+  color: ${({ theme }) => theme.color.error};
+  font-size: ${({ theme }) => theme.typography.size.lg};
+  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+`;
+
+export const ErrorMessage = styled.p`
+  margin: 0;
+  color: ${({ theme }) => theme.color.text};
+  font-size: ${({ theme }) => theme.typography.size.sm};
+  line-height: ${({ theme }) => theme.typography.lineHeight.normal};
+`;
+
+export const ErrorMeta = styled.code`
+  display: block;
+  width: 100%;
+  padding: ${({ theme }) => theme.spacing[3]};
+  border: 1px solid ${({ theme }) => theme.color.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.color.surface};
+  color: ${({ theme }) => theme.color.textSecondary};
+  font-size: ${({ theme }) => theme.typography.size.xs};
+  white-space: pre-wrap;
+  word-break: break-word;
+`;
+
+export const ErrorActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing[3]};
+  flex-wrap: wrap;
+`;
+
+export const DiagnosticBtn = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing[2]};
+  border: 1px solid ${({ theme }) => theme.color.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ $primary, theme }) => ($primary ? theme.color.primary : theme.color.surface)};
+  color: ${({ $primary, theme }) => ($primary ? theme.color.textInverse : theme.color.text)};
+  padding: ${({ theme }) => theme.spacing[3]} ${({ theme }) => theme.spacing[4]};
+  cursor: pointer;
+  font-weight: ${({ theme }) => theme.typography.weight.bold};
+  font-size: ${({ theme }) => theme.typography.size.sm};
+
+  &:hover {
+    border-color: ${({ theme }) => theme.color.primary};
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+`;
+
 export const ModalOverlay = styled.div`
   position: fixed;
   top: 0;

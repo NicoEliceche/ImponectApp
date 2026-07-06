@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout';
 import { useAuth } from './app/stores/authStore';
+import { initClientLogging } from './shared/utils/clientLogger';
 
 const HomeScreen = lazy(() => import('./features/dashboard').then(module => ({ default: module.HomeScreen })));
 const AIHubScreen = lazy(() => import('./features/ai-hub').then(module => ({ default: module.AIHubScreen })));
@@ -13,6 +14,7 @@ const CatalogScreen = lazy(() => import('./features/catalog').then(module => ({ 
 const DocumentsScreen = lazy(() => import('./features/documents').then(module => ({ default: module.DocumentsScreen })));
 const EmailScreen = lazy(() => import('./features/email').then(module => ({ default: module.EmailScreen })));
 const ClickUpPortalScreen = lazy(() => import('./features/clickup-portal').then(module => ({ default: module.ClickUpPortalScreen })));
+const LogsScreen = lazy(() => import('./features/logs').then(module => ({ default: module.LogsScreen })));
 
 const RouteFallback = () => (
   <div className="flex items-center justify-center min-h-[18rem]">
@@ -34,6 +36,10 @@ function App() {
   const checkConnections = useAuth(state => state.checkConnections);
 
   useEffect(() => {
+    initClientLogging();
+  }, []);
+
+  useEffect(() => {
     checkConnections();
   }, [checkConnections]);
 
@@ -51,6 +57,7 @@ function App() {
           <Route path="/documents" element={lazyRoute(DocumentsScreen)} />
           <Route path="/documents/:folderId" element={lazyRoute(DocumentsScreen)} />
           <Route path="/email" element={lazyRoute(EmailScreen)} />
+          <Route path="/logs" element={lazyRoute(LogsScreen)} />
         </Route>
       </Routes>
     </Router>
