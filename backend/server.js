@@ -4,6 +4,18 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 5000;
+const parseCorsOrigins = (values) => values
+  .split(',')
+  .map(value => value.trim())
+  .filter(Boolean)
+  .map(value => {
+    try {
+      return new URL(value).origin;
+    } catch {
+      return value.replace(/\/+$/, '');
+    }
+  });
+const allowedOrigins = Array.from(new Set(parseCorsOrigins(process.env.CORS_ORIGINS || process.env.FRONTEND_URL || '')));
 
 console.log('Environment variables loaded:');
 console.log('- PORT:', process.env.PORT);
@@ -11,7 +23,16 @@ console.log('- DB_NAME:', process.env.DB_NAME);
 console.log('- DB_SCHEMA:', process.env.DB_SCHEMA);
 console.log('- MICROSOFT_CLIENT_ID:', process.env.MICROSOFT_CLIENT_ID ? 'Loaded' : 'Not Loaded');
 
-app.use(cors());
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error(`CORS blocked origin: ${origin}`));
+  }
+}));
 app.use(express.json({ limit: '25mb' }));
 
 // Routes
@@ -24,6 +45,14 @@ app.use('/api/ai', require('./routes/ai'));
 
 app.get('/', (req, res) => {
   res.send('Imponect API Orchestrator is running');
+});
+
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'imponect-api',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Database Initialization

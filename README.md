@@ -63,6 +63,10 @@ MICROSOFT_REDIRECT_URI=https://TU_BACKEND_PUBLICO/api/auth/microsoft/callback
 CLICKUP_REDIRECT_URI=https://TU_BACKEND_PUBLICO/api/auth/clickup/callback
 ```
 
+Guía corta para deploy gratuito del backend:
+
+- [Backend deploy gratuito](docs/BACKEND_DEPLOY_FREE.md)
+
 ## Configurar Codex En Otra Máquina
 
 La guía y el instalador para replicar `codex` y `codex-here` están en:

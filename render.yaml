@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: imponect-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://nicoeliceche.github.io/ImponectApp
+      - key: DATABASE_URL
+        sync: false
+      - key: DB_SCHEMA
+        value: public
+      - key: MICROSOFT_CLIENT_ID
+        sync: false
+      - key: MICROSOFT_CLIENT_SECRET
+        sync: false
+      - key: MICROSOFT_REDIRECT_URI
+        sync: false
+      - key: CLICKUP_CLIENT_ID
+        sync: false
+      - key: CLICKUP_CLIENT_SECRET
+        sync: false
+      - key: CLICKUP_REDIRECT_URI
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
