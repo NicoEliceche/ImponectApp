@@ -5,8 +5,7 @@ const hasDatabaseUrl = Boolean(process.env.DATABASE_URL);
 const dbConfig = hasDatabaseUrl
   ? {
       connectionString: process.env.DATABASE_URL,
-      ssl: isProduction ? { rejectUnauthorized: false } : undefined,
-      options: process.env.DB_SCHEMA ? `-c search_path=${process.env.DB_SCHEMA}` : undefined
+      ssl: isProduction ? { rejectUnauthorized: false } : undefined
     }
   : {
       user: process.env.DB_USER,

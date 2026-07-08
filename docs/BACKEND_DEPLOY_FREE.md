@@ -61,4 +61,5 @@ npm run deploy
 Verificar:
 
 - `https://TU_BACKEND.onrender.com/health`
+- `https://TU_BACKEND.onrender.com/health/db`
 - `https://nicoeliceche.github.io/ImponectApp/documents`

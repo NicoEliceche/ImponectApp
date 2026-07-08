@@ -55,6 +55,28 @@ app.get('/health', (req, res) => {
   });
 });
 
+app.get('/health/db', async (req, res) => {
+  const db = require('./db');
+
+  try {
+    await db.query('SELECT 1');
+    res.json({
+      status: 'ok',
+      service: 'imponect-api',
+      database: 'ok',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      service: 'imponect-api',
+      database: 'error',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Database Initialization
 const initDb = async () => {
   const db = require('./db');
