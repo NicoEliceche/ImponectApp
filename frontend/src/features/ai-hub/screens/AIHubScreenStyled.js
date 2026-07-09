@@ -305,15 +305,17 @@ export const AgentEditButton = styled.button`
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease, background-color 0.2s ease;
+  z-index: 1;
 
   ${SidebarItem}:hover &,
   ${SidebarItem}:focus-within & {
+    background: ${({ theme }) => theme.color.primaryDark};
     opacity: 1;
     pointer-events: auto;
   }
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: ${({ theme }) => theme.color.primary};
   }
 
   svg {
