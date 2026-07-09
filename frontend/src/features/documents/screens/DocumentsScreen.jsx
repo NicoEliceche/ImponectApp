@@ -125,7 +125,9 @@ export const DocumentsScreen = () => {
   const { data: items, isLoading, error, refetch, isFetching } = useOneDriveExplorer(folderId, searchQuery);
   const { createFolder, deleteItem, renameItem, createFile, moveItem, copyItem } = useOneDriveActions();
   const runtimeDiagnostics = useMemo(() => getRuntimeDiagnostics(), [folderId]);
+  const documentItems = useMemo(() => (Array.isArray(items) ? items : []), [items]);
   const documentsErrorMessage = getDocumentsErrorMessage(error, runtimeDiagnostics);
+  const isInitialSync = isLoading || (isFetching && !items);
 
   // Internal clipboard
   const [clipboard, setClipboard] = useState(null);
@@ -140,7 +142,7 @@ export const DocumentsScreen = () => {
 
   useEffect(() => {
     const focusId = searchParams.get('focus');
-    if (!focusId || !items?.some(item => item.id === focusId)) return;
+    if (!focusId || !documentItems.some(item => item.id === focusId)) return;
 
     setSelectedIds([focusId]);
     setLastSelectedId(focusId);
@@ -154,7 +156,7 @@ export const DocumentsScreen = () => {
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete('focus');
     setSearchParams(nextParams, { replace: true });
-  }, [items, searchParams, setSearchParams]);
+  }, [documentItems, searchParams, setSearchParams]);
 
   const formatSize = (bytes) => {
     if (!bytes) return '-';
@@ -191,14 +193,14 @@ export const DocumentsScreen = () => {
       window.removeEventListener('click', handleGlobalClick);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedIds, items]);
+  }, [selectedIds, documentItems]);
 
   // Update path when items or folderId changes
   useEffect(() => {
     if (!folderId) {
       setPath([{ id: null, name: 'IMPONECT' }]);
     } else {
-      const currentFolder = items?.find(i => i.id === folderId);
+      const currentFolder = documentItems.find(i => i.id === folderId);
       setPath(prev => {
         const index = prev.findIndex(p => p.id === folderId);
         if (index !== -1) return prev.slice(0, index + 1);
@@ -206,7 +208,7 @@ export const DocumentsScreen = () => {
         return prev;
       });
     }
-  }, [folderId, items]);
+  }, [folderId, documentItems]);
 
   const handleSelection = (e, item) => {
     e.stopPropagation();
@@ -214,12 +216,12 @@ export const DocumentsScreen = () => {
       setSelectedIds(prev => prev.includes(item.id) ? prev.filter(id => id !== item.id) : [...prev, item.id]);
       setLastSelectedId(item.id);
     } else if (e.shiftKey && lastSelectedId) {
-      const startIndex = items.findIndex(i => i.id === lastSelectedId);
-      const endIndex = items.findIndex(i => i.id === item.id);
+      const startIndex = documentItems.findIndex(i => i.id === lastSelectedId);
+      const endIndex = documentItems.findIndex(i => i.id === item.id);
       if (startIndex !== -1 && endIndex !== -1) {
         const start = Math.min(startIndex, endIndex);
         const end = Math.max(startIndex, endIndex);
-        const range = items.slice(start, end + 1).map(i => i.id);
+        const range = documentItems.slice(start, end + 1).map(i => i.id);
         setSelectedIds(prev => Array.from(new Set([...prev, ...range])));
       }
     } else {
@@ -252,7 +254,7 @@ export const DocumentsScreen = () => {
   };
 
   const handleAction = (action, targetItem = null) => {
-    const selectedItems = items?.filter(i => selectedIds.includes(i.id)) || [];
+    const selectedItems = documentItems.filter(i => selectedIds.includes(i.id));
     const item = targetItem || selectedItems[0];
     if (!item && !['openCreationModal', 'newFolder', 'newWord', 'newExcel', 'newText', 'paste'].includes(action)) return;
 
@@ -312,7 +314,7 @@ export const DocumentsScreen = () => {
       case 'fullscreen': videoRef.current.requestFullscreen(); break;
       case 'next':
       case 'prev':
-        const videoFiles = items.filter(i => i.name.match(/\.(mp4|mov|avi|mkv|webm)$/i));
+        const videoFiles = documentItems.filter(i => i.name.match(/\.(mp4|mov|avi|mkv|webm)$/i));
         const idx = videoFiles.findIndex(f => f.id === videoPlayer.file.id);
         const nextFile = type === 'next' ? videoFiles[idx + 1] : videoFiles[idx - 1];
         if (nextFile) setVideoPlayer({ ...videoPlayer, file: nextFile, playing: true });
@@ -486,7 +488,12 @@ export const DocumentsScreen = () => {
           <HeaderCell>Peso</HeaderCell>
           <HeaderCell>Duración</HeaderCell>
         </FileHeader>
-        {documentsErrorMessage ? (
+        {isInitialSync ? (
+          <LoadingState>
+            <IconRefresh className="animate-spin" />
+            <span>Sincronizando documentos con OneDrive...</span>
+          </LoadingState>
+        ) : documentsErrorMessage ? (
           <ErrorState>
             <ErrorTitle>No se pudo sincronizar OneDrive</ErrorTitle>
             <ErrorMessage>{documentsErrorMessage}</ErrorMessage>
@@ -508,9 +515,9 @@ export const DocumentsScreen = () => {
               </DiagnosticBtn>
             </ErrorActions>
           </ErrorState>
-        ) : isLoading ? <LoadingState>Cargando archivos...</LoadingState> : (
+        ) : (
           <ScrollArea>
-            {items?.map(item => (
+            {documentItems.map(item => (
               <FileRow data-document-id={item.id} key={item.id} $selected={selectedIds.includes(item.id)} draggable onDragStart={(e) => onDragStart(e, item)} onDragOver={(e) => e.preventDefault()} onDrop={(e) => onDrop(e, item)} onClick={(e) => handleSelection(e, item)} onDoubleClick={() => handleAction('open', item)} onContextMenu={(e) => handleContextMenu(e, item)}>
                 <Cell>{item.folder ? <IconFolder style={{ width: '1.25rem', marginRight: '0.5rem', color: '#fbbf24' }} /> : <IconFile style={{ width: '1.25rem', marginRight: '0.5rem', color: '#60a5fa' }} />}{item.name}</Cell>
                 <Cell><StatusBadge>Sincronizado</StatusBadge></Cell>
@@ -520,7 +527,7 @@ export const DocumentsScreen = () => {
                 <Cell>{item.video ? formatDuration(item.video.duration) : '-'}</Cell>
               </FileRow>
             ))}
-            {!isLoading && items?.length === 0 && (
+            {documentItems.length === 0 && (
               <div style={{ padding: '4rem', textAlign: 'center', color: '#6b7280' }}>
                 {searchQuery ? `No se encontraron resultados para "${searchQuery}"` : 'Esta carpeta está vacía'}
               </div>

@@ -23,7 +23,7 @@ router.get('/chat/status', (req, res) => {
 
 router.post('/chat', async (req, res) => {
   try {
-    const result = await geminiService.chat(req.body?.messages);
+    const result = await geminiService.chat(req.body?.messages, req.body?.options || {});
     res.json(result);
   } catch (error) {
     const isConfigurationError = error.message === 'Gemini no está configurado en el servidor.';

@@ -443,6 +443,18 @@ export const MenuItem = styled.div`
 export const LoadingState = styled.div`
   padding: 2rem;
   text-align: center;
+  min-height: 14rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing[3]};
+  color: ${({ theme }) => theme.color.textSecondary};
+  font-weight: ${({ theme }) => theme.typography.weight.bold};
+
+  svg {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
 `;
 
 export const ErrorState = styled.div`

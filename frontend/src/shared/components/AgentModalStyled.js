@@ -162,6 +162,13 @@ export const SectionHeader = styled.div`
   align-items: flex-start;
   justify-content: space-between;
   gap: ${({ theme }) => theme.spacing[4]};
+
+  > svg {
+    width: ${({ theme }) => theme.spacing[6]};
+    height: ${({ theme }) => theme.spacing[6]};
+    flex: 0 0 ${({ theme }) => theme.spacing[6]};
+    color: ${({ theme }) => theme.color.accent};
+  }
 `;
 
 export const SectionTitle = styled.h3`
@@ -319,6 +326,13 @@ export const InlineActions = styled.div`
   align-items: center;
   flex-wrap: wrap;
   gap: ${({ theme }) => theme.spacing[3]};
+
+  > svg {
+    width: ${({ theme }) => theme.spacing[5]};
+    height: ${({ theme }) => theme.spacing[5]};
+    flex: 0 0 ${({ theme }) => theme.spacing[5]};
+    color: ${({ theme }) => theme.color.textSecondary};
+  }
 `;
 
 export const ErrorText = styled.p`

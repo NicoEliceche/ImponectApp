@@ -51,16 +51,18 @@ La app se compila con base `/ImponectApp/`, por lo que la URL esperada del sitio
 Si el backend está publicado fuera de GitHub Pages, ejecutar el deploy con `VITE_API_BASE_URL` apuntando a esa URL pública, por ejemplo:
 
 ```powershell
-$env:VITE_API_BASE_URL='https://api.imponect.com'
+$env:VITE_API_BASE_URL='https://imponect-api.onrender.com'
 npm run deploy
 ```
+
+El script `npm run deploy` ya usa `https://imponect-api.onrender.com` como default si no se define `VITE_API_BASE_URL`.
 
 Para que OneDrive, Email, ClickUp y los asistentes funcionen en GitHub Pages, el backend Express también debe estar publicado en una URL HTTPS. GitHub Pages solo sirve el frontend estático; no ejecuta `/api`. En producción, configurar en el backend:
 
 ```env
 FRONTEND_URL=https://nicoeliceche.github.io/ImponectApp/
-MICROSOFT_REDIRECT_URI=https://TU_BACKEND_PUBLICO/api/auth/microsoft/callback
-CLICKUP_REDIRECT_URI=https://TU_BACKEND_PUBLICO/api/auth/clickup/callback
+MICROSOFT_REDIRECT_URI=https://imponect-api.onrender.com/api/auth/microsoft/callback
+CLICKUP_REDIRECT_URI=https://imponect-api.onrender.com/api/auth/clickup/callback
 ```
 
 Guía corta para deploy gratuito del backend:

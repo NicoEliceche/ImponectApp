@@ -1004,6 +1004,72 @@ export const EmailContentBody = styled.div`
   white-space: pre-wrap;
   flex: 1;
   overflow-y: auto;
+
+  ${({ theme }) => theme?.isDark && css`
+    color-scheme: dark;
+    background-color: ${theme.color.neutral[50]};
+    color: ${theme.color.text};
+
+    &,
+    body,
+    table,
+    thead,
+    tbody,
+    tfoot,
+    tr,
+    td,
+    th,
+    div,
+    section,
+    article,
+    main,
+    header,
+    footer,
+    p,
+    span,
+    font,
+    center,
+    blockquote,
+    ul,
+    ol,
+    li,
+    pre,
+    code {
+      background-color: ${theme.color.neutral[50]} !important;
+      border-color: ${theme.color.border} !important;
+      color: ${theme.color.text} !important;
+    }
+
+    [bgcolor],
+    [style*='background'],
+    [style*='background-color'] {
+      background-color: ${theme.color.neutral[50]} !important;
+    }
+
+    [color],
+    [style*='color'] {
+      color: ${theme.color.text} !important;
+    }
+
+    a,
+    a * {
+      color: ${theme.color.accentLight} !important;
+    }
+
+    img,
+    picture,
+    svg,
+    video,
+    canvas {
+      background-color: transparent !important;
+      color: inherit !important;
+    }
+
+    hr {
+      background-color: ${theme.color.border} !important;
+      border-color: ${theme.color.border} !important;
+    }
+  `}
 `;
 
 export const MenuItem = styled.div`

@@ -7,12 +7,16 @@ services:
     buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /health
-    autoDeploy: true
+    autoDeployTrigger: commit
     envVars:
       - key: NODE_ENV
         value: production
       - key: FRONTEND_URL
         value: https://nicoeliceche.github.io/ImponectApp
+      - key: CORS_ORIGINS
+        value: https://nicoeliceche.github.io
+      - key: JWT_SECRET
+        generateValue: true
       - key: DATABASE_URL
         sync: false
       - key: DB_SCHEMA

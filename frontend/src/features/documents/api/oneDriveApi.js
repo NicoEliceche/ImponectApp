@@ -1,78 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import {
+  fetchOneDriveItems,
+  ONE_DRIVE_QUERY_STALE_MS,
+  oneDriveExplorerQueryKey,
+  oneDriveRetryDelay,
+  shouldRetryOneDriveRequest
+} from '../../../app/services/oneDriveService';
 import { apiUrl, getRuntimeDiagnostics } from '../../../shared/utils/urls';
 import { logClientEvent } from '../../../shared/utils/clientLogger';
 
 const API_URL = apiUrl('/api/onedrive');
-
-const readResponseBody = async (response) => {
-  const contentType = response.headers.get('content-type') || '';
-  const bodyText = await response.text();
-
-  if (contentType.includes('application/json')) {
-    try {
-      return JSON.parse(bodyText);
-    } catch {
-      return bodyText;
-    }
-  }
-
-  return bodyText;
-};
-
-const requestOneDriveJson = async (url, operation, details = {}) => {
-  const startedAt = performance.now();
-
-  logClientEvent('info', 'documents.onedrive.request', `${operation} started`, {
-    url,
-    operation,
-    details,
-    runtime: getRuntimeDiagnostics(),
-  });
-
-  try {
-    const response = await fetch(url);
-    const body = await readResponseBody(response);
-    const durationMs = Math.round(performance.now() - startedAt);
-
-    if (!response.ok) {
-      const error = new Error(`OneDrive request failed with HTTP ${response.status}`);
-      error.status = response.status;
-      error.details = {
-        url,
-        operation,
-        status: response.status,
-        statusText: response.statusText,
-        durationMs,
-        body,
-      };
-
-      logClientEvent('error', 'documents.onedrive.request', `${operation} failed`, error.details);
-      throw error;
-    }
-
-    logClientEvent('info', 'documents.onedrive.request', `${operation} completed`, {
-      url,
-      operation,
-      status: response.status,
-      durationMs,
-      itemCount: Array.isArray(body) ? body.length : null,
-    });
-
-    return body;
-  } catch (error) {
-    if (!error.details) {
-      logClientEvent('error', 'documents.onedrive.request', `${operation} failed before response`, {
-        url,
-        operation,
-        message: error.message,
-        runtime: getRuntimeDiagnostics(),
-      });
-    }
-
-    throw error;
-  }
-};
 
 const requestOneDriveMutation = async (operation, request, details = {}) => {
   const startedAt = performance.now();
@@ -129,19 +67,11 @@ export const createOneDriveFile = async ({ parentId = null, name, type }) => {
 
 export const useOneDriveExplorer = (folderId = null, searchQuery = '') => {
   return useQuery({
-    queryKey: ['oneDriveExplorer', folderId, searchQuery],
-    queryFn: async () => {
-      if (searchQuery) {
-        return requestOneDriveJson(
-          `${API_URL}/search?q=${encodeURIComponent(searchQuery)}`,
-          'search files',
-          { folderId, searchQuery }
-        );
-      }
-      const url = folderId ? `${API_URL}/files/${folderId}` : `${API_URL}/files`;
-
-      return requestOneDriveJson(url, 'fetch files', { folderId });
-    }
+    queryKey: oneDriveExplorerQueryKey(folderId, searchQuery),
+    queryFn: () => fetchOneDriveItems({ folderId, searchQuery }),
+    retry: shouldRetryOneDriveRequest,
+    retryDelay: oneDriveRetryDelay,
+    staleTime: ONE_DRIVE_QUERY_STALE_MS,
   });
 };
 
@@ -150,7 +80,7 @@ export const useOneDriveActions = () => {
 
   const createFolder = useMutation({
     mutationFn: createOneDriveFolder,
-    onSuccess: () => queryClient.invalidateQueries(['oneDriveExplorer'])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['oneDriveExplorer'] })
   });
 
   const deleteItem = useMutation({
@@ -161,7 +91,7 @@ export const useOneDriveActions = () => {
         { itemId }
       );
     },
-    onSuccess: () => queryClient.invalidateQueries(['oneDriveExplorer'])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['oneDriveExplorer'] })
   });
 
   const renameItem = useMutation({
@@ -172,12 +102,12 @@ export const useOneDriveActions = () => {
         { itemId, newName }
       );
     },
-    onSuccess: () => queryClient.invalidateQueries(['oneDriveExplorer'])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['oneDriveExplorer'] })
   });
 
   const createFile = useMutation({
     mutationFn: createOneDriveFile,
-    onSuccess: () => queryClient.invalidateQueries(['oneDriveExplorer'])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['oneDriveExplorer'] })
   });
 
   const moveItem = useMutation({
@@ -188,7 +118,7 @@ export const useOneDriveActions = () => {
         { itemId, parentId, name }
       );
     },
-    onSuccess: () => queryClient.invalidateQueries(['oneDriveExplorer'])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['oneDriveExplorer'] })
   });
 
   const copyItem = useMutation({
@@ -199,7 +129,7 @@ export const useOneDriveActions = () => {
         { itemId, parentId, name }
       );
     },
-    onSuccess: () => queryClient.invalidateQueries(['oneDriveExplorer'])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['oneDriveExplorer'] })
   });
 
   return { createFolder, deleteItem, renameItem, createFile, moveItem, copyItem };

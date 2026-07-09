@@ -17,6 +17,41 @@ const SYSTEM_INSTRUCTION = [
   'No modifiques archivos ni ejecutes acciones sobre la computadora.'
 ].join(' ');
 
+const REASONING_BUDGET_BY_EFFORT = {
+  minimal: 0,
+  low: 1024,
+  medium: -1,
+  high: 8192,
+  xhigh: 16384
+};
+
+const REASONING_LEVELS = new Set(['minimal', 'low', 'medium', 'high']);
+
+const normalizeGeminiModel = (value) => {
+  const model = String(value || '').trim();
+  return model.startsWith('gemini-') ? model.slice(0, 80) : process.env.GEMINI_MODEL || DEFAULT_API_MODEL;
+};
+
+const buildThinkingConfig = (model, effort) => {
+  const normalizedEffort = String(effort || '').trim().toLowerCase();
+  if (!normalizedEffort || normalizedEffort === 'default') return undefined;
+
+  if (model.includes('gemini-3')) {
+    return {
+      thinkingLevel: normalizedEffort === 'xhigh' ? 'high' : REASONING_LEVELS.has(normalizedEffort) ? normalizedEffort : 'medium'
+    };
+  }
+
+  if (model.includes('gemini-2.5')) {
+    const budget = REASONING_BUDGET_BY_EFFORT[normalizedEffort];
+    if (budget === undefined) return undefined;
+    if (budget === 0 && model.includes('pro')) return { thinkingBudget: 128 };
+    return { thinkingBudget: budget };
+  }
+
+  return undefined;
+};
+
 const normalizeMessages = (messages) => {
   if (!Array.isArray(messages)) return [];
 
@@ -69,10 +104,11 @@ const extractApiResponse = (payload, model) => {
 
 const chatWithApi = async (messages, options = {}) => {
   const apiKey = getApiKey();
-  const model = process.env.GEMINI_MODEL || DEFAULT_API_MODEL;
+  const model = normalizeGeminiModel(options.model);
   const systemInstruction = options.systemInstruction || SYSTEM_INSTRUCTION;
   const context = options.context ? `\n\nContexto recuperado:\n${options.context}` : '';
   const tools = options.enableWebSearch === false ? undefined : [{ google_search: {} }];
+  const thinkingConfig = buildThinkingConfig(model, options.reasoningEffort);
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: 'POST',
     headers: {
@@ -87,6 +123,7 @@ const chatWithApi = async (messages, options = {}) => {
         role: message.role,
         parts: [{ text: message.content }]
       })),
+      generationConfig: thinkingConfig ? { thinkingConfig } : undefined,
       tools
     })
   });
@@ -167,7 +204,8 @@ const chatWithCli = (messages, options = {}) => {
 
 const getStatus = () => ({
   available: Boolean(getApiKey() || getCliScriptPath()),
-  provider: getApiKey() ? 'gemini-api' : getCliScriptPath() ? 'gemini-cli' : null
+  provider: getApiKey() ? 'gemini-api' : getCliScriptPath() ? 'gemini-cli' : null,
+  defaultModel: process.env.GEMINI_MODEL || DEFAULT_API_MODEL
 });
 
 const chat = async (rawMessages, options = {}) => {

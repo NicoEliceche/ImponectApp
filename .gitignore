@@ -1,13 +1,35 @@
+# Dependencies
 node_modules/
+**/node_modules/
+
+# Build outputs and caches
 dist/
+**/dist/
+.vite/
+**/.vite/
 .gh-pages-deploy/
+coverage/
+**/coverage/
 
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.sample
 config/.env
-*.log
 
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
 .DS_Store
 Thumbs.db
 
+# Local workspace files
 MEMORY.md
 /Skills/
 {{WORKSPACE_DIR}}/

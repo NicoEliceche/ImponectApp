@@ -10,6 +10,7 @@ const distDir = resolve(frontendDir, 'dist');
 const deployDir = resolve(rootDir, '.gh-pages-deploy');
 const branch = 'gh-pages';
 const basePath = process.env.VITE_BASE_PATH || '/ImponectApp/';
+const apiBaseUrl = process.env.VITE_API_BASE_URL || 'https://imponect-api.onrender.com';
 const noPush = process.argv.includes('--no-push');
 const skipBuild = process.argv.includes('--skip-build');
 
@@ -51,11 +52,13 @@ if (!deployDir.startsWith(rootDir)) {
 
 if (!skipBuild) {
   console.log(`Building frontend with VITE_BASE_PATH=${basePath}`);
+  console.log(`Building frontend with VITE_API_BASE_URL=${apiBaseUrl}`);
   runNpm(['run', 'build'], frontendDir, {
     stdio: 'inherit',
     env: {
       ...process.env,
       VITE_BASE_PATH: basePath,
+      VITE_API_BASE_URL: apiBaseUrl,
     },
   });
 }

@@ -164,12 +164,12 @@ const SettingsLink = styled(StyledNavLink)`
 
 const navItems = [
   { name: 'DASHBOARD', path: '/', icon: IconDashboard },
-  { name: 'DOCUMENTOS', path: '/documents', icon: IconFolder },
-  { name: 'EMAIL', path: '/email', icon: IconMail },
-  { name: 'AGENTES / ASISTENTES', path: '/ai-hub', icon: IconIA },
   { name: 'CHATS', path: '/crm', icon: IconCRM },
-  { name: 'PRESUPUESTOS', path: '/quotes', icon: IconQuotes },
+  { name: 'EMAIL', path: '/email', icon: IconMail },
   { name: 'COTIZADOR', path: '/cotizador', icon: IconCalculator },
+  { name: 'DOCUMENTOS', path: '/documents', icon: IconFolder },
+  { name: 'PRESUPUESTOS', path: '/quotes', icon: IconQuotes },
+  { name: 'AGENTES / ASISTENTES', path: '/ai-hub', icon: IconIA },
   { name: 'NEGOCIO', path: '/business', icon: IconBusiness },
   { name: 'CATÁLOGO', path: '/catalog', icon: IconCatalog },
 ];

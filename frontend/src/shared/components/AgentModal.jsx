@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiUrl } from '../utils/urls';
 import {
@@ -118,6 +118,135 @@ const defaultAgentForm = {
   },
 };
 
+const cloneDefaultAgentForm = () => ({
+  ...defaultAgentForm,
+  config: {
+    ...defaultAgentForm.config,
+    model_settings: { ...defaultAgentForm.config.model_settings },
+    runtime: { ...defaultAgentForm.config.runtime },
+    guardrails: { ...defaultAgentForm.config.guardrails },
+    rag: { ...defaultAgentForm.config.rag },
+    skills: { ...defaultAgentForm.config.skills },
+    mcp: {
+      ...defaultAgentForm.config.mcp,
+      servers: [createMcpServer()],
+    },
+  },
+});
+
+const stringifyListValue = (value) => {
+  if (Array.isArray(value)) return value.join(', ');
+  return String(value || '');
+};
+
+const stringifyObjectValue = (value) => {
+  if (!value || typeof value !== 'object') return String(value || '');
+  return Object.entries(value).map(([key, item]) => `${key}=${item}`).join('\n');
+};
+
+const hydrateAgentForm = (agent) => {
+  const base = cloneDefaultAgentForm();
+  const config = agent?.config || {};
+  const modelSettings = config.model_settings || {};
+  const runtime = config.runtime || {};
+  const guardrails = config.guardrails || {};
+  const rag = config.rag || {};
+  const skills = config.skills || {};
+  const mcpServers = config.mcp_servers || config.mcpServers || null;
+
+  return {
+    ...base,
+    name: agent?.name || '',
+    description: agent?.description || '',
+    type: agent?.type || 'custom',
+    external_url: agent?.external_url || '',
+    icon_url: agent?.icon_url || '',
+    config: {
+      ...base.config,
+      instructions: config.instructions || '',
+      agent_mode: config.agent_mode || base.config.agent_mode,
+      model_provider: config.model_provider || base.config.model_provider,
+      model: config.model || base.config.model,
+      handoff_description: config.handoff_description || '',
+      output_type: config.output_type || base.config.output_type,
+      output_schema: config.output_schema || '',
+      model_settings: {
+        ...base.config.model_settings,
+        temperature: String(modelSettings.temperature ?? base.config.model_settings.temperature),
+        top_p: String(modelSettings.top_p ?? base.config.model_settings.top_p),
+        max_tokens: String(modelSettings.max_tokens ?? base.config.model_settings.max_tokens),
+        reasoning_effort: modelSettings.reasoning_effort || modelSettings.reasoning?.effort || base.config.model_settings.reasoning_effort,
+        verbosity: modelSettings.verbosity || base.config.model_settings.verbosity,
+        tool_choice: modelSettings.tool_choice || base.config.model_settings.tool_choice,
+        parallel_tool_calls: modelSettings.parallel_tool_calls ?? base.config.model_settings.parallel_tool_calls,
+        truncation: modelSettings.truncation || base.config.model_settings.truncation,
+        store: modelSettings.store ?? base.config.model_settings.store,
+        prompt_cache_retention: modelSettings.prompt_cache_retention || base.config.model_settings.prompt_cache_retention,
+        top_logprobs: String(modelSettings.top_logprobs ?? ''),
+      },
+      runtime: {
+        ...base.config.runtime,
+        max_turns: String(runtime.max_turns ?? base.config.runtime.max_turns),
+        timeout_seconds: String(runtime.timeout_seconds ?? base.config.runtime.timeout_seconds),
+        retry_attempts: String(runtime.retry_attempts ?? base.config.runtime.retry_attempts),
+        tool_not_found_behavior: runtime.tool_not_found_behavior || base.config.runtime.tool_not_found_behavior,
+        memory_strategy: runtime.memory_strategy || base.config.runtime.memory_strategy,
+        tracing_enabled: runtime.tracing_enabled ?? base.config.runtime.tracing_enabled,
+      },
+      guardrails: {
+        ...base.config.guardrails,
+        input: guardrails.input || '',
+        output: guardrails.output || '',
+        pii_redaction: guardrails.pii_redaction ?? base.config.guardrails.pii_redaction,
+        human_approval: guardrails.human_approval || base.config.guardrails.human_approval,
+      },
+      rag: {
+        ...base.config.rag,
+        enabled: rag.enabled ?? base.config.rag.enabled,
+        assistant_id: rag.assistant_id || '',
+        vector_store_id: rag.vector_store_id || '',
+        data_sources: stringifyListValue(rag.data_sources || base.config.rag.data_sources),
+        ingestion_mode: rag.ingestion_mode || base.config.rag.ingestion_mode,
+        chunking_strategy: rag.chunking_strategy || base.config.rag.chunking_strategy,
+        chunk_size_tokens: String(rag.chunk_size_tokens ?? base.config.rag.chunk_size_tokens),
+        chunk_overlap_tokens: String(rag.chunk_overlap_tokens ?? base.config.rag.chunk_overlap_tokens),
+        separators: stringifyListValue(rag.separators || base.config.rag.separators),
+        embedding_model: rag.embedding_model || base.config.rag.embedding_model,
+        vector_database: rag.vector_database || base.config.rag.vector_database,
+        namespace: rag.namespace || base.config.rag.namespace,
+        metadata_schema: stringifyListValue(rag.metadata_schema || base.config.rag.metadata_schema),
+        attribute_filters: stringifyObjectValue(rag.attribute_filters),
+        retrieval_mode: rag.retrieval_mode || base.config.rag.retrieval_mode,
+        top_k: String(rag.top_k ?? base.config.rag.top_k),
+        score_threshold: String(rag.score_threshold ?? base.config.rag.score_threshold),
+        max_context_tokens: String(rag.max_context_tokens ?? base.config.rag.max_context_tokens),
+        reranker_model: rag.reranker_model || base.config.rag.reranker_model,
+        query_rewrite: rag.query_rewrite ?? base.config.rag.query_rewrite,
+        citations: rag.citations ?? base.config.rag.citations,
+        strict_grounding: rag.strict_grounding ?? base.config.rag.strict_grounding,
+      },
+      skills: {
+        ...base.config.skills,
+        mode: skills.mode || base.config.skills.mode,
+        instructions: skills.instructions || '',
+        folder_name: skills.folder_name || base.config.skills.folder_name,
+        name: skills.name || base.config.skills.name,
+        description: skills.description || '',
+        trigger_examples: skills.trigger_examples || '',
+        resources: stringifyListValue(skills.resources || base.config.skills.resources),
+        skill_md: skills.skill_md || '',
+        files: Array.isArray(skills.files) ? JSON.stringify(skills.files, null, 2) : skills.files || base.config.skills.files,
+      },
+      mcp: {
+        ...base.config.mcp,
+        mode: mcpServers ? 'json' : base.config.mcp.mode,
+        json: mcpServers ? JSON.stringify(mcpServers, null, 2) : '',
+        servers: [createMcpServer()],
+      },
+    },
+  };
+};
+
 const tabs = [
   { id: 'config', label: 'Configuración', icon: IconSettings },
   { id: 'rag', label: 'RAG (Datos)', icon: IconDatabase },
@@ -206,10 +335,11 @@ const buildGuidedMcpConfig = (servers) => ({
 
 export const AgentModal = () => {
   const queryClient = useQueryClient();
-  const { isAgentModalOpen, closeAgentModal } = useUIStore();
+  const { isAgentModalOpen, closeAgentModal, editingAgent } = useUIStore();
   const [activeTab, setActiveTab] = useState('config');
   const [validationError, setValidationError] = useState('');
-  const [agentForm, setAgentForm] = useState(defaultAgentForm);
+  const [agentForm, setAgentForm] = useState(() => cloneDefaultAgentForm());
+  const isEditingAgent = Boolean(editingAgent?.id);
 
   const generatedMcpConfig = useMemo(
     () => buildGuidedMcpConfig(agentForm.config.mcp.servers),
@@ -222,19 +352,22 @@ export const AgentModal = () => {
   );
 
   const resetForm = () => {
-    setAgentForm({
-      ...defaultAgentForm,
-      config: {
-        ...defaultAgentForm.config,
-        mcp: {
-          ...defaultAgentForm.config.mcp,
-          servers: [createMcpServer()],
-        },
-      },
-    });
+    setAgentForm(cloneDefaultAgentForm());
     setValidationError('');
     setActiveTab('config');
   };
+
+  useEffect(() => {
+    if (!isAgentModalOpen) return;
+    if (editingAgent) {
+      setAgentForm(hydrateAgentForm(editingAgent));
+      setValidationError('');
+      setActiveTab('config');
+      return;
+    }
+
+    resetForm();
+  }, [isAgentModalOpen, editingAgent]);
 
   const updateField = (key, value) => {
     setAgentForm(prev => ({ ...prev, [key]: value }));
@@ -314,11 +447,11 @@ export const AgentModal = () => {
     }));
   };
 
-  const createAgentMutation = useMutation({
-    mutationFn: (newAgent) => fetch(apiUrl('/api/ai/agents'), {
-      method: 'POST',
+  const saveAgentMutation = useMutation({
+    mutationFn: (agentPayload) => fetch(apiUrl(isEditingAgent ? `/api/ai/agents/${editingAgent.id}` : '/api/ai/agents'), {
+      method: isEditingAgent ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newAgent),
+      body: JSON.stringify(agentPayload),
     }).then(r => r.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aiAgents'] });
@@ -398,11 +531,11 @@ export const AgentModal = () => {
     };
   };
 
-  const handleAddAgent = () => {
+  const handleSaveAgent = () => {
     setValidationError('');
 
     try {
-      createAgentMutation.mutate(buildPayload());
+      saveAgentMutation.mutate(buildPayload());
     } catch (error) {
       setValidationError(error instanceof Error ? error.message : 'La configuración avanzada no es un JSON válido.');
     }
@@ -414,7 +547,7 @@ export const AgentModal = () => {
     <S.ModalOverlay onClick={closeAgentModal}>
       <S.ModalUI onClick={event => event.stopPropagation()}>
         <S.ModalHeader>
-          <S.ModalTitle><IconPlus /> Nuevo Agente/Asistente</S.ModalTitle>
+          <S.ModalTitle>{isEditingAgent ? <IconPencil /> : <IconPlus />} {isEditingAgent ? 'Editar Agente/Asistente' : 'Nuevo Agente/Asistente'}</S.ModalTitle>
           <S.CloseButton onClick={closeAgentModal}><IconClose /></S.CloseButton>
         </S.ModalHeader>
 
@@ -1353,10 +1486,10 @@ export const AgentModal = () => {
           <S.Button onClick={closeAgentModal}>Cancelar</S.Button>
           <S.Button
             $variant="primary"
-            onClick={handleAddAgent}
-            disabled={createAgentMutation.isPending}
+            onClick={handleSaveAgent}
+            disabled={saveAgentMutation.isPending}
           >
-            Guardar Agente
+            {isEditingAgent ? 'Actualizar Agente' : 'Guardar Agente'}
           </S.Button>
         </S.ModalFooter>
       </S.ModalUI>

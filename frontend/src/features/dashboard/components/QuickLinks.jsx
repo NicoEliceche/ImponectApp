@@ -3,7 +3,14 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { IconRefresh } from '../../../shared/components/Icons';
-import { apiUrl, publicAsset } from '../../../shared/utils/urls';
+import { publicAsset } from '../../../shared/utils/urls';
+import {
+  fetchOneDriveItems,
+  ONE_DRIVE_QUERY_STALE_MS,
+  oneDriveExplorerQueryKey,
+  oneDriveRetryDelay,
+  shouldRetryOneDriveRequest
+} from '../../../app/services/oneDriveService';
 
 const Card = styled.div`
   background-color: ${({ theme }) => theme.color.surface};
@@ -130,6 +137,12 @@ const SyncButton = styled.button`
     transform: translateY(-1px);
   }
 
+  &:disabled {
+    cursor: wait;
+    opacity: 0.72;
+    transform: none;
+  }
+
   svg {
     width: 1.1rem;
     height: 1.1rem;
@@ -139,17 +152,23 @@ const SyncButton = styled.button`
 const QuickLinks = () => {
   const navigate = useNavigate();
 
-  const { data: driveItems, error: driveError, refetch: refetchDrive, isFetching: isFetchingDrive } = useQuery({
-    queryKey: ['oneDriveExplorer'],
-    queryFn: async () => {
-      const res = await fetch(apiUrl('/api/onedrive/files'));
-      if (!res.ok) throw new Error();
-      return res.json();
-    },
-    retry: false
+  const {
+    data: driveItems,
+    error: driveError,
+    refetch: refetchDrive,
+    isFetching: isFetchingDrive,
+    isLoading: isLoadingDrive
+  } = useQuery({
+    queryKey: oneDriveExplorerQueryKey(),
+    queryFn: () => fetchOneDriveItems(),
+    retry: shouldRetryOneDriveRequest,
+    retryDelay: oneDriveRetryDelay,
+    staleTime: ONE_DRIVE_QUERY_STALE_MS,
   });
 
-  const oneDriveStatus = driveError ? 'DESCONECTADO' : (driveItems ? 'SINCRONIZADO' : 'CONECTANDO...');
+  const isDriveSyncing = isLoadingDrive || (isFetchingDrive && !driveItems);
+  const hasDriveError = Boolean(driveError && !isDriveSyncing);
+  const oneDriveStatus = isDriveSyncing ? 'SINCRONIZANDO...' : hasDriveError ? 'DESINCRONIZADO' : 'SINCRONIZADO';
 
   return (
     <Card>
@@ -161,11 +180,11 @@ const QuickLinks = () => {
             <Logo src={publicAsset('assets/onedrive_logo.png')} alt="OneDrive" />
             <MiniHeaderText>
               <MiniTitle>Documentos (OneDrive)</MiniTitle>
-              <StatusText $error={!!driveError}>
+              <StatusText $error={hasDriveError}>
                 <SyncDot /> {oneDriveStatus}
               </StatusText>
             </MiniHeaderText>
-            <SyncButton onClick={() => refetchDrive()} title="Sincronizar OneDrive">
+            <SyncButton onClick={() => refetchDrive()} title="Sincronizar OneDrive" disabled={isFetchingDrive}>
               <IconRefresh className={isFetchingDrive ? 'animate-spin' : ''} />
             </SyncButton>
           </MiniHeader>
