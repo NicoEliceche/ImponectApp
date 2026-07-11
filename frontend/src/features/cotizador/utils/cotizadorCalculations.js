@@ -48,11 +48,11 @@ const rateValue = (value) => positiveNumber(value) / 100;
 const hasManualValue = (value) => String(value ?? '').trim() !== '';
 
 const calculateFiscalDeposit = (chargeableMeasure) => {
-  if (chargeableMeasure < 1) return 750;
+  if (chargeableMeasure <= 1) return 750;
   if (chargeableMeasure < 3) return 800;
   if (chargeableMeasure < 5) return 850;
   if (chargeableMeasure < 8) return 855;
-  if (chargeableMeasure < 10) return 875;
+  if (chargeableMeasure <= 10) return 875;
   return 875 + ((chargeableMeasure - 10) * 25);
 };
 

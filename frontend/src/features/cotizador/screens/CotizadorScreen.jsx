@@ -23,6 +23,15 @@ const buildInitialLoads = () => [
   },
 ];
 
+const fiscalDepositRows = [
+  ['0 a 1 TON/CBM', 'USD 750'],
+  ['1.01 a 2.99 TON/CBM', 'USD 800'],
+  ['3 a 4.99 TON/CBM', 'USD 850'],
+  ['5 a 7.99 TON/CBM', 'USD 855'],
+  ['8 a 10 TON/CBM', 'USD 875'],
+  ['Superior a 10 TON/CBM', 'USD 875 + USD 25 por excedente'],
+];
+
 const formatMoney = (value) => new Intl.NumberFormat('es-AR', {
   style: 'currency',
   currency: 'USD',
@@ -383,7 +392,7 @@ export const CotizadorScreen = () => {
                 <S.PanelTitle>Destino y presupuesto</S.PanelTitle>
                 <S.SettingsFields>
                   <NumberField label="Gastos destino" unit="USD" value={settings.destinationExpenses} onChange={value => updateSetting('destinationExpenses', value)} />
-                  <NumberField label="Depósito fiscal" unit="USD" value={settings.fiscalDepositOverride} onChange={value => updateSetting('fiscalDepositOverride', value)} />
+                  <NumberField label="Depósito fiscal" unit="USD" placeholder="Auto tabla" value={settings.fiscalDepositOverride} onChange={value => updateSetting('fiscalDepositOverride', value)} />
                   <SelectField label="Carga IMO" unit="IMO" value={settings.imoCargo} onChange={value => updateSetting('imoCargo', value)}>
                     <option value="NO">NO</option>
                     <option value="SI">SÍ</option>
@@ -396,6 +405,14 @@ export const CotizadorScreen = () => {
                   <NumberField label="Envío terrestre" unit="USD" value={settings.terrestrialFreight} onChange={value => updateSetting('terrestrialFreight', value)} />
                   <NumberField label="Ganancia" unit="%" value={settings.profitRate} onChange={value => updateSetting('profitRate', value)} />
                 </S.SettingsFields>
+                <S.FiscalScale>
+                  {fiscalDepositRows.map(([range, amount]) => (
+                    <S.FiscalScaleRow key={range}>
+                      <span>{range}</span>
+                      <strong>{amount}</strong>
+                    </S.FiscalScaleRow>
+                  ))}
+                </S.FiscalScale>
               </S.SettingsPanel>
 
               <S.SettingsPanel>

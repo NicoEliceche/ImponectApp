@@ -437,6 +437,46 @@ export const SettingsFields = styled.div`
   }
 `;
 
+export const FiscalScale = styled.div`
+  border: 1px solid ${({ theme }) => theme.color.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.color.neutral[50]};
+  overflow: hidden;
+`;
+
+export const FiscalScaleRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: ${({ theme }) => theme.spacing[3]};
+  padding: ${({ theme }) => theme.spacing[2]} ${({ theme }) => theme.spacing[3]};
+  border-bottom: 1px solid ${({ theme }) => theme.color.border};
+  color: ${({ theme }) => theme.color.textSecondary};
+  font-size: ${({ theme }) => theme.typography.size.xs};
+  font-weight: ${({ theme }) => theme.typography.weight.bold};
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  strong {
+    flex-shrink: 0;
+    color: ${({ theme }) => theme.isDark ? theme.color.accent : theme.color.primary};
+    font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+    text-align: right;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+`;
+
 export const MetricGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
