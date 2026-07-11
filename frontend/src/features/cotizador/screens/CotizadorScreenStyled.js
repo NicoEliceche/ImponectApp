@@ -437,6 +437,13 @@ export const SettingsFields = styled.div`
   }
 `;
 
+export const FiscalDepositBlock = styled.div`
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing[2]};
+`;
+
 export const FiscalScale = styled.div`
   border: 1px solid ${({ theme }) => theme.color.border};
   border-radius: ${({ theme }) => theme.radius.md};

@@ -392,7 +392,17 @@ export const CotizadorScreen = () => {
                 <S.PanelTitle>Destino y presupuesto</S.PanelTitle>
                 <S.SettingsFields>
                   <NumberField label="Gastos destino" unit="USD" value={settings.destinationExpenses} onChange={value => updateSetting('destinationExpenses', value)} />
-                  <NumberField label="Depósito fiscal" unit="USD" placeholder="Auto tabla" value={settings.fiscalDepositOverride} onChange={value => updateSetting('fiscalDepositOverride', value)} />
+                  <S.FiscalDepositBlock>
+                    <NumberField label="Depósito fiscal" unit="USD" placeholder="Auto tabla" value={settings.fiscalDepositOverride} onChange={value => updateSetting('fiscalDepositOverride', value)} />
+                    <S.FiscalScale>
+                      {fiscalDepositRows.map(([range, amount]) => (
+                        <S.FiscalScaleRow key={range}>
+                          <span>{range}</span>
+                          <strong>{amount}</strong>
+                        </S.FiscalScaleRow>
+                      ))}
+                    </S.FiscalScale>
+                  </S.FiscalDepositBlock>
                   <SelectField label="Carga IMO" unit="IMO" value={settings.imoCargo} onChange={value => updateSetting('imoCargo', value)}>
                     <option value="NO">NO</option>
                     <option value="SI">SÍ</option>
@@ -405,14 +415,6 @@ export const CotizadorScreen = () => {
                   <NumberField label="Envío terrestre" unit="USD" value={settings.terrestrialFreight} onChange={value => updateSetting('terrestrialFreight', value)} />
                   <NumberField label="Ganancia" unit="%" value={settings.profitRate} onChange={value => updateSetting('profitRate', value)} />
                 </S.SettingsFields>
-                <S.FiscalScale>
-                  {fiscalDepositRows.map(([range, amount]) => (
-                    <S.FiscalScaleRow key={range}>
-                      <span>{range}</span>
-                      <strong>{amount}</strong>
-                    </S.FiscalScaleRow>
-                  ))}
-                </S.FiscalScale>
               </S.SettingsPanel>
 
               <S.SettingsPanel>
