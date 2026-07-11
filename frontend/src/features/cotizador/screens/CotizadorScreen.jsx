@@ -34,7 +34,7 @@ const formatNumber = (value, digits = 2) => new Intl.NumberFormat('es-AR', {
   minimumFractionDigits: digits,
 }).format(value);
 
-const NumberField = ({ label, unit, value, onChange, step = '0.01', muted = false }) => (
+const NumberField = ({ label, unit, value, onChange, step = '0.01', muted = false, placeholder }) => (
   <S.Field $muted={muted}>
     <label>{label}</label>
     <S.InputUnit>
@@ -43,6 +43,7 @@ const NumberField = ({ label, unit, value, onChange, step = '0.01', muted = fals
         type="number"
         step={step}
         value={value}
+        placeholder={placeholder}
         onChange={event => onChange(event.target.value)}
       />
     </S.InputUnit>
@@ -361,7 +362,7 @@ export const CotizadorScreen = () => {
                 <S.SettingsFields>
                   <NumberField label="Trade Assurance" unit="%" value={settings.tradeAssuranceRate} onChange={value => updateSetting('tradeAssuranceRate', value)} />
                   <NumberField label="Flete marítimo" unit="USD" value={settings.seaFreightRate} onChange={value => updateSetting('seaFreightRate', value)} />
-                  <NumberField label="Seguro de carga" unit="USD" value={settings.cargoInsurance} onChange={value => updateSetting('cargoInsurance', value)} />
+                  <NumberField label="Seguro de carga" unit="USD" placeholder="Auto 1%" value={settings.cargoInsurance} onChange={value => updateSetting('cargoInsurance', value)} />
                   <NumberField label="Gastos de origen" unit="USD" value={settings.originExpenses} onChange={value => updateSetting('originExpenses', value)} />
                 </S.SettingsFields>
               </S.SettingsPanel>

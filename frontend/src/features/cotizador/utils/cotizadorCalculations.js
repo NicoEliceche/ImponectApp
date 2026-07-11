@@ -13,7 +13,7 @@ export const createDefaultLoad = (index = 1) => ({
 export const defaultQuoteSettings = {
   tradeAssuranceRate: 3,
   seaFreightRate: 200,
-  cargoInsurance: 0,
+  cargoInsurance: '',
   originExpenses: 0,
   derRate: 35,
   statisticRate: 3,
@@ -44,6 +44,8 @@ export const numberValue = (value) => {
 const positiveNumber = (value) => Math.max(numberValue(value), 0);
 
 const rateValue = (value) => positiveNumber(value) / 100;
+
+const hasManualValue = (value) => String(value ?? '').trim() !== '';
 
 const calculateFiscalDeposit = (chargeableMeasure) => {
   if (chargeableMeasure < 1) return 750;
@@ -89,7 +91,9 @@ const sumBy = (items, selector) => items.reduce((total, item) => total + selecto
 const calculateCustomsTotal = ({ totals, settings, freight, chargeableMeasure, method }) => {
   const vatRate = rateValue(settings.vatRate);
   const fobAdjusted = totals.fob * (1 + rateValue(settings.tradeAssuranceRate));
-  const cargoInsurance = positiveNumber(settings.cargoInsurance);
+  const cargoInsurance = hasManualValue(settings.cargoInsurance)
+    ? positiveNumber(settings.cargoInsurance)
+    : (fobAdjusted + freight) * 0.01;
   const originExpenses = positiveNumber(settings.originExpenses);
   const cif = fobAdjusted + freight + cargoInsurance + originExpenses;
   const der = cif * rateValue(settings.derRate);
