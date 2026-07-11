@@ -41,27 +41,27 @@ const groupTone = ({ $tone, theme }) => {
   if ($tone === 'tax') {
     return css`
       border-left-color: ${theme.color.warning};
-      background: ${theme.color.warningLight};
+      background: ${theme.isDark ? theme.color.neutral[50] : theme.color.warningLight};
     `;
   }
 
   if ($tone === 'destination') {
     return css`
       border-left-color: ${theme.color.accent};
-      background: ${theme.color.accentFaded};
+      background: ${theme.isDark ? theme.color.neutral[50] : theme.color.accentFaded};
     `;
   }
 
   if ($tone === 'total') {
     return css`
       border-left-color: ${theme.color.success};
-      background: ${theme.color.successLight};
+      background: ${theme.isDark ? theme.color.neutral[50] : theme.color.successLight};
     `;
   }
 
   return css`
     border-left-color: ${theme.color.primary};
-    background: ${theme.color.primaryFaded};
+    background: ${theme.isDark ? theme.color.neutral[50] : theme.color.primaryFaded};
   `;
 };
 
@@ -149,8 +149,14 @@ export const TabBar = styled.div`
 export const TabButton = styled.button`
   ${buttonBase};
   border: 1px solid ${({ $active, theme }) => ($active ? theme.color.accent : theme.color.border)};
-  background: ${({ $active, theme }) => ($active ? theme.color.accentFaded : theme.color.surface)};
-  color: ${({ $active, theme }) => ($active ? theme.color.accentDark : theme.color.textSecondary)};
+  background: ${({ $active, theme }) => {
+    if (!$active) return theme.color.surface;
+    return theme.isDark ? theme.color.neutral[100] : theme.color.accentFaded;
+  }};
+  color: ${({ $active, theme }) => {
+    if (!$active) return theme.color.textSecondary;
+    return theme.isDark ? theme.color.accent : theme.color.accentDark;
+  }};
 `;
 
 export const WorkspaceGrid = styled.div`
@@ -281,7 +287,7 @@ export const IconButton = styled.button`
   &:hover:not(:disabled) {
     border-color: ${({ theme }) => theme.color.error};
     color: ${({ theme }) => theme.color.error};
-    background: ${({ theme }) => theme.color.errorLight};
+    background: ${({ theme }) => theme.isDark ? theme.color.neutral[100] : theme.color.errorLight};
   }
 
   &:disabled {
@@ -348,8 +354,8 @@ export const InputUnit = styled.div`
     justify-content: center;
     padding: 0 ${({ theme }) => theme.spacing[3]};
     border-right: 1px solid ${({ theme }) => theme.color.border};
-    background: ${({ theme }) => theme.color.accentFaded};
-    color: ${({ theme }) => theme.color.accentDark};
+    background: ${({ theme }) => theme.isDark ? theme.color.neutral[100] : theme.color.accentFaded};
+    color: ${({ theme }) => theme.isDark ? theme.color.accent : theme.color.accentDark};
     font-size: ${({ theme }) => theme.typography.size.xs};
     font-weight: ${({ theme }) => theme.typography.weight.extrabold};
     white-space: nowrap;
@@ -463,7 +469,7 @@ export const MetricCard = styled.div`
 
   strong {
     margin-top: ${({ theme }) => theme.spacing[2]};
-    color: ${({ theme }) => theme.color.primary};
+    color: ${({ theme }) => theme.isDark ? theme.color.accent : theme.color.primary};
     font-size: ${({ theme }) => theme.typography.size.lg};
     font-weight: ${({ theme }) => theme.typography.weight.extrabold};
   }
@@ -496,12 +502,12 @@ export const SecondaryButton = styled.button`
   ${buttonBase};
   border: 1px solid ${({ theme }) => theme.color.border};
   background: ${({ theme }) => theme.color.surface};
-  color: ${({ theme }) => theme.color.primary};
+  color: ${({ theme }) => theme.isDark ? theme.color.accent : theme.color.primary};
 
   &:hover:not(:disabled) {
     border-color: ${({ theme }) => theme.color.accent};
-    color: ${({ theme }) => theme.color.accentDark};
-    background: ${({ theme }) => theme.color.accentFaded};
+    color: ${({ theme }) => theme.isDark ? theme.color.accentLight : theme.color.accentDark};
+    background: ${({ theme }) => theme.isDark ? theme.color.neutral[100] : theme.color.accentFaded};
   }
 `;
 
@@ -551,7 +557,10 @@ export const ResultRow = styled.div`
 
   strong {
     flex-shrink: 0;
-    color: ${({ $emphasis, theme }) => ($emphasis ? theme.color.primary : theme.color.text)};
+    color: ${({ $emphasis, theme }) => {
+      if (!$emphasis) return theme.color.text;
+      return theme.isDark ? theme.color.accent : theme.color.primary;
+    }};
     font-weight: ${({ theme }) => theme.typography.weight.extrabold};
     text-align: right;
   }
@@ -627,8 +636,8 @@ export const MethodMeta = styled.span`
 export const WinnerBadge = styled.span`
   border: 1px solid ${({ theme }) => theme.color.accent};
   border-radius: ${({ theme }) => theme.radius.full};
-  background: ${({ theme }) => theme.color.accentFaded};
-  color: ${({ theme }) => theme.color.accentDark};
+  background: ${({ theme }) => theme.isDark ? theme.color.neutral[100] : theme.color.accentFaded};
+  color: ${({ theme }) => theme.isDark ? theme.color.accent : theme.color.accentDark};
   display: inline-flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing[1]};
@@ -679,7 +688,7 @@ export const BarHeader = styled.div`
   font-weight: ${({ theme }) => theme.typography.weight.bold};
 
   strong {
-    color: ${({ theme }) => theme.color.primary};
+    color: ${({ theme }) => theme.isDark ? theme.color.accent : theme.color.primary};
     font-weight: ${({ theme }) => theme.typography.weight.extrabold};
     text-align: right;
   }
