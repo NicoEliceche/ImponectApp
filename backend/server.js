@@ -42,6 +42,7 @@ app.use('/api/onedrive', require('./routes/onedrive'));
 app.use('/api/clickup', require('./routes/clickup'));
 app.use('/api/email', require('./routes/email'));
 app.use('/api/ai', require('./routes/ai'));
+app.use('/api/quotes', require('./routes/quotes'));
 
 app.get('/', (req, res) => {
   res.send('Imponect API Orchestrator is running');
@@ -148,6 +149,87 @@ const initDb = async () => {
         icon_url TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+    `);
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS presupuestos (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
+        razon_social_cliente TEXT NOT NULL,
+        generation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        amount NUMERIC(14, 2) DEFAULT 0,
+        status TEXT DEFAULT 'Borrador',
+        method TEXT DEFAULT 'sea',
+        budget_number TEXT,
+        pdf_base64 TEXT,
+        pdf_filename TEXT,
+        payload JSONB DEFAULT '{}',
+        cargas JSONB DEFAULT '[]',
+        trade_assurance NUMERIC(14, 4),
+        flete_maritimo_aereo NUMERIC(14, 2),
+        seguro_de_carga NUMERIC(14, 2),
+        gastos_de_origen NUMERIC(14, 2),
+        der NUMERIC(8, 4),
+        te NUMERIC(8, 4),
+        iva NUMERIC(8, 4),
+        iva_adicional NUMERIC(8, 4),
+        iibb NUMERIC(8, 4),
+        imp_ganancias NUMERIC(8, 4),
+        deposito_fiscal NUMERIC(14, 2),
+        gastos_destino NUMERIC(14, 2),
+        carga_imo TEXT,
+        despachante NUMERIC(8, 4),
+        minimo_honorarios NUMERIC(14, 2),
+        gestion_firma NUMERIC(14, 2),
+        handling NUMERIC(14, 2),
+        consolidado NUMERIC(14, 2),
+        envio_terrestre NUMERIC(14, 2),
+        ganancia NUMERIC(8, 4),
+        tarifa_aerea NUMERIC(14, 2),
+        peso_cobrado NUMERIC(14, 2),
+        flete_aereo_total NUMERIC(14, 2),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await db.query(`
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS razon_social_cliente TEXT;
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS generation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS amount NUMERIC(14, 2) DEFAULT 0;
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Borrador';
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS method TEXT DEFAULT 'sea';
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS budget_number TEXT;
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS pdf_base64 TEXT;
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS pdf_filename TEXT;
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS payload JSONB DEFAULT '{}';
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS cargas JSONB DEFAULT '[]';
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS trade_assurance NUMERIC(14, 4);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS flete_maritimo_aereo NUMERIC(14, 2);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS seguro_de_carga NUMERIC(14, 2);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS gastos_de_origen NUMERIC(14, 2);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS der NUMERIC(8, 4);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS te NUMERIC(8, 4);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS iva NUMERIC(8, 4);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS iva_adicional NUMERIC(8, 4);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS iibb NUMERIC(8, 4);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS imp_ganancias NUMERIC(8, 4);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS deposito_fiscal NUMERIC(14, 2);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS gastos_destino NUMERIC(14, 2);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS carga_imo TEXT;
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS despachante NUMERIC(8, 4);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS minimo_honorarios NUMERIC(14, 2);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS gestion_firma NUMERIC(14, 2);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS handling NUMERIC(14, 2);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS consolidado NUMERIC(14, 2);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS envio_terrestre NUMERIC(14, 2);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS ganancia NUMERIC(8, 4);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS tarifa_aerea NUMERIC(14, 2);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS peso_cobrado NUMERIC(14, 2);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS flete_aereo_total NUMERIC(14, 2);
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
     `);
 
     // Ensure user 1 exists

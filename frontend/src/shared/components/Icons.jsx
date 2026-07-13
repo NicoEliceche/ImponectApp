@@ -160,6 +160,13 @@ export const IconFile = (props) => (
   </svg>
 );
 
+export const IconEye = (props) => (
+  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12z" />
+    <circle cx="12" cy="12" r="3" strokeWidth={2} />
+  </svg>
+);
+
 export const IconBack = (props) => (
   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" {...props}>
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />

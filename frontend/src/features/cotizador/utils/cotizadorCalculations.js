@@ -2,7 +2,7 @@ export const createDefaultLoad = (index = 1) => ({
   id: `load-${Date.now()}-${index}`,
   label: `Carga ${index}`,
   fob: 0,
-  packages: 1,
+  packages: 0,
   lengthCm: 0,
   widthCm: 0,
   heightCm: 0,

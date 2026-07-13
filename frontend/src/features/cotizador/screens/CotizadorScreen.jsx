@@ -1,8 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   IconCalculator,
   IconCheck,
   IconClose,
+  IconDrafts,
   IconForward,
   IconPlane,
   IconPlus,
@@ -17,6 +19,13 @@ import {
   createDefaultLoad,
   defaultQuoteSettings,
 } from '../utils/cotizadorCalculations';
+import {
+  buildBudgetPdfPayload,
+  buildBudgetPersistencePayload,
+  restoreQuoteState,
+} from '../utils/quotePersistence';
+import { createBudgetPdfFile, downloadBudgetPdfFile } from '../utils/budgetPdf';
+import { createQuote, fetchQuote, updateQuote } from '../../quotes';
 import * as S from './CotizadorScreenStyled';
 
 const buildInitialLoads = () => [
@@ -36,6 +45,8 @@ const fiscalDepositRows = [
 ];
 
 const budgetHeaderSrc = publicAsset('assets/presupuesto-encabezado-v2.png');
+const budgetSignatureStampSrc = publicAsset('assets/presupuesto-espacio-firma.png');
+const budgetSellerSignatureSrc = publicAsset('assets/firma_sin_fondo.png');
 
 const initialBudgetForm = {
   client: '',
@@ -50,6 +61,30 @@ const methodLabels = {
   sea: 'Marítimo',
   air: 'Aéreo',
 };
+
+const clientVatOptions = [
+  'IVA Responsable Inscripto',
+  'IVA Sujeto Exento',
+  'Consumidor Final',
+  'Responsable Monotributo',
+  'Sujeto No Categorizado',
+  'Proveedor del Exterior',
+  'Cliente del Exterior',
+  'IVA Liberado - Ley N° 19.640',
+  'Monotributista Social',
+  'IVA No Alcanzado',
+  'Monotributista Trabajador Independiente Promovido',
+];
+
+const sellerValidityOptions = [
+  '1 día',
+  '2 días',
+  '3 días',
+  '7 días',
+  '14 días',
+  '15 días',
+  '1 mes',
+];
 
 const formatTaxId = (value) => {
   const digits = String(value ?? '').replace(/\D/g, '').slice(0, 11);
@@ -85,11 +120,11 @@ const formatNumber = (value, digits = 2) => new Intl.NumberFormat('es-AR', {
   minimumFractionDigits: digits,
 }).format(value);
 
-const formatInputNumber = (value, digits = 3) => {
+const formatInputNumber = (value, digits = 2) => {
   const numericValue = Number(value);
   if (!Number.isFinite(numericValue)) return '';
   if (numericValue <= 0) return '0';
-  return String(Number(numericValue.toFixed(digits)));
+  return numericValue.toFixed(digits);
 };
 
 const hasPositiveValue = (value) => {
@@ -143,6 +178,18 @@ const BudgetFormField = ({ label, value, onChange, placeholder }) => (
       placeholder={placeholder}
       onChange={event => onChange(event.target.value)}
     />
+  </S.BudgetFormField>
+);
+
+const BudgetFormSelect = ({ label, value, onChange, options, placeholder }) => (
+  <S.BudgetFormField>
+    <label>{label}</label>
+    <select value={value} onChange={event => onChange(event.target.value)}>
+      <option value="" disabled>{placeholder}</option>
+      {options.map(option => (
+        <option key={option} value={option}>{option}</option>
+      ))}
+    </select>
   </S.BudgetFormField>
 );
 
@@ -245,6 +292,8 @@ const BudgetModal = ({
   onMethodChange,
   onClose,
   onSubmit,
+  isGenerating,
+  canSubmit,
 }) => (
   <S.ModalOverlay>
     <S.BudgetModal role="dialog" aria-modal="true" aria-labelledby="budget-modal-title">
@@ -267,9 +316,15 @@ const BudgetModal = ({
 
       <S.BudgetForm onSubmit={onSubmit}>
         <S.BudgetFormGrid>
-          <BudgetFormField label="Cliente" value={form.client} onChange={value => onChange('client', value)} />
-          <BudgetFormField label="CUIT / DNI Cliente" value={form.clientTaxId} onChange={value => onChange('clientTaxId', value)} placeholder="23-31976635-9" />
-          <BudgetFormField label="IVA" value={form.clientVat} onChange={value => onChange('clientVat', value)} placeholder="IVA Responsable Inscripto" />
+          <BudgetFormField label="Razón social / cliente" value={form.client} onChange={value => onChange('client', value)} />
+          <BudgetFormField label="CUIT / DNI Cliente" value={form.clientTaxId} onChange={value => onChange('clientTaxId', value)} placeholder="XX-XXXXXXXX-X" />
+          <BudgetFormSelect
+            label="IVA"
+            value={form.clientVat}
+            onChange={value => onChange('clientVat', value)}
+            options={clientVatOptions}
+            placeholder="Seleccionar IVA"
+          />
           <BudgetFormField label="Domicilio Cliente" value={form.clientAddress} onChange={value => onChange('clientAddress', value)} />
           <BudgetFormField label="Teléfono / Email" value={form.clientContact} onChange={value => onChange('clientContact', value)} />
           <BudgetFormField label="Número de Presupuesto" value={form.budgetNumber} onChange={value => onChange('budgetNumber', value)} />
@@ -278,29 +333,39 @@ const BudgetModal = ({
         <S.BudgetSectionTitle>Info vendedor</S.BudgetSectionTitle>
         <S.BudgetFormGrid>
           {sellerBudgetFields.map(([field, label]) => (
-            <BudgetFormField
-              key={field}
-              label={label}
-              value={sellerForm[field]}
-              onChange={value => onSellerChange(field, value)}
-            />
+            field === 'validity' ? (
+              <BudgetFormSelect
+                key={field}
+                label={label}
+                value={sellerForm[field]}
+                onChange={value => onSellerChange(field, value)}
+                options={sellerValidityOptions}
+                placeholder="Seleccionar validez"
+              />
+            ) : (
+              <BudgetFormField
+                key={field}
+                label={label}
+                value={sellerForm[field]}
+                onChange={value => onSellerChange(field, value)}
+              />
+            )
           ))}
         </S.BudgetFormGrid>
 
         <S.BudgetModalSummary>
           <span>Total general {methodLabels[method].toLowerCase()}</span>
           <strong>{formatMoney(quote.grandTotal)}</strong>
-          <small>{formatMoney(quote.saleNet)} precio venta neto/caja</small>
         </S.BudgetModalSummary>
 
         <S.ModalActions>
           <S.SecondaryButton type="button" onClick={onClose}>
             Cancelar
           </S.SecondaryButton>
-          <S.GoldOutlineButton type="submit">
+          <S.PrimaryButton type="submit" disabled={isGenerating || !canSubmit}>
             <IconQuotes />
-            Generar presupuesto
-          </S.GoldOutlineButton>
+            {isGenerating ? 'Generando...' : 'GENERAR PRESUPUESTO'}
+          </S.PrimaryButton>
         </S.ModalActions>
       </S.BudgetForm>
     </S.BudgetModal>
@@ -361,6 +426,8 @@ const buildSeaGroups = (quote, methodLabel = 'Marítimo') => [
 ];
 
 export const CotizadorScreen = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const quoteIdParam = searchParams.get('id');
   const [loads, setLoads] = useState(buildInitialLoads);
   const [settings, setSettings] = useState({ ...defaultQuoteSettings });
   const [activeTab, setActiveTab] = useState('maritime');
@@ -369,11 +436,64 @@ export const CotizadorScreen = () => {
   const [budgetMethod, setBudgetMethod] = useState('sea');
   const [budgetForm, setBudgetForm] = useState({ ...initialBudgetForm });
   const [sellerBudgetForm, setSellerBudgetForm] = useState({ ...initialSellerBudgetForm });
+  const [isGeneratingBudget, setIsGeneratingBudget] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isLoadingSavedQuote, setIsLoadingSavedQuote] = useState(false);
+  const [currentQuoteId, setCurrentQuoteId] = useState(null);
   const draftQuote = useMemo(() => calculateQuote({ loads, settings }), [loads, settings]);
   const [quoteResult, setQuoteResult] = useState(() => calculateQuote({
     loads: buildInitialLoads(),
     settings: defaultQuoteSettings,
   }));
+  const hasRequiredBudgetFields = budgetForm.client.trim() !== '' && budgetForm.clientVat.trim() !== '';
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    const loadSavedQuote = async () => {
+      if (!quoteIdParam) {
+        setCurrentQuoteId(null);
+        return;
+      }
+
+      setIsLoadingSavedQuote(true);
+
+      try {
+        const savedQuote = await fetchQuote(quoteIdParam);
+        if (!isCurrent) return;
+
+        const restored = restoreQuoteState(savedQuote);
+        const restoredLoads = restored.loads.length ? restored.loads : buildInitialLoads();
+        const restoredSettings = { ...defaultQuoteSettings, ...restored.settings };
+        const restoredQuoteResult = calculateQuote({
+          loads: restoredLoads,
+          settings: restoredSettings,
+        });
+        const restoredMethod = restored.method === 'air' ? 'air' : 'sea';
+
+        setLoads(restoredLoads);
+        setSettings(restoredSettings);
+        setQuoteResult(restoredQuoteResult);
+        setBudgetForm({ ...initialBudgetForm, ...restored.budgetForm });
+        setSellerBudgetForm({ ...initialSellerBudgetForm, ...restored.sellerForm });
+        setSelectedQuoteMethod(restoredMethod);
+        setBudgetMethod(restoredMethod);
+        setCurrentQuoteId(savedQuote.id);
+        setActiveTab('maritime');
+      } catch (error) {
+        console.error('No se pudo cargar el presupuesto para editar', error);
+        window.alert('No se pudo cargar el presupuesto seleccionado. Volvé a intentarlo desde Presupuestos.');
+      } finally {
+        if (isCurrent) setIsLoadingSavedQuote(false);
+      }
+    };
+
+    loadSavedQuote();
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [quoteIdParam]);
 
   const updateLoad = (id, field, value) => {
     setLoads(currentLoads => currentLoads.map(load => (
@@ -420,14 +540,105 @@ export const CotizadorScreen = () => {
     setIsBudgetModalOpen(true);
   };
 
-  const submitBudgetForm = (event) => {
+  const persistQuote = async (payload) => {
+    const savedQuote = currentQuoteId
+      ? await updateQuote(currentQuoteId, payload)
+      : await createQuote(payload);
+
+    setCurrentQuoteId(savedQuote.id);
+    setSearchParams({ id: String(savedQuote.id) }, { replace: true });
+
+    return savedQuote;
+  };
+
+  const submitBudgetForm = async (event) => {
     event.preventDefault();
-    setIsBudgetModalOpen(false);
+
+    if (isGeneratingBudget || !hasRequiredBudgetFields) return;
+
+    setIsGeneratingBudget(true);
+
+    try {
+      const pdfPayload = buildBudgetPdfPayload({
+        form: budgetForm,
+        sellerForm: sellerBudgetForm,
+        loads,
+        settings,
+        quoteResult,
+        method: budgetMethod,
+      });
+      const pdfFile = await createBudgetPdfFile({
+        ...pdfPayload,
+        headerSrc: budgetHeaderSrc,
+        signatureStampSrc: budgetSignatureStampSrc,
+        sellerSignatureSrc: budgetSellerSignatureSrc,
+      });
+
+      await persistQuote(buildBudgetPersistencePayload({
+        pdfPayload,
+        loads,
+        settings,
+        quoteResult,
+        status: 'Pendiente de envío',
+        pdfFile,
+      }));
+
+      downloadBudgetPdfFile(pdfFile);
+      setIsBudgetModalOpen(false);
+    } catch (error) {
+      console.error('No se pudo generar el presupuesto PDF', error);
+      window.alert('No se pudo generar o guardar el presupuesto. Revisá los datos e intentá nuevamente.');
+    } finally {
+      setIsGeneratingBudget(false);
+    }
   };
 
   const runQuote = () => {
     setQuoteResult(draftQuote);
     setActiveTab('comparison');
+  };
+
+  const saveDraftQuote = async () => {
+    if (isSavingDraft) return;
+
+    setIsSavingDraft(true);
+
+    try {
+      const draftForm = {
+        ...budgetForm,
+        client: budgetForm.client.trim() || 'Borrador cotizador',
+      };
+      const pdfPayload = buildBudgetPdfPayload({
+        form: draftForm,
+        sellerForm: sellerBudgetForm,
+        loads,
+        settings,
+        quoteResult: draftQuote,
+        method: 'sea',
+      });
+      const pdfFile = await createBudgetPdfFile({
+        ...pdfPayload,
+        headerSrc: budgetHeaderSrc,
+        signatureStampSrc: budgetSignatureStampSrc,
+        sellerSignatureSrc: budgetSellerSignatureSrc,
+      });
+
+      await persistQuote(buildBudgetPersistencePayload({
+        pdfPayload,
+        loads,
+        settings,
+        quoteResult: draftQuote,
+        status: 'Borrador',
+        pdfFile,
+      }));
+
+      window.alert('Borrador guardado correctamente.');
+    } catch (error) {
+      console.error('No se pudo guardar el borrador del presupuesto', error);
+      window.alert('No se pudo guardar el borrador. Revisá la conexión con el servidor e intentá nuevamente.');
+    } finally {
+      setIsSavingDraft(false);
+    }
   };
 
   const resetQuote = () => {
@@ -440,6 +651,10 @@ export const CotizadorScreen = () => {
     setSellerBudgetForm({ ...initialSellerBudgetForm });
     setSelectedQuoteMethod('sea');
     setBudgetMethod('sea');
+    setIsGeneratingBudget(false);
+    setIsSavingDraft(false);
+    setCurrentQuoteId(null);
+    setSearchParams({}, { replace: true });
     setIsBudgetModalOpen(false);
     setActiveTab('maritime');
   };
@@ -455,7 +670,7 @@ export const CotizadorScreen = () => {
         <S.LoadHeader>
           <S.LoadTitle>
             <strong>{load.label || `Carga ${index + 1}`}</strong>
-            <span>{formatNumber(metrics?.cbm || 0, 3)} CBM · {formatNumber(metrics?.weightTon || 0, 3)} TON</span>
+            <span>{formatNumber(metrics?.cbm || 0, 2)} CBM · {formatNumber(metrics?.weightTon || 0, 2)} TON</span>
           </S.LoadTitle>
           <S.IconButton
             type="button"
@@ -641,7 +856,7 @@ export const CotizadorScreen = () => {
                 <S.PanelTitle>Aéreo estimado</S.PanelTitle>
                 <S.SettingsFields $columns={4}>
                   <NumberField label="Tarifa aérea" unit="USD/KG" value={settings.airRate} onChange={value => updateSetting('airRate', value)} />
-                  <ReadOnlyField label="CBM total" unit="CBM" value={formatNumber(draftQuote.totals.cbm, 3)} />
+                  <ReadOnlyField label="CBM total" unit="CBM" value={formatNumber(draftQuote.totals.cbm, 2)} />
                   <ReadOnlyField label="Peso cobrado" unit="KG" value={formatNumber(draftQuote.totals.airChargeableKg, 2)} />
                   <NumberField label="Flete aéreo total" unit="USD" placeholder="Auto tarifa" value={settings.airDeclaredFreight} onChange={value => updateSetting('airDeclaredFreight', value)} />
                 </S.SettingsFields>
@@ -665,18 +880,22 @@ export const CotizadorScreen = () => {
 
           <S.SideColumn>
             <S.MetricGrid>
-              <MetricCard label="CBM total" value={`${formatNumber(draftQuote.totals.cbm, 3)} CBM`} />
+              <MetricCard label="CBM total" value={`${formatNumber(draftQuote.totals.cbm, 2)} CBM`} />
               <MetricCard label="Peso total" value={`${formatNumber(draftQuote.totals.weightKg, 2)} KG`} />
-              <MetricCard label="Toneladas" value={`${formatNumber(draftQuote.totals.weightTon, 3)} TON`} />
+              <MetricCard label="Toneladas" value={`${formatNumber(draftQuote.totals.weightTon, 2)} TON`} />
               <MetricCard label="Base W/M" value={formatNumber(draftQuote.totals.seaChargeableMeasure, 3)} />
             </S.MetricGrid>
             <BudgetSummary quote={draftQuote.sea} />
             <S.ActionPanel>
-              <S.PrimaryButton type="button" onClick={runQuote}>
+              <S.PrimaryButton type="button" onClick={runQuote} disabled={isLoadingSavedQuote}>
                 <IconCalculator />
                 Cotizar
               </S.PrimaryButton>
-              <S.SecondaryButton type="button" onClick={resetQuote}>
+              <S.GoldOutlineButton type="button" onClick={saveDraftQuote} disabled={isSavingDraft || isLoadingSavedQuote}>
+                <IconDrafts />
+                {isSavingDraft ? 'Guardando...' : 'Guardar como borrador'}
+              </S.GoldOutlineButton>
+              <S.SecondaryButton type="button" onClick={resetQuote} disabled={isLoadingSavedQuote}>
                 <IconRefresh />
                 Restaurar
               </S.SecondaryButton>
@@ -746,10 +965,10 @@ export const CotizadorScreen = () => {
             <S.PanelHeader>
               <S.PanelTitle>Detalle {selectedMethodLabel.toLowerCase()}</S.PanelTitle>
               <S.PanelActions>
-                <S.GoldOutlineButton type="button" onClick={openBudgetModal}>
+                <S.PrimaryButton type="button" onClick={openBudgetModal}>
                   <IconQuotes />
-                  Generar presupuesto
-                </S.GoldOutlineButton>
+                  GENERAR PRESUPUESTO
+                </S.PrimaryButton>
                 <S.SecondaryButton type="button" onClick={() => setActiveTab('maritime')}>
                   Editar datos
                   <IconForward />
@@ -774,6 +993,8 @@ export const CotizadorScreen = () => {
           onMethodChange={setBudgetMethod}
           onClose={() => setIsBudgetModalOpen(false)}
           onSubmit={submitBudgetForm}
+          isGenerating={isGeneratingBudget}
+          canSubmit={hasRequiredBudgetFields}
         />
       )}
     </S.ScreenWrapper>

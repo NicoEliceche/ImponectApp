@@ -784,7 +784,7 @@ export const ActionPanel = styled.div`
   ${panelBase};
   padding: ${({ theme }) => theme.spacing[4]};
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: ${({ theme }) => theme.spacing[3]};
 
   @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
@@ -1217,7 +1217,8 @@ export const BudgetFormField = styled.div`
     text-transform: uppercase;
   }
 
-  input {
+  input,
+  select {
     width: 100%;
     min-width: 0;
     min-height: calc(${({ theme }) => theme.layout.inputHeight} - ${({ theme }) => theme.spacing[3]});
@@ -1230,11 +1231,16 @@ export const BudgetFormField = styled.div`
     font-family: inherit;
     font-size: ${({ theme }) => theme.typography.size.sm};
     font-weight: ${({ theme }) => theme.typography.weight.bold};
+    color-scheme: ${({ theme }) => theme.isDark ? 'dark' : 'light'};
 
     &:focus {
       border-color: ${({ theme }) => theme.color.accent};
       box-shadow: 0 0 0 0.2rem ${({ theme }) => theme.color.accentFaded};
     }
+  }
+
+  select {
+    cursor: pointer;
   }
 `;
 
