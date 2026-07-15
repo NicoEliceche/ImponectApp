@@ -6,6 +6,8 @@ import { AgentModal } from '../../shared/components/AgentModal';
 import { AssistantPanel } from '../../features/app-assistant';
 
 const LayoutWrapper = styled.div`
+  position: relative;
+  isolation: isolate;
   display: flex;
   min-height: 100vh;
   width: 100vw;
@@ -37,6 +39,19 @@ const LayoutWrapper = styled.div`
   color: ${({ theme }) => theme.color.text};
   transition: background 0.3s ease;
   overflow: hidden;
+
+  &::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, ${({ theme }) => theme.isDark ? 'rgba(198, 137, 63, 0.07)' : 'rgba(0, 51, 77, 0.045)'} 1px, transparent 1px),
+      linear-gradient(180deg, ${({ theme }) => theme.isDark ? 'rgba(255, 255, 255, 0.035)' : 'rgba(198, 137, 63, 0.045)'} 1px, transparent 1px);
+    background-size: 52px 52px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9), transparent 88%);
+  }
 `;
 
 const ContentArea = styled.div`
@@ -64,6 +79,17 @@ const Main = styled.main`
   overflow-y: auto;
   padding: ${({ theme }) => theme.spacing[6]};
   width: 100%;
+
+  &::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(115deg, transparent 0%, ${({ theme }) => theme.isDark ? 'rgba(198, 137, 63, 0.07)' : 'rgba(198, 137, 63, 0.04)'} 48%, transparent 72%);
+    opacity: 0.65;
+    z-index: -1;
+  }
 `;
 
 const Container = styled.div`

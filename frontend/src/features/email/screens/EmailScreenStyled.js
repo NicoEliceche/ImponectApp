@@ -14,20 +14,54 @@ const spin = keyframes`
   to { transform: rotate(360deg); }
 `;
 
+const scan = keyframes`
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+`;
+
 export const EmailWrapper = styled.div`
+  position: relative;
+  isolation: isolate;
   display: flex;
   height: calc(100vh - 3rem);
-  background: ${({ theme }) => theme?.color?.background || '#f4f7f9'};
+  background:
+    linear-gradient(90deg, ${({ theme }) => theme?.isDark ? 'rgba(198,137,63,0.055)' : 'rgba(0,51,77,0.035)'} 1px, transparent 1px),
+    linear-gradient(180deg, ${({ theme }) => theme?.isDark ? 'rgba(255,255,255,0.03)' : 'rgba(198,137,63,0.035)'} 1px, transparent 1px),
+    ${({ theme }) => theme?.color?.background || '#f4f7f9'};
+  background-size: 48px 48px, 48px 48px, 100% 100%;
   color: ${({ theme }) => theme?.color?.text || '#001a26'};
+  border: 1px solid ${({ theme }) => theme?.color?.border || '#e2e8f0'};
+  border-radius: ${({ theme }) => theme.radius.md};
+  overflow: hidden;
 `;
 
 export const EmailSidebar = styled.div`
+  position: relative;
   width: 190px;
-  background: ${({ theme }) => theme?.color?.surface || '#ffffff'};
+  background:
+    linear-gradient(180deg, ${({ theme }) => theme?.isDark ? '#0d1f29' : '#ffffff'} 0%, ${({ theme }) => theme?.isDark ? '#06131a' : '#f8fafc'} 100%);
   border-right: 1px solid ${({ theme }) => theme?.color?.border || '#e2e8f0'};
   display: flex;
   flex-direction: column;
   padding: 1rem 0.6rem;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(198, 137, 63, 0.12), transparent);
+    animation: ${scan} 7s ease-in-out infinite;
+  }
 `;
 
 export const AccountSwitcher = styled.div`
@@ -88,7 +122,7 @@ export const SetupCard = styled.div`
   text-align: center;
   background: ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.03)' : theme.color.neutral[50]};
   border: 1px solid ${({ theme }) => theme.color.border};
-  box-shadow: ${({ theme }) => theme.shadow.lg};
+  box-shadow: ${({ theme }) => theme.shadow.lg}, 0 0 28px rgba(198, 137, 63, 0.12);
 `;
 
 export const SetupIcon = styled.div`
@@ -178,7 +212,7 @@ export const ComposeBtn = styled.button`
   margin-bottom: 1.25rem;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(198, 137, 63, 0.25);
+  box-shadow: 0 4px 15px rgba(198, 137, 63, 0.25), 0 0 18px rgba(198, 137, 63, 0.16);
 
   &:hover {
     background: #d4a373;
@@ -240,7 +274,8 @@ export const EmailListContainer = styled.div`
   flex: 0 0 420px;
   display: flex;
   flex-direction: column;
-  background: ${({ theme }) => theme?.color?.background || '#f4f7f9'};
+  background:
+    linear-gradient(180deg, ${({ theme }) => theme?.isDark ? 'rgba(255,255,255,0.025)' : '#ffffff'} 0%, ${({ theme }) => theme?.color?.background || '#f4f7f9'} 100%);
   border-right: 1px solid ${({ theme }) => theme?.color?.border || '#e2e8f0'};
 `;
 
@@ -250,13 +285,13 @@ export const ListToolbar = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: ${({ theme }) => theme?.color?.surface || '#ffffff'};
+  background: ${({ theme }) => theme?.isDark ? 'rgba(198,137,63,0.055)' : '#ffffff'};
   min-height: 3.25rem;
 `;
 
 export const SearchHeader = styled.div`
   padding: 0.85rem 1.25rem;
-  background: ${({ theme }) => theme?.color?.surface || '#ffffff'};
+  background: ${({ theme }) => theme?.isDark ? 'rgba(255,255,255,0.025)' : '#ffffff'};
   border-bottom: 1px solid ${({ theme }) => theme?.color?.border || '#e2e8f0'};
   display: flex;
   justify-content: center;
@@ -338,6 +373,7 @@ export const EmailRow = styled.div`
 
   &:hover {
     background: ${({ $selected, theme }) => $selected ? (theme?.isDark ? 'rgba(198, 137, 63, 0.2)' : '#fff3e6') : (theme?.isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc')};
+    box-shadow: inset 2px 0 0 #c6893f;
   }
 
   &:hover .hover-checkbox,
@@ -393,7 +429,7 @@ export const ComposeModalUI = styled.div`
   height: 85vh;
   border-radius: 20px;
   border: 1px solid #c6893f;
-  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(198, 137, 63, 0.2);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(198, 137, 63, 0.2), 0 0 32px rgba(198, 137, 63, 0.18);
   display: flex;
   flex-direction: column;
   overflow: hidden;

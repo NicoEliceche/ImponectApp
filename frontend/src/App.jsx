@@ -54,6 +54,7 @@ function App() {
           <Route path="/quotes" element={lazyRoute(QuotesScreen)} />
           <Route path="/cotizador" element={lazyRoute(CotizadorScreen)} />
           <Route path="/business" element={lazyRoute(BusinessScreen)} />
+          <Route path="/catalog" element={lazyRoute(CatalogScreen)} />
           <Route path="/documents" element={lazyRoute(DocumentsScreen)} />
           <Route path="/documents/:folderId" element={lazyRoute(DocumentsScreen)} />
           <Route path="/email" element={lazyRoute(EmailScreen)} />

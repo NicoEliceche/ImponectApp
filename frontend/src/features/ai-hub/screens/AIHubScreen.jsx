@@ -1,12 +1,35 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import hljs from 'highlight.js/lib/core';
+import bash from 'highlight.js/lib/languages/bash';
+import cpp from 'highlight.js/lib/languages/cpp';
+import csharp from 'highlight.js/lib/languages/csharp';
+import css from 'highlight.js/lib/languages/css';
+import dockerfile from 'highlight.js/lib/languages/dockerfile';
+import go from 'highlight.js/lib/languages/go';
+import java from 'highlight.js/lib/languages/java';
+import javascript from 'highlight.js/lib/languages/javascript';
+import json from 'highlight.js/lib/languages/json';
+import markdown from 'highlight.js/lib/languages/markdown';
+import php from 'highlight.js/lib/languages/php';
+import powershell from 'highlight.js/lib/languages/powershell';
+import python from 'highlight.js/lib/languages/python';
+import ruby from 'highlight.js/lib/languages/ruby';
+import sql from 'highlight.js/lib/languages/sql';
+import typescript from 'highlight.js/lib/languages/typescript';
+import xml from 'highlight.js/lib/languages/xml';
+import yaml from 'highlight.js/lib/languages/yaml';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useUIStore } from '../../../app/stores/uiStore';
-import { publicAsset } from '../../../shared/utils/urls';
+import { normalizeAgentIconSrc } from '../../../shared/utils/agentIcons';
+import { getAgentSectionLabel, inferAgentSection } from '../../../shared/utils/agentSections';
 import {
+  IconCheck,
+  IconBrandCopy,
   IconClose,
   IconDatabase,
   IconDots,
-  IconIA,
   IconMaximize,
   IconPencil,
   IconPin,
@@ -17,12 +40,15 @@ import {
   IconSettings,
   IconShield,
   IconTrash,
+  IconUserSilhouette,
+  IconWarning,
 } from '../../../shared/components/Icons';
-import { fetchAiAgents, sendAgentChatMessage } from '../api/aiHubApi';
+import { deleteAiAgent, fetchAiAgents, sendAgentChatMessage } from '../api/aiHubApi';
 import * as S from './AIHubScreenStyled';
 
 const CHAT_STORAGE_KEY = 'imponect.aiHub.chats.v1';
 const MAX_STORED_CHATS = 40;
+const FOUNDER_DELETE_PASSWORD = 'Founders2025!';
 
 const MODEL_OPTIONS = [
   { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
@@ -47,26 +73,170 @@ const QUICK_PROMPTS = [
   'Buscá información actual en internet antes de responder.',
 ];
 
-const createChatId = () => `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+[
+  ['bash', bash],
+  ['cpp', cpp],
+  ['csharp', csharp],
+  ['css', css],
+  ['dockerfile', dockerfile],
+  ['go', go],
+  ['java', java],
+  ['javascript', javascript],
+  ['json', json],
+  ['markdown', markdown],
+  ['php', php],
+  ['powershell', powershell],
+  ['python', python],
+  ['ruby', ruby],
+  ['sql', sql],
+  ['typescript', typescript],
+  ['xml', xml],
+  ['yaml', yaml],
+].forEach(([name, language]) => {
+  if (!hljs.getLanguage(name)) hljs.registerLanguage(name, language);
+});
 
-const isAbsoluteUrl = (value) => /^(https?:|data:|blob:)/i.test(String(value || ''));
+const HIGHLIGHT_LANGUAGE_ALIASES = {
+  c: 'cpp',
+  'c++': 'cpp',
+  cs: 'csharp',
+  'c#': 'csharp',
+  docker: 'dockerfile',
+  html: 'xml',
+  js: 'javascript',
+  jsx: 'javascript',
+  md: 'markdown',
+  ps1: 'powershell',
+  py: 'python',
+  sh: 'bash',
+  shell: 'bash',
+  ts: 'typescript',
+  tsx: 'typescript',
+  yml: 'yaml',
+};
+
+const getCodeLanguage = (className = '') => {
+  const match = /language-([\w-]+)/i.exec(className);
+  if (!match?.[1]) return 'Código';
+  return match[1].replace(/-/g, ' ').toUpperCase();
+};
+
+const getHighlightLanguage = (className = '') => {
+  const match = /language-([\w+#-]+)/i.exec(className);
+  const rawLanguage = String(match?.[1] || '').toLowerCase();
+  return HIGHLIGHT_LANGUAGE_ALIASES[rawLanguage] || rawLanguage;
+};
+
+const highlightCode = (codeValue, className = '') => {
+  const language = getHighlightLanguage(className);
+
+  if (language && hljs.getLanguage(language)) {
+    return hljs.highlight(codeValue, { language, ignoreIllegals: true }).value;
+  }
+
+  return hljs.highlightAuto(codeValue).value;
+};
+
+const copyToClipboard = async (value) => {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+
+  const textArea = document.createElement('textarea');
+  textArea.value = value;
+  textArea.setAttribute('readonly', '');
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-9999px';
+  document.body.appendChild(textArea);
+  textArea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textArea);
+};
+
+const stringifyCodeChildren = (value) => {
+  if (Array.isArray(value)) return value.join('');
+  return String(value || '');
+};
+
+const MarkdownInlineCode = ({ className, children, node: _node, ...props }) => (
+  <code className={className} {...props}>{children}</code>
+);
+
+const MarkdownCodeBlock = ({ children }) => {
+  const [copied, setCopied] = useState(false);
+  const copyTimerRef = useRef(null);
+  const codeChild = React.Children.toArray(children).find(child => React.isValidElement(child));
+  const codeClassName = codeChild?.props?.className || '';
+  const codeValue = stringifyCodeChildren(codeChild?.props?.children).replace(/\n$/, '');
+  const language = getCodeLanguage(codeClassName);
+  const highlightedCode = highlightCode(codeValue, codeClassName);
+
+  useEffect(() => () => {
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+  }, []);
+
+  const handleCopyCode = async () => {
+    try {
+      await copyToClipboard(codeValue);
+      setCopied(true);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(false), 1400);
+    } catch (error) {
+      console.error('No se pudo copiar el bloque de código', error);
+    }
+  };
+
+  return (
+    <S.MarkdownCodeBlock>
+      <S.MarkdownCodeHeader>
+        <S.MarkdownCodeLanguage>{language}</S.MarkdownCodeLanguage>
+        <S.MarkdownCopyButton type="button" onClick={handleCopyCode} aria-label="Copiar código">
+          {copied ? <IconCheck /> : <IconBrandCopy />}
+          {copied ? 'Copiado' : 'Copiar'}
+        </S.MarkdownCopyButton>
+      </S.MarkdownCodeHeader>
+      <S.MarkdownCodePre>
+        <code className={codeClassName} dangerouslySetInnerHTML={{ __html: highlightedCode }} />
+      </S.MarkdownCodePre>
+    </S.MarkdownCodeBlock>
+  );
+};
+
+const markdownPlugins = [remarkGfm];
+const markdownComponents = {
+  a: ({ href, children }) => (
+    <a href={href} target="_blank" rel="noopener noreferrer">
+      {children}
+    </a>
+  ),
+  code: MarkdownInlineCode,
+  pre: MarkdownCodeBlock,
+};
+
+const createChatId = () => `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
 const getAgentIconSrc = (agent) => {
   const iconUrl = String(agent?.icon_url || '').trim();
   if (!iconUrl) return '';
-  if (isAbsoluteUrl(iconUrl)) return iconUrl;
-  return publicAsset(iconUrl);
+  return normalizeAgentIconSrc(iconUrl);
 };
 
 const getAgentTypeLabel = (agent) => {
-  if (agent?.type === 'external') return 'Asistente externo';
-  if (agent?.config?.rag?.enabled) return 'Agente con RAG';
-  return 'Agente custom';
+  return getAgentSectionLabel(inferAgentSection(agent));
+};
+
+const getAgentChatTargetLabel = (agent) => {
+  const section = inferAgentSection(agent);
+  if (section === 'rag') return 'este RAG';
+  if (section === 'assistant') return 'este asistente';
+  return 'este agente';
 };
 
 const getAgentSidebarGroup = (agent) => {
-  if (agent?.config?.rag?.enabled) return 'rags';
-  if (agent?.type === 'external') return 'assistants';
+  const section = inferAgentSection(agent);
+  if (section === 'rag') return 'rags';
+  if (section === 'assistant') return 'assistants';
   return 'agents';
 };
 
@@ -120,6 +290,15 @@ const buildAgentSystemInstruction = (agent, chat) => {
   const config = agent?.config || {};
   const rag = config.rag || {};
   const guardrails = config.guardrails || {};
+  const knowledgeFiles = Array.isArray(rag.knowledge_files) ? rag.knowledge_files : [];
+  const knowledgeFileNames = knowledgeFiles
+    .map(file => file?.name)
+    .filter(Boolean);
+  const knowledgeTextPreview = knowledgeFiles
+    .filter(file => file?.text_preview)
+    .slice(0, 6)
+    .map(file => `### ${file.name}\n${String(file.text_preview).slice(0, 1800)}`)
+    .join('\n\n');
 
   return [
     `Sos ${agent?.name || 'un agente de IA'} dentro de Imponect App.`,
@@ -129,6 +308,8 @@ const buildAgentSystemInstruction = (agent, chat) => {
     config.output_type ? `Tipo de salida esperado: ${config.output_type}` : '',
     guardrails.output ? `Guardrails de salida: ${guardrails.output}` : '',
     rag.enabled ? `El agente tiene RAG configurado con fuentes: ${rag.data_sources || 'documentos de negocio'}. Si no hay contexto recuperado explícito, aclaralo antes de asumir datos internos.` : '',
+    rag.enabled && knowledgeFileNames.length ? `Archivos Knowledge cargados (${knowledgeFileNames.length}): ${knowledgeFileNames.slice(0, 20).join(', ')}.` : '',
+    rag.enabled && knowledgeTextPreview ? `Preview textual disponible desde Knowledge:\n${knowledgeTextPreview}` : '',
     `Modelo solicitado para esta conversación: ${chat.model}. Esfuerzo de razonamiento: ${chat.reasoningEffort}.`,
     'Respondé en español salvo que el usuario pida otro idioma.',
     'Sé concreto, operativo y profesional. No inventes acceso a documentos, emails o herramientas si no fueron provistos por el runtime.'
@@ -144,15 +325,29 @@ const normalizeMessagesForApi = (messages) => messages
 
 const AgentAvatar = ({ agent, $compact = false }) => {
   const iconSrc = getAgentIconSrc(agent);
+  const [hasImageError, setHasImageError] = useState(false);
+
+  useEffect(() => {
+    setHasImageError(false);
+  }, [iconSrc]);
 
   return (
     <S.AgentAvatar $compact={$compact}>
-      {iconSrc ? <img src={iconSrc} alt={agent?.name || 'Agente'} /> : <IconIA />}
+      {iconSrc && !hasImageError ? (
+        <img
+          src={iconSrc}
+          alt={agent?.name || 'Agente'}
+          onError={() => setHasImageError(true)}
+        />
+      ) : (
+        <IconUserSilhouette />
+      )}
     </S.AgentAvatar>
   );
 };
 
 export const AIHubScreen = () => {
+  const queryClient = useQueryClient();
   const openAgentModal = useUIStore(state => state.openAgentModal);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeChatId, setActiveChatId] = useState(null);
@@ -161,9 +356,12 @@ export const AIHubScreen = () => {
   const [chats, setChats] = useState(() => getStoredChats());
   const [draftChatConfig, setDraftChatConfig] = useState({});
   const [chatMenu, setChatMenu] = useState(null);
+  const [deleteAgentModal, setDeleteAgentModal] = useState({ show: false, agent: null, password: '', error: '' });
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [renamingChatId, setRenamingChatId] = useState(null);
   const [renameDraft, setRenameDraft] = useState('');
   const messagesEndRef = useRef(null);
+  const chatMenuRef = useRef(null);
 
   const { data: agents = [], isLoading } = useQuery({
     queryKey: ['aiAgents'],
@@ -256,6 +454,37 @@ export const AIHubScreen = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [activeChat?.messages?.length, activeChatId]);
 
+  useEffect(() => {
+    if (!toast.show) return undefined;
+
+    const timer = setTimeout(() => {
+      setToast(current => ({ ...current, show: false }));
+    }, 4200);
+
+    return () => clearTimeout(timer);
+  }, [toast.show, toast.message, toast.type]);
+
+  useEffect(() => {
+    if (!chatMenu) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (chatMenuRef.current?.contains(event.target)) return;
+      setChatMenu(null);
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setChatMenu(null);
+    };
+
+    window.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [chatMenu]);
+
   const chatMutation = useMutation({
     mutationFn: sendAgentChatMessage,
     onSuccess: (result, variables) => {
@@ -297,6 +526,33 @@ export const AIHubScreen = () => {
             }
           : chat
       )));
+    },
+  });
+
+  const deleteAgentMutation = useMutation({
+    mutationFn: deleteAiAgent,
+    onSuccess: (_, agentId) => {
+      const deletedAgentName = deleteAgentModal.agent?.name || 'IA';
+      queryClient.invalidateQueries({ queryKey: ['aiAgents'] });
+      setDeleteAgentModal({ show: false, agent: null, password: '', error: '' });
+      setToast({ show: true, type: 'success', message: `${deletedAgentName} eliminado correctamente.` });
+      setSelectedAgentId(current => (String(current) === String(agentId) ? null : current));
+      setActiveChatId(current => {
+        const currentChat = chats.find(chat => chat.id === current);
+        return String(currentChat?.agentId) === String(agentId) ? null : current;
+      });
+      setDraftChatConfig(current => {
+        const next = { ...current };
+        delete next[String(agentId)];
+        return next;
+      });
+    },
+    onError: (error) => {
+      setDeleteAgentModal(current => ({
+        ...current,
+        error: error.message || 'No se pudo eliminar el agente.',
+      }));
+      setToast({ show: true, type: 'error', message: error.message || 'No se pudo eliminar la IA.' });
     },
   });
 
@@ -380,6 +636,27 @@ export const AIHubScreen = () => {
     });
   };
 
+  const requestDeleteAgent = (event, agent) => {
+    event.stopPropagation();
+    setDeleteAgentModal({ show: true, agent, password: '', error: '' });
+  };
+
+  const closeDeleteAgentModal = () => {
+    if (deleteAgentMutation.isPending) return;
+    setDeleteAgentModal({ show: false, agent: null, password: '', error: '' });
+  };
+
+  const confirmDeleteAgent = () => {
+    if (deleteAgentModal.password !== FOUNDER_DELETE_PASSWORD) {
+      setDeleteAgentModal(current => ({ ...current, error: 'Contraseña incorrecta.' }));
+      setToast({ show: true, type: 'error', message: 'Contraseña incorrecta. No se eliminó la IA.' });
+      return;
+    }
+
+    if (!deleteAgentModal.agent?.id) return;
+    deleteAgentMutation.mutate(deleteAgentModal.agent.id);
+  };
+
   const sendMessage = (content = draft) => {
     if (!chatContext || !activeAgent || chatMutation.isPending) return;
 
@@ -459,6 +736,7 @@ export const AIHubScreen = () => {
       </span>
       <S.AgentEditButton
         type="button"
+        $shifted
         title="Editar configuración"
         onClick={(event) => {
           event.stopPropagation();
@@ -467,6 +745,13 @@ export const AIHubScreen = () => {
       >
         <IconPencil />
       </S.AgentEditButton>
+      <S.AgentDeleteButton
+        type="button"
+        title="Borrar agente"
+        onClick={event => requestDeleteAgent(event, agent)}
+      >
+        <IconTrash />
+      </S.AgentDeleteButton>
     </S.SidebarItem>
   );
 
@@ -486,12 +771,17 @@ export const AIHubScreen = () => {
     </S.SidebarSection>
   );
 
+  const isChatOpen = Boolean(chatContext && activeAgent);
+  const activeAgentSection = activeAgent ? inferAgentSection(activeAgent) : 'agent';
+  const activeAgentTypeLabel = activeAgent ? getAgentTypeLabel(activeAgent) : '';
+  const showRagCapability = Boolean(activeAgent?.config?.rag?.enabled) && activeAgentSection !== 'rag';
+
   return (
     <S.ScreenWrapper>
       <S.InternalSidebar>
         <S.SidebarHeader>
           <S.BrandMark>
-            <S.BrandIcon><IconIA /></S.BrandIcon>
+            <S.BrandIcon><S.AITextIcon>IA</S.AITextIcon></S.BrandIcon>
             <div>
               <S.BrandName>AI Hub</S.BrandName>
               <S.BrandSubtitle>Agentes y conversaciones</S.BrandSubtitle>
@@ -596,6 +886,7 @@ export const AIHubScreen = () => {
 
         {chatMenu && (
           <S.ChatContextMenu
+            ref={chatMenuRef}
             style={{ top: chatMenu.top, left: chatMenu.left }}
             onClick={event => event.stopPropagation()}
           >
@@ -622,20 +913,22 @@ export const AIHubScreen = () => {
       </S.InternalSidebar>
 
       <S.MainArea>
-        <S.TopBar>
-          <div>
-            <S.Title>Agentes / Asistentes</S.Title>
-            <S.Subtitle>Gestiona y orquesta tus Agentes y Asistentes desde un solo lugar.</S.Subtitle>
-          </div>
-          <S.TopActions>
-            <S.CreateAgentButton type="button" onClick={() => openAgentModal()}>
-              <IconPlus />
-              Nuevo Agente/Asistente
-            </S.CreateAgentButton>
-          </S.TopActions>
-        </S.TopBar>
+        {!isChatOpen && (
+          <S.TopBar>
+            <div>
+              <S.Title>Agentes / Asistentes / RAGs</S.Title>
+              <S.Subtitle>Gestiona y orquesta tus Agentes, Asistentes y RAGs desde un solo lugar.</S.Subtitle>
+            </div>
+            <S.TopActions>
+              <S.CreateAgentButton type="button" onClick={() => openAgentModal()}>
+                <IconPlus />
+                Nuevo Agente/Asistente/RAG
+              </S.CreateAgentButton>
+            </S.TopActions>
+          </S.TopBar>
+        )}
 
-        {chatContext && activeAgent ? (
+        {isChatOpen ? (
           <S.ChatWorkspace>
             <S.ChatHeader>
               <S.ActiveAgentInfo>
@@ -643,11 +936,6 @@ export const AIHubScreen = () => {
                 <div>
                   <S.ActiveAgentName>{activeAgent.name}</S.ActiveAgentName>
                   <S.ActiveAgentDescription>{activeAgent.description || getAgentTypeLabel(activeAgent)}</S.ActiveAgentDescription>
-                  <S.AgentMetaRow>
-                    <span>{getAgentTypeLabel(activeAgent)}</span>
-                    {activeAgent?.config?.rag?.enabled && <span>RAG configurado</span>}
-                    {chatContext.enableWebSearch && <span>Web search</span>}
-                  </S.AgentMetaRow>
                 </div>
               </S.ActiveAgentInfo>
 
@@ -677,7 +965,7 @@ export const AIHubScreen = () => {
                   <IconSearch />
                   Web
                 </S.ToggleButton>
-                <S.IconButton type="button" onClick={() => startDraftChat(activeAgent)} title="Nuevo chat con este agente">
+                <S.IconButton type="button" onClick={() => startDraftChat(activeAgent)} title={`Nuevo chat con ${getAgentChatTargetLabel(activeAgent)}`}>
                   <IconPlus />
                 </S.IconButton>
                 <S.IconButton type="button" onClick={() => { setActiveChatId(null); setSelectedAgentId(null); }} title="Cerrar chat">
@@ -691,14 +979,20 @@ export const AIHubScreen = () => {
             ) : (
               <>
                 <S.ToolStrip>
+                  <S.ToolChip $active>
+                    <S.AITextIcon $compact>IA</S.AITextIcon>
+                    {activeAgentTypeLabel}
+                  </S.ToolChip>
                   <S.ToolChip $active={chatContext.enableWebSearch}>
                     <IconSearch />
                     Búsqueda web
                   </S.ToolChip>
-                  <S.ToolChip $active={Boolean(activeAgent?.config?.rag?.enabled)}>
-                    <IconDatabase />
-                    RAG del agente
-                  </S.ToolChip>
+                  {showRagCapability && (
+                    <S.ToolChip $active>
+                      <IconDatabase />
+                      RAG configurado
+                    </S.ToolChip>
+                  )}
                   <S.ToolChip>
                     <IconShield />
                     Guardrails
@@ -728,11 +1022,15 @@ export const AIHubScreen = () => {
                       <S.MessageRow key={message.id} $role={message.role}>
                         <S.MessageBubble $role={message.role} $error={message.isError}>
                           <S.MessageRole>{message.role === 'user' ? 'Vos' : activeAgent.name}</S.MessageRole>
-                          <S.MessageText>{message.content}</S.MessageText>
+                          <S.MessageText $role={message.role}>
+                            <ReactMarkdown remarkPlugins={markdownPlugins} components={markdownComponents}>
+                              {message.content || ''}
+                            </ReactMarkdown>
+                          </S.MessageText>
                           {message.sources?.length > 0 && (
                             <S.SourceList>
                               {message.sources.map(source => (
-                                <a key={source.url || source.title} href={source.url} target="_blank" rel="noreferrer">
+                                <a key={source.url || source.title} href={source.url} target="_blank" rel="noopener noreferrer">
                                   {source.title || source.url}
                                 </a>
                               ))}
@@ -748,7 +1046,12 @@ export const AIHubScreen = () => {
                   {chatMutation.isPending && activeChatId === chatMutation.variables?.chatId && (
                     <S.ThinkingRow>
                       <IconRefresh />
-                      Pensando con {chatContext.model}...
+                      <S.ThinkingCore>
+                        <span />
+                        <span />
+                        <span />
+                      </S.ThinkingCore>
+                      <S.ThinkingText>Pensando con {chatContext.model}...</S.ThinkingText>
                     </S.ThinkingRow>
                   )}
                   <div ref={messagesEndRef} />
@@ -804,12 +1107,12 @@ export const AIHubScreen = () => {
                 </S.AgentCard>
               )) : (
                 <S.EmptyLibrary>
-                  <IconIA />
+                  <S.AITextIcon $large>IA</S.AITextIcon>
                   <h2>No hay agentes todavía</h2>
                   <p>Creá tu primer agente para iniciar conversaciones con configuración propia.</p>
                   <S.CreateAgentButton type="button" onClick={() => openAgentModal()}>
                     <IconPlus />
-                    Nuevo Agente/Asistente
+                    Nuevo Agente/Asistente/RAG
                   </S.CreateAgentButton>
                 </S.EmptyLibrary>
               )}
@@ -817,6 +1120,54 @@ export const AIHubScreen = () => {
           </S.LibraryView>
         )}
       </S.MainArea>
+
+      {deleteAgentModal.show && (
+        <S.DeleteModalOverlay onClick={closeDeleteAgentModal}>
+          <S.DeleteModalCard onClick={event => event.stopPropagation()}>
+            <S.DeleteModalIcon>
+              <IconTrash />
+            </S.DeleteModalIcon>
+            <S.DeleteModalTitle>Confirmar eliminación</S.DeleteModalTitle>
+            <S.DeleteModalText>
+              Se requiere contraseña para eliminar {deleteAgentModal.agent?.name || 'este agente'}.
+            </S.DeleteModalText>
+            <S.DeletePasswordInput
+              type="password"
+              autoFocus
+              placeholder="Contraseña Founders"
+              value={deleteAgentModal.password}
+              onChange={event => setDeleteAgentModal(current => ({ ...current, password: event.target.value, error: '' }))}
+              onKeyDown={event => {
+                if (event.key === 'Enter') confirmDeleteAgent();
+                if (event.key === 'Escape') closeDeleteAgentModal();
+              }}
+            />
+            {deleteAgentModal.error && <S.DeleteModalError>{deleteAgentModal.error}</S.DeleteModalError>}
+            <S.DeleteModalActions>
+              <S.DeleteCancelButton type="button" onClick={closeDeleteAgentModal}>
+                Cancelar
+              </S.DeleteCancelButton>
+              <S.DeleteConfirmButton
+                type="button"
+                onClick={confirmDeleteAgent}
+                disabled={deleteAgentMutation.isPending}
+              >
+                {deleteAgentMutation.isPending ? 'Eliminando...' : 'Eliminar'}
+              </S.DeleteConfirmButton>
+            </S.DeleteModalActions>
+          </S.DeleteModalCard>
+        </S.DeleteModalOverlay>
+      )}
+
+      {toast.show && (
+        <S.ToastNotification $type={toast.type}>
+          {toast.type === 'error' ? <IconWarning /> : <IconCheck />}
+          <span>{toast.message}</span>
+          <S.ToastCloseButton type="button" onClick={() => setToast(current => ({ ...current, show: false }))}>
+            <IconClose />
+          </S.ToastCloseButton>
+        </S.ToastNotification>
+      )}
     </S.ScreenWrapper>
   );
 };

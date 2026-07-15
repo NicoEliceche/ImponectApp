@@ -1,4 +1,18 @@
-import styled, { css } from 'styled-components';
+import styled, { css, keyframes } from 'styled-components';
+
+const tacticalSweep = keyframes`
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+`;
 
 const platformColors = {
   all: '#334155',
@@ -19,19 +33,84 @@ const syncColors = {
 const getPlatformColor = (platform) => platformColors[platform] || platformColors.all;
 const getSyncColor = (sync) => syncColors[sync] || syncColors.synced;
 
+const getPolicyBorderColor = (tone, theme) => {
+  if (tone === 'danger') return theme.color.error;
+  if (tone === 'success') return theme.color.success;
+  if (tone === 'warning') return theme.color.warning;
+  return theme.color.info;
+};
+
+const getPolicyBackground = (tone, theme) => {
+  if (theme.isDark) {
+    if (tone === 'danger') return 'rgba(239, 68, 68, 0.16)';
+    if (tone === 'success') return 'rgba(16, 185, 129, 0.14)';
+    if (tone === 'warning') return 'rgba(245, 158, 11, 0.16)';
+    return 'rgba(0, 85, 128, 0.22)';
+  }
+
+  if (tone === 'danger') return theme.color.errorLight;
+  if (tone === 'success') return theme.color.successLight;
+  if (tone === 'warning') return theme.color.warningLight;
+  return theme.color.infoLight;
+};
+
+const getPolicyTextColor = (tone, theme) => {
+  if (!theme.isDark) {
+    if (tone === 'danger') return theme.color.error;
+    if (tone === 'success') return '#047857';
+    if (tone === 'warning') return '#92400e';
+    return theme.color.info;
+  }
+
+  if (tone === 'danger') return '#fecaca';
+  if (tone === 'success') return '#a7f3d0';
+  if (tone === 'warning') return '#fde68a';
+  return '#bfdbfe';
+};
+
 export const ScreenWrapper = styled.div`
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing[5]};
   min-height: calc(100vh - 2.5rem);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -1rem;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, ${({ theme }) => theme.isDark ? 'rgba(198, 137, 63, 0.055)' : 'rgba(0, 51, 77, 0.035)'} 1px, transparent 1px),
+      linear-gradient(180deg, ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.03)' : 'rgba(198, 137, 63, 0.035)'} 1px, transparent 1px);
+    background-size: 46px 46px;
+    opacity: 0.8;
+  }
 `;
 
 export const TopSection = styled.div`
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  border-bottom: 1px solid ${({ theme }) => theme.color.border};
-  padding-bottom: ${({ theme }) => theme.spacing[4]};
+  border: 1px solid ${({ theme }) => theme.color.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  padding: ${({ theme }) => theme.spacing[4]};
+  background:
+    linear-gradient(135deg, ${({ theme }) => theme.isDark ? 'rgba(13, 31, 41, 0.92)' : 'rgba(255,255,255,0.88)'} 0%, ${({ theme }) => theme.color.surface} 100%);
+  box-shadow: ${({ theme }) => theme.shadow.sm};
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(198, 137, 63, 0.14), transparent);
+    animation: ${tacticalSweep} 6.5s ease-in-out infinite;
+  }
 `;
 
 export const ChannelBar = styled.div`
@@ -48,14 +127,16 @@ export const ChannelBar = styled.div`
 `;
 
 export const ChannelButton = styled.button`
+  position: relative;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing[2]};
   min-height: 2.4rem;
   border: 1px solid ${({ $active, theme }) => ($active ? theme.color.accent : theme.color.border)};
   border-radius: ${({ theme }) => theme.radius.full};
-  background: ${({ $active, theme }) => ($active ? theme.color.accentFaded : theme.color.surface)};
-  color: ${({ $active, theme }) => ($active && theme.isDark ? theme.color.primary : theme.color.text)};
+  background: ${({ $active, theme }) => ($active ? (theme.isDark ? 'rgba(198, 137, 63, 0.16)' : theme.color.accentFaded) : theme.color.surface)};
+  color: ${({ $active, theme }) => ($active ? theme.color.accent : theme.color.text)};
   font-weight: ${({ theme }) => theme.typography.weight.bold};
   font-size: ${({ theme }) => theme.typography.size.sm};
   padding: ${({ theme }) => theme.spacing[2]} ${({ theme }) => theme.spacing[3]};
@@ -67,6 +148,7 @@ export const ChannelButton = styled.button`
   &:hover {
     border-color: ${({ theme }) => theme.color.accent};
     transform: translateY(-1px);
+    box-shadow: 0 0 18px rgba(198, 137, 63, 0.12);
   }
 `;
 
@@ -134,14 +216,16 @@ export const UnreadBadge = styled.span`
 `;
 
 export const ChatLayout = styled.div`
+  position: relative;
   display: grid;
   grid-template-columns: minmax(21rem, 25rem) minmax(0, 1fr);
   min-height: calc(100vh - 7rem);
   border: 1px solid ${({ theme }) => theme.color.border};
-  border-radius: ${({ theme }) => theme.radius.xl};
+  border-radius: ${({ theme }) => theme.radius.md};
   overflow: hidden;
-  background: ${({ theme }) => theme.color.surface};
-  box-shadow: ${({ theme }) => theme.shadow.md};
+  background:
+    linear-gradient(180deg, ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.025)' : theme.color.neutral[50]} 0%, ${({ theme }) => theme.color.surface} 100%);
+  box-shadow: ${({ theme }) => theme.shadow.md}, 0 0 28px rgba(0, 51, 77, 0.12);
 
   @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
     grid-template-columns: 1fr;
@@ -150,7 +234,8 @@ export const ChatLayout = styled.div`
 
 export const ConversationsList = styled.aside`
   min-width: 0;
-  background-color: ${({ theme }) => theme.isDark ? '#111b21' : theme.color.surface};
+  background:
+    linear-gradient(180deg, ${({ theme }) => theme.isDark ? '#0d1f29' : theme.color.surface} 0%, ${({ theme }) => theme.isDark ? '#111b21' : theme.color.neutral[50]} 100%);
   border-right: 1px solid ${({ theme }) => theme.color.border};
   display: flex;
   flex-direction: column;
@@ -169,6 +254,7 @@ export const ListTopBar = styled.div`
   justify-content: space-between;
   gap: ${({ theme }) => theme.spacing[4]};
   padding: ${({ theme }) => theme.spacing[5]} ${({ theme }) => theme.spacing[5]} ${({ theme }) => theme.spacing[3]};
+  background: ${({ theme }) => theme.isDark ? 'rgba(198, 137, 63, 0.045)' : 'rgba(198, 137, 63, 0.06)'};
 `;
 
 export const ListTitle = styled.h2`
@@ -281,7 +367,7 @@ export const ChatItem = styled.button`
   width: 100%;
   border: none;
   border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ $active, theme }) => ($active ? theme.color.neutral[100] : 'transparent')};
+  background: ${({ $active, theme }) => ($active ? (theme.isDark ? 'rgba(198, 137, 63, 0.12)' : theme.color.accentFaded) : 'transparent')};
   color: ${({ theme }) => theme.color.text};
   display: grid;
   grid-template-columns: 3.1rem minmax(0, 1fr) auto;
@@ -292,7 +378,7 @@ export const ChatItem = styled.button`
   transition: background-color 0.2s ease;
 
   &:hover {
-    background: ${({ theme }) => theme.color.neutral[100]};
+    background: ${({ theme }) => theme.isDark ? 'rgba(198, 137, 63, 0.09)' : theme.color.accentFaded};
   }
 `;
 
@@ -308,6 +394,7 @@ export const Avatar = styled.div`
   font-size: ${({ theme }) => theme.typography.size.sm};
   font-weight: ${({ theme }) => theme.typography.weight.extrabold};
   flex-shrink: 0;
+  box-shadow: 0 0 18px ${({ $platform }) => `${getPlatformColor($platform)}44`};
 `;
 
 export const AccountAvatar = styled.img`
@@ -505,6 +592,61 @@ export const OpenChatActions = styled.div`
   flex-shrink: 0;
 `;
 
+export const PolicyBanner = styled.div`
+  min-height: 3.25rem;
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing[3]};
+  padding: ${({ theme }) => theme.spacing[3]} ${({ theme }) => theme.spacing[5]};
+  border-bottom: 1px solid ${({ $tone, theme }) => getPolicyBorderColor($tone, theme)};
+  background: ${({ $tone, theme }) => getPolicyBackground($tone, theme)};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+export const PolicyBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.75rem;
+  border-radius: ${({ theme }) => theme.radius.full};
+  background: ${({ $platform }) => getPlatformColor($platform)};
+  color: ${({ theme }) => theme.color.textInverse};
+  font-size: ${({ theme }) => theme.typography.size.xs};
+  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+  padding: ${({ theme }) => theme.spacing[1]} ${({ theme }) => theme.spacing[3]};
+  white-space: nowrap;
+`;
+
+export const PolicyText = styled.p`
+  margin: 0;
+  color: ${({ $tone, theme }) => getPolicyTextColor($tone, theme)};
+  font-size: ${({ theme }) => theme.typography.size.sm};
+  font-weight: ${({ theme }) => theme.typography.weight.bold};
+  line-height: ${({ theme }) => theme.typography.lineHeight.normal};
+`;
+
+export const TemplateAction = styled.button`
+  min-height: 2.15rem;
+  border: 1px solid ${({ theme }) => theme.color.accent};
+  border-radius: ${({ theme }) => theme.radius.full};
+  background: ${({ theme }) => theme.color.accent};
+  color: ${({ theme }) => theme.color.textInverse};
+  font-size: ${({ theme }) => theme.typography.size.sm};
+  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+  padding: ${({ theme }) => theme.spacing[2]} ${({ theme }) => theme.spacing[4]};
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    background: ${({ theme }) => theme.color.accentLight};
+  }
+`;
+
 export const MessageArea = styled.div`
   flex: 1;
   min-height: 0;
@@ -634,8 +776,11 @@ export const Composer = styled.div`
   align-items: center;
   gap: ${({ theme }) => theme.spacing[3]};
   padding: ${({ theme }) => theme.spacing[3]} ${({ theme }) => theme.spacing[4]};
-  background: ${({ theme }) => theme.isDark ? '#202c33' : theme.color.surface};
-  border-top: 1px solid ${({ theme }) => theme.color.border};
+  background: ${({ $locked, theme }) => {
+    if ($locked) return theme.isDark ? '#2a2418' : theme.color.neutral[100];
+    return theme.isDark ? '#202c33' : theme.color.surface;
+  }};
+  border-top: 1px solid ${({ $locked, theme }) => ($locked ? theme.color.warning : theme.color.border)};
 `;
 
 export const EmojiButton = styled.button`
@@ -647,6 +792,11 @@ export const EmojiButton = styled.button`
   color: ${({ theme }) => theme.color.textSecondary};
   font-size: ${({ theme }) => theme.typography.size.lg};
   cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
+  }
 `;
 
 export const ComposerInput = styled.input`
@@ -661,6 +811,11 @@ export const ComposerInput = styled.input`
   padding: 0 ${({ theme }) => theme.spacing[5]};
   font-size: ${({ theme }) => theme.typography.size.sm};
   font-family: inherit;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.72;
+  }
 `;
 
 export const EmptyChat = styled.div`
@@ -670,6 +825,127 @@ export const EmptyChat = styled.div`
   justify-content: center;
   color: ${({ theme }) => theme.color.textSecondary};
   font-weight: ${({ theme }) => theme.typography.weight.bold};
+`;
+
+export const ListEmptyState = styled.div`
+  border: 1px solid ${({ theme }) => theme.color.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.035)' : theme.color.neutral[50]};
+  color: ${({ theme }) => theme.color.textSecondary};
+  margin: ${({ theme }) => theme.spacing[3]};
+  padding: ${({ theme }) => theme.spacing[4]};
+  text-align: center;
+  font-size: ${({ theme }) => theme.typography.size.sm};
+  font-weight: ${({ theme }) => theme.typography.weight.bold};
+  line-height: ${({ theme }) => theme.typography.lineHeight.normal};
+`;
+
+export const SetupPanel = styled.section`
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing[5]};
+  padding: ${({ theme }) => theme.spacing[8]};
+  background:
+    radial-gradient(circle at 20% 20%, ${({ theme }) => theme.isDark ? 'rgba(0,168,132,0.16)' : 'rgba(0,168,132,0.1)'} 0%, transparent 28%),
+    linear-gradient(135deg, ${({ theme }) => theme.isDark ? '#0b141a' : theme.color.surface} 0%, ${({ theme }) => theme.isDark ? '#111b21' : theme.color.neutral[50]} 100%);
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    padding: ${({ theme }) => theme.spacing[5]};
+  }
+`;
+
+export const SetupBadge = styled.div`
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing[2]};
+  border: 1px solid ${({ $sync }) => getSyncColor($sync)};
+  border-radius: ${({ theme }) => theme.radius.full};
+  background: ${({ theme }) => theme.color.surface};
+  color: ${({ theme }) => theme.color.text};
+  padding: ${({ theme }) => theme.spacing[2]} ${({ theme }) => theme.spacing[4]};
+  font-size: ${({ theme }) => theme.typography.size.sm};
+  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+`;
+
+export const SetupTitle = styled.h2`
+  margin: 0;
+  color: ${({ theme }) => theme.color.text};
+  font-size: ${({ theme }) => theme.typography.size['3xl']};
+  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+  line-height: ${({ theme }) => theme.typography.lineHeight.tight};
+`;
+
+export const SetupText = styled.p`
+  max-width: 48rem;
+  margin: 0;
+  color: ${({ theme }) => theme.color.textSecondary};
+  font-size: ${({ theme }) => theme.typography.size.base};
+  font-weight: ${({ theme }) => theme.typography.weight.medium};
+  line-height: ${({ theme }) => theme.typography.lineHeight.relaxed || theme.typography.lineHeight.normal};
+`;
+
+export const SetupError = styled.div`
+  max-width: 52rem;
+  border: 1px solid ${({ theme }) => theme.color.error};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.color.errorLight};
+  color: ${({ theme }) => theme.color.error};
+  padding: ${({ theme }) => theme.spacing[3]} ${({ theme }) => theme.spacing[4]};
+  font-size: ${({ theme }) => theme.typography.size.sm};
+  font-weight: ${({ theme }) => theme.typography.weight.bold};
+  line-height: ${({ theme }) => theme.typography.lineHeight.normal};
+`;
+
+export const SetupGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: ${({ theme }) => theme.spacing[3]};
+  max-width: 56rem;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+export const SetupInfoCard = styled.div`
+  min-width: 0;
+  border: 1px solid ${({ theme }) => theme.color.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.045)' : theme.color.surface};
+  padding: ${({ theme }) => theme.spacing[4]};
+
+  span,
+  strong {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  span {
+    color: ${({ theme }) => theme.color.textTertiary};
+    font-size: ${({ theme }) => theme.typography.size.xs};
+    font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+    text-transform: uppercase;
+  }
+
+  strong {
+    margin-top: ${({ theme }) => theme.spacing[2]};
+    color: ${({ theme }) => theme.color.text};
+    font-size: ${({ theme }) => theme.typography.size.sm};
+  }
+`;
+
+export const SetupActions = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.spacing[3]};
 `;
 
 export const ModalOverlay = styled.div`
@@ -697,6 +973,10 @@ export const ModalPanel = styled.div`
 
 export const AccountsModalPanel = styled(ModalPanel)`
   width: min(100%, 58rem);
+`;
+
+export const WhatsAppConfigModal = styled(ModalPanel)`
+  width: min(100%, 62rem);
 `;
 
 export const ModalHeader = styled.div`
@@ -841,6 +1121,10 @@ export const ModalFooter = styled.div`
   gap: ${({ theme }) => theme.spacing[3]};
   padding: ${({ theme }) => theme.spacing[4]} ${({ theme }) => theme.spacing[5]};
   border-top: 1px solid ${({ theme }) => theme.color.border};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-direction: column-reverse;
+  }
 `;
 
 export const PrimaryButton = styled.button`
@@ -852,9 +1136,23 @@ export const PrimaryButton = styled.button`
   font-weight: ${({ theme }) => theme.typography.weight.extrabold};
   padding: ${({ theme }) => theme.spacing[3]} ${({ theme }) => theme.spacing[6]};
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing[2]};
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: ${({ theme }) => theme.color.accentLight};
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
   }
 `;
 
@@ -867,10 +1165,106 @@ export const SecondaryButton = styled.button`
   font-weight: ${({ theme }) => theme.typography.weight.bold};
   padding: ${({ theme }) => theme.spacing[3]} ${({ theme }) => theme.spacing[5]};
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing[2]};
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: ${({ theme }) => theme.color.neutral[100]};
     color: ${({ theme }) => theme.color.text};
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+`;
+
+export const ConfigBody = styled.div`
+  overflow-y: auto;
+  padding: ${({ theme }) => theme.spacing[5]};
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing[4]};
+`;
+
+export const ConfigWarning = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: ${({ theme }) => theme.spacing[3]};
+  border: 1px solid ${({ theme }) => theme.color.accent};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.isDark ? 'rgba(198, 137, 63, 0.12)' : theme.color.accentFaded};
+  color: ${({ theme }) => theme.color.text};
+  padding: ${({ theme }) => theme.spacing[3]} ${({ theme }) => theme.spacing[4]};
+  font-size: ${({ theme }) => theme.typography.size.sm};
+  font-weight: ${({ theme }) => theme.typography.weight.bold};
+  line-height: ${({ theme }) => theme.typography.lineHeight.normal};
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    color: ${({ theme }) => theme.color.accent};
+  }
+`;
+
+export const ConfigGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: ${({ theme }) => theme.spacing[4]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+export const ConfigField = styled.label`
+  grid-column: ${({ $wide }) => ($wide ? '1 / -1' : 'auto')};
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing[2]};
+  color: ${({ theme }) => theme.color.textSecondary};
+  font-size: ${({ theme }) => theme.typography.size.xs};
+  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+  text-transform: uppercase;
+
+  input {
+    width: 100%;
+    min-width: 0;
+    height: 2.65rem;
+    border: 1px solid ${({ theme }) => theme.color.border};
+    border-radius: ${({ theme }) => theme.radius.md};
+    background: ${({ theme }) => theme.color.surface};
+    color: ${({ theme }) => theme.color.text};
+    padding: 0 ${({ theme }) => theme.spacing[3]};
+    font: inherit;
+    font-size: ${({ theme }) => theme.typography.size.sm};
+    font-weight: ${({ theme }) => theme.typography.weight.semibold};
+    text-transform: none;
+    outline: none;
+    color-scheme: ${({ theme }) => theme.isDark ? 'dark' : 'light'};
+
+    &:focus {
+      border-color: ${({ theme }) => theme.color.accent};
+      box-shadow: 0 0 0 0.2rem ${({ theme }) => theme.color.accentFaded};
+    }
+  }
+`;
+
+export const CopyRow = styled.div`
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: ${({ theme }) => theme.spacing[3]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    grid-template-columns: 1fr;
   }
 `;
 

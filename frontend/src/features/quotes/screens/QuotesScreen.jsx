@@ -1,18 +1,21 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  IconCheck,
   IconDownload,
   IconEye,
   IconPencil,
   IconPlus,
   IconRefresh,
+  IconUndo,
 } from '../../../shared/components/Icons';
 import { createBudgetPdfFile, downloadBudgetPdfFile } from '../../../shared/utils/budgetPdf';
 import { publicAsset } from '../../../shared/utils/urls';
-import { fetchQuote, fetchQuotes } from '../api/quotesApi';
+import { fetchQuote, fetchQuotes, markQuoteAsSent, returnQuoteToPending } from '../api/quotesApi';
 import * as S from './QuotesScreenStyled';
 
 const editableStatuses = new Set(['Borrador', 'Pendiente de envío']);
+const sentChannelOptions = ['WhatsApp', 'Instagram', 'Facebook', 'TikTok', 'Email', 'Impreso en mano'];
 const budgetHeaderSrc = publicAsset('assets/presupuesto-encabezado-v2.png');
 const budgetSignatureStampSrc = publicAsset('assets/presupuesto-espacio-firma.png');
 const budgetSellerSignatureSrc = publicAsset('assets/firma_sin_fondo.png');
@@ -79,6 +82,7 @@ const buildQuotePdfFile = async (quote) => {
     return createBudgetPdfFile({
       form: payload.form,
       sellerForm: payload.sellerForm,
+      productImages: payload.productImages || [],
       quote: payload.quote,
       quoteResult: payload.quoteResult,
       method: payload.method || quote.method,
@@ -129,6 +133,8 @@ export const QuotesScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeAction, setActiveAction] = useState('');
+  const [sendModal, setSendModal] = useState({ quote: null, channel: sentChannelOptions[0], error: '' });
+  const [returnModal, setReturnModal] = useState({ quote: null, error: '' });
 
   const loadQuotes = useCallback(async () => {
     setIsLoading(true);
@@ -188,6 +194,80 @@ export const QuotesScreen = () => {
     navigate(`/cotizador?id=${quote.id}`);
   };
 
+  const openSendModal = (quote) => {
+    if (quote.status !== 'Pendiente de envío' || activeAction) return;
+    setSendModal({ quote, channel: sentChannelOptions[0], error: '' });
+  };
+
+  const closeSendModal = () => {
+    if (activeAction) return;
+    setSendModal({ quote: null, channel: sentChannelOptions[0], error: '' });
+  };
+
+  const confirmSendQuote = async (event) => {
+    event.preventDefault();
+    if (!sendModal.quote || activeAction) return;
+
+    setActiveAction(`${sendModal.quote.id}-send`);
+    setSendModal(current => ({ ...current, error: '' }));
+
+    try {
+      const updatedQuote = await markQuoteAsSent(sendModal.quote.id, {
+        sent_channel: sendModal.channel,
+      });
+
+      setQuotes(currentQuotes => currentQuotes.map(quote => (
+        String(quote.id) === String(updatedQuote.id) ? updatedQuote : quote
+      )));
+      setSendModal({ quote: null, channel: sentChannelOptions[0], error: '' });
+    } catch (sendError) {
+      setSendModal(current => ({
+        ...current,
+        error: sendError.message || 'No se pudo confirmar el envío.',
+      }));
+    } finally {
+      setActiveAction('');
+    }
+  };
+
+  const openReturnModal = (quote) => {
+    if (quote.status !== 'Enviado' || activeAction) return;
+    setReturnModal({ quote, error: '' });
+  };
+
+  const closeReturnModal = () => {
+    if (activeAction) return;
+    setReturnModal({ quote: null, error: '' });
+  };
+
+  const confirmReturnQuote = async (event) => {
+    event.preventDefault();
+    if (!returnModal.quote || activeAction) return;
+
+    setActiveAction(`${returnModal.quote.id}-return`);
+    setReturnModal(current => ({ ...current, error: '' }));
+
+    try {
+      const updatedQuote = await returnQuoteToPending(returnModal.quote.id);
+      setQuotes(currentQuotes => currentQuotes.map(quote => (
+        String(quote.id) === String(updatedQuote.id) ? updatedQuote : quote
+      )));
+      setReturnModal({ quote: null, error: '' });
+    } catch (returnError) {
+      setReturnModal(current => ({
+        ...current,
+        error: returnError.message || 'No se pudo regresar el presupuesto a pendiente de envío.',
+      }));
+    } finally {
+      setActiveAction('');
+    }
+  };
+
+  const isSendModalOpen = Boolean(sendModal.quote);
+  const isConfirmingSend = activeAction === `${sendModal.quote?.id}-send`;
+  const isReturnModalOpen = Boolean(returnModal.quote);
+  const isConfirmingReturn = activeAction === `${returnModal.quote?.id}-return`;
+
   return (
     <S.ScreenWrapper>
       <S.Header>
@@ -238,7 +318,7 @@ export const QuotesScreen = () => {
                   <S.Th>Monto</S.Th>
                   <S.Th>Estado</S.Th>
                   <S.Th>Tipo</S.Th>
-                  <S.Th $align="right">Acciones</S.Th>
+                  <S.Th>Acciones</S.Th>
                 </tr>
               </thead>
               <tbody>
@@ -260,9 +340,9 @@ export const QuotesScreen = () => {
                       </S.StatusBadge>
                     </S.Td>
                     <S.Td $nowrap>
-                      <S.MethodBadge>{getMethodLabel(quote.method)}</S.MethodBadge>
+                      <S.MethodBadge $method={quote.method}>{getMethodLabel(quote.method)}</S.MethodBadge>
                     </S.Td>
-                    <S.Td $align="right" $nowrap>
+                    <S.Td $nowrap>
                       <S.ActionsCell>
                         <S.IconActionButton
                           type="button"
@@ -292,6 +372,31 @@ export const QuotesScreen = () => {
                         >
                           <IconPencil />
                         </S.IconActionButton>
+                        <S.IconActionButton
+                          type="button"
+                          title={quote.status === 'Enviado'
+                            ? 'Presupuesto enviado'
+                            : quote.status === 'Pendiente de envío'
+                              ? 'Marcar como enviado'
+                              : 'Solo disponible en Pendiente de envío'}
+                          aria-label="Marcar presupuesto como enviado"
+                          onClick={() => openSendModal(quote)}
+                          disabled={quote.status !== 'Pendiente de envío' || activeAction !== ''}
+                          $success={quote.status === 'Pendiente de envío' || quote.status === 'Enviado'}
+                          $sent={quote.status === 'Enviado'}
+                        >
+                          <IconCheck />
+                        </S.IconActionButton>
+                        <S.IconActionButton
+                          type="button"
+                          title={quote.status === 'Enviado' ? 'Regresar a PENDIENTE DE ENVÍO' : 'Solo disponible en Enviado'}
+                          aria-label="Regresar presupuesto a pendiente de envío"
+                          onClick={() => openReturnModal(quote)}
+                          disabled={quote.status !== 'Enviado' || activeAction !== ''}
+                          $undo={quote.status === 'Enviado'}
+                        >
+                          <IconUndo />
+                        </S.IconActionButton>
                       </S.ActionsCell>
                     </S.Td>
                   </tr>
@@ -302,6 +407,72 @@ export const QuotesScreen = () => {
         )}
       </S.TableCard>
 
+      {isSendModalOpen && (
+        <S.ModalOverlay onClick={closeSendModal}>
+          <S.Modal onSubmit={confirmSendQuote} onClick={event => event.stopPropagation()}>
+            <S.ModalHeader>
+              <div>
+                <S.ModalTitle>Confirmar envío</S.ModalTitle>
+                <S.ModalDescription>
+                  Al continuar, se marcará el presupuesto como enviado.
+                </S.ModalDescription>
+              </div>
+            </S.ModalHeader>
+
+            <S.Field>
+              Enviado por:
+              <select
+                value={sendModal.channel}
+                onChange={event => setSendModal(current => ({ ...current, channel: event.target.value, error: '' }))}
+                disabled={isConfirmingSend}
+              >
+                {sentChannelOptions.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            </S.Field>
+
+            {sendModal.error && <S.ModalError>{sendModal.error}</S.ModalError>}
+
+            <S.ModalActions>
+              <S.SecondaryButton type="button" onClick={closeSendModal} disabled={isConfirmingSend}>
+                Cancelar
+              </S.SecondaryButton>
+              <S.PrimaryButton type="submit" disabled={isConfirmingSend}>
+                <IconCheck />
+                {isConfirmingSend ? 'Confirmando...' : 'Confirmar envío'}
+              </S.PrimaryButton>
+            </S.ModalActions>
+          </S.Modal>
+        </S.ModalOverlay>
+      )}
+
+      {isReturnModalOpen && (
+        <S.ModalOverlay onClick={closeReturnModal}>
+          <S.Modal onSubmit={confirmReturnQuote} onClick={event => event.stopPropagation()}>
+            <S.ModalHeader>
+              <div>
+                <S.ModalTitle>Regresar a pendiente</S.ModalTitle>
+                <S.ModalDescription>
+                  Al continuar, el presupuesto volverá a PENDIENTE DE ENVÍO y se limpiará la información de envío.
+                </S.ModalDescription>
+              </div>
+            </S.ModalHeader>
+
+            {returnModal.error && <S.ModalError>{returnModal.error}</S.ModalError>}
+
+            <S.ModalActions>
+              <S.SecondaryButton type="button" onClick={closeReturnModal} disabled={isConfirmingReturn}>
+                Cancelar
+              </S.SecondaryButton>
+              <S.PrimaryButton type="submit" disabled={isConfirmingReturn}>
+                <IconUndo />
+                {isConfirmingReturn ? 'Confirmando...' : 'Confirmar regreso'}
+              </S.PrimaryButton>
+            </S.ModalActions>
+          </S.Modal>
+        </S.ModalOverlay>
+      )}
     </S.ScreenWrapper>
   );
 };

@@ -15,6 +15,14 @@ export const fetchAiAgents = async () => {
   return Array.isArray(payload) ? payload : [];
 };
 
+export const deleteAiAgent = async (agentId) => {
+  const response = await fetch(apiUrl(`/api/ai/agents/${agentId}`), {
+    method: 'DELETE',
+  });
+
+  return parseResponse(response, 'No se pudo eliminar el agente.');
+};
+
 export const sendAgentChatMessage = async ({ messages, options }) => {
   const response = await fetch(apiUrl('/api/ai/chat'), {
     method: 'POST',

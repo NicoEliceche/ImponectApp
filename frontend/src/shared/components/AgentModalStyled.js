@@ -5,6 +5,10 @@ const fadeIn = keyframes`
   to { opacity: 1; transform: translateY(0) scale(1); }
 `;
 
+const spin = keyframes`
+  to { transform: rotate(360deg); }
+`;
+
 export const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
@@ -221,7 +225,7 @@ export const FormGroup = styled.div`
 
     &:focus {
       border-color: ${({ theme }) => theme.color.accent};
-      box-shadow: 0 0 0 0.2rem ${({ theme }) => theme.color.accentFaded};
+      box-shadow: 0 0 0 0.2rem ${({ theme }) => (theme.isDark ? theme.color.accentDark : theme.color.accentFaded)};
     }
   }
 
@@ -234,6 +238,284 @@ export const FormGroup = styled.div`
   ${({ $wide }) => $wide && css`
     grid-column: 1 / -1;
   `}
+`;
+
+export const HiddenFileInput = styled.input`
+  display: none;
+`;
+
+export const AgentIconDropZone = styled.div`
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing[4]};
+  border: 1px dashed ${({ theme }) => theme.color.accent};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.color.neutral[50]};
+  padding: ${({ theme }) => theme.spacing[3]};
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+
+  &:hover {
+    background: ${({ theme }) => (theme.isDark ? theme.color.neutral[100] : theme.color.accentFaded)};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+export const AgentIconPreview = styled.div`
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ $empty, theme }) => ($empty ? theme.color.border : theme.color.accent)};
+  background: ${({ theme }) => (
+    theme.isDark
+      ? `linear-gradient(180deg, ${theme.color.neutral[100]} 0%, ${theme.color.surface} 100%)`
+      : `linear-gradient(180deg, ${theme.color.accentFaded} 0%, ${theme.color.surface} 100%)`
+  )};
+  color: ${({ theme }) => theme.color.accent};
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  svg {
+    width: 4.1rem;
+    height: 4.1rem;
+    align-self: flex-end;
+    margin-bottom: -1px;
+  }
+`;
+
+export const AgentIconUploadCopy = styled.div`
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing[1]};
+
+  strong {
+    color: ${({ theme }) => theme.color.text};
+    font-size: ${({ theme }) => theme.typography.size.sm};
+    font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+  }
+
+  span {
+    color: ${({ theme }) => theme.color.textSecondary};
+    font-size: ${({ theme }) => theme.typography.size.xs};
+    font-weight: ${({ theme }) => theme.typography.weight.semibold};
+    line-height: ${({ theme }) => theme.typography.lineHeight.normal};
+  }
+`;
+
+export const AgentIconActions = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.spacing[2]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+`;
+
+export const RagFilesDropZone = styled.div`
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing[4]};
+  border: 1px dashed ${({ theme }) => theme.color.accent};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => (
+    theme.isDark
+      ? `linear-gradient(135deg, ${theme.color.neutral[100]} 0%, ${theme.color.surface} 100%)`
+      : `linear-gradient(135deg, ${theme.color.accentFaded} 0%, ${theme.color.neutral[50]} 100%)`
+  )};
+  padding: ${({ theme }) => theme.spacing[4]};
+  cursor: ${({ $loading }) => ($loading ? 'progress' : 'pointer')};
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.color.accentLight};
+    background: ${({ theme }) => (theme.isDark ? theme.color.neutral[50] : theme.color.accentFaded)};
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+export const RagFilesDropIcon = styled.div`
+  width: 3rem;
+  height: 3rem;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ theme }) => theme.color.accent};
+  color: ${({ theme }) => theme.color.accent};
+  background: ${({ theme }) => theme.color.surface};
+  box-shadow: ${({ $loading, theme }) => ($loading ? `0 0 0 0.2rem ${theme.isDark ? theme.color.neutral[100] : theme.color.accentFaded}` : 'none')};
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+`;
+
+export const RagUploadSpinner = styled.span`
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: ${({ theme }) => theme.radius.full};
+  border: 2px solid ${({ theme }) => theme.color.border};
+  border-top-color: ${({ theme }) => theme.color.accent};
+  animation: ${spin} 0.8s linear infinite;
+`;
+
+export const RagFilesCounter = styled.span`
+  justify-self: end;
+  min-width: 4rem;
+  border: 1px solid ${({ theme }) => theme.color.accent};
+  border-radius: ${({ theme }) => theme.radius.md};
+  padding: ${({ theme }) => theme.spacing[2]} ${({ theme }) => theme.spacing[3]};
+  color: ${({ theme }) => theme.color.accent};
+  background: ${({ theme }) => theme.color.surface};
+  font-size: ${({ theme }) => theme.typography.size.xs};
+  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+  text-align: center;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+`;
+
+export const RagUploadProgress = styled.div`
+  grid-column: 1 / -1;
+  width: 100%;
+  height: ${({ theme }) => theme.spacing[2]};
+  border-radius: ${({ theme }) => theme.radius.full};
+  background: ${({ theme }) => theme.color.neutral[100]};
+  overflow: hidden;
+`;
+
+export const RagUploadProgressFill = styled.span`
+  display: block;
+  width: ${({ $progress }) => `${Math.max(0, Math.min(100, Number($progress) || 0))}%`};
+  height: 100%;
+  border-radius: ${({ theme }) => theme.radius.full};
+  background: ${({ theme }) => theme.color.accent};
+  transition: width 0.18s ease;
+`;
+
+export const RagFileGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: ${({ theme }) => theme.spacing[3]};
+`;
+
+export const RagFileItem = styled.div`
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing[3]};
+  min-width: 0;
+  border: 1px solid ${({ theme }) => theme.color.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.color.neutral[50]};
+  padding: ${({ theme }) => theme.spacing[3]};
+`;
+
+export const RagFileThumb = styled.div`
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid ${({ theme }) => theme.color.border};
+  color: ${({ theme }) => theme.color.accent};
+  background: ${({ theme }) => theme.color.surface};
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  svg {
+    width: 1.45rem;
+    height: 1.45rem;
+    opacity: ${({ $isImage }) => ($isImage ? 1 : 0.9)};
+  }
+`;
+
+export const RagFileMeta = styled.div`
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing[1]};
+
+  strong {
+    color: ${({ theme }) => theme.color.text};
+    font-size: ${({ theme }) => theme.typography.size.sm};
+    font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  span {
+    color: ${({ theme }) => theme.color.textSecondary};
+    font-size: ${({ theme }) => theme.typography.size.xs};
+    font-weight: ${({ theme }) => theme.typography.weight.bold};
+    text-transform: uppercase;
+  }
+`;
+
+export const RagFileRemove = styled.button`
+  width: 2rem;
+  height: 2rem;
+  border-radius: ${({ theme }) => theme.radius.md};
+  border: 1px solid transparent;
+  background: transparent;
+  color: ${({ theme }) => theme.color.textSecondary};
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.color.error};
+    background: ${({ theme }) => (theme.isDark ? theme.color.neutral[100] : theme.color.errorLight)};
+    color: ${({ theme }) => theme.color.error};
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
 `;
 
 export const CodeTextarea = styled.textarea`

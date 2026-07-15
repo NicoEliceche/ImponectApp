@@ -16,13 +16,31 @@ const pulse = keyframes`
   50% { transform: scale(1.04); }
 `;
 
+const scan = keyframes`
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+`;
+
 export const ScreenWrapper = styled.div`
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   height: 100%;
   background:
-    radial-gradient(circle at top right, ${({ theme }) => theme.color.accentFaded} 0%, transparent 32%),
+    linear-gradient(90deg, ${({ theme }) => theme.isDark ? 'rgba(198, 137, 63, 0.06)' : 'rgba(0, 51, 77, 0.045)'} 1px, transparent 1px),
+    linear-gradient(180deg, ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.035)' : 'rgba(198, 137, 63, 0.04)'} 1px, transparent 1px),
     ${({ theme }) => theme.color.background};
+  background-size: 48px 48px, 48px 48px, 100% 100%;
   overflow: hidden;
 `;
 
@@ -40,6 +58,110 @@ export const MainArea = styled.main`
   }
 `;
 
+export const Header = styled.header`
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.55fr);
+  gap: ${({ theme }) => theme.spacing[5]};
+  align-items: stretch;
+  padding: ${({ theme }) => theme.spacing[5]};
+  border: 1px solid ${({ theme }) => theme.color.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background:
+    linear-gradient(135deg, ${({ theme }) => theme.isDark ? 'rgba(0, 51, 77, 0.78)' : 'rgba(255,255,255,0.84)'} 0%, ${({ theme }) => theme.color.surface} 100%);
+  box-shadow: ${({ theme }) => theme.shadow.sm}, 0 0 24px rgba(198, 137, 63, 0.12);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(198, 137, 63, 0.16), transparent);
+    animation: ${scan} 6s ease-in-out infinite;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+export const HeaderCopy = styled.div`
+  position: relative;
+  z-index: 1;
+`;
+
+export const Eyebrow = styled.p`
+  display: inline-flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing[2]};
+  margin: 0 0 ${({ theme }) => theme.spacing[2]};
+  color: ${({ theme }) => theme.color.accent};
+  font-size: ${({ theme }) => theme.typography.size.sm};
+  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+  text-transform: uppercase;
+  letter-spacing: 0;
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+`;
+
+export const Title = styled.h1`
+  margin: 0;
+  color: ${({ theme }) => theme.color.text};
+  font-size: ${({ theme }) => theme.typography.size['4xl']};
+  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+  line-height: ${({ theme }) => theme.typography.lineHeight.tight};
+`;
+
+export const Subtitle = styled.p`
+  max-width: 54rem;
+  margin: ${({ theme }) => theme.spacing[3]} 0 0;
+  color: ${({ theme }) => theme.color.textSecondary};
+  font-size: ${({ theme }) => theme.typography.size.sm};
+  font-weight: ${({ theme }) => theme.typography.weight.medium};
+  line-height: ${({ theme }) => theme.typography.lineHeight.normal};
+`;
+
+export const StatGrid = styled.div`
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: ${({ theme }) => theme.spacing[3]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+export const StatCard = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing[2]};
+  min-height: 6rem;
+  padding: ${({ theme }) => theme.spacing[4]};
+  border: 1px solid ${({ theme }) => theme.color.accent};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.isDark ? 'rgba(198, 137, 63, 0.1)' : theme.color.accentFaded};
+
+  span {
+    color: ${({ theme }) => theme.color.textSecondary};
+    font-size: ${({ theme }) => theme.typography.size.xs};
+    font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+    text-transform: uppercase;
+  }
+
+  strong {
+    color: ${({ theme }) => theme.color.accent};
+    font-size: ${({ theme }) => theme.typography.size['2xl']};
+    font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+  }
+`;
+
 export const TopBar = styled.div`
   display: flex;
   align-items: center;
@@ -48,11 +170,41 @@ export const TopBar = styled.div`
   padding: ${({ theme }) => theme.spacing[4]} ${({ theme }) => theme.spacing[5]};
   border: 1px solid ${({ theme }) => theme.color.border};
   border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.color.surface};
+  background:
+    linear-gradient(180deg, ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.035)' : theme.color.neutral[50]} 0%, ${({ theme }) => theme.color.surface} 100%);
+  box-shadow: ${({ theme }) => theme.shadow.sm};
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     flex-direction: column;
     align-items: stretch;
+  }
+`;
+
+export const CategoryBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing[2]};
+  overflow-x: auto;
+  padding-bottom: ${({ theme }) => theme.spacing[1]};
+`;
+
+export const CategoryButton = styled.button`
+  min-height: 2.3rem;
+  border: 1px solid ${({ $active, theme }) => ($active ? theme.color.accent : theme.color.border)};
+  border-radius: ${({ theme }) => theme.radius.full};
+  background: ${({ $active, theme }) => ($active ? (theme.isDark ? 'rgba(198,137,63,0.16)' : theme.color.accentFaded) : theme.color.surface)};
+  color: ${({ $active, theme }) => ($active ? theme.color.accent : theme.color.textSecondary)};
+  padding: 0 ${({ theme }) => theme.spacing[4]};
+  font-size: ${({ theme }) => theme.typography.size.sm};
+  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: ${({ theme }) => theme.color.accent};
+    color: ${({ theme }) => theme.color.accent};
   }
 `;
 
@@ -119,18 +271,20 @@ export const ProductGrid = styled.div`
 `;
 
 export const ProductCard = styled.div`
+  position: relative;
   display: flex;
   flex-direction: column;
-  background: ${({ theme }) => theme.color.surface};
+  background:
+    linear-gradient(180deg, ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.035)' : theme.color.neutral[50]} 0%, ${({ theme }) => theme.color.surface} 100%);
   border: 1px solid ${({ theme }) => theme.color.border};
-  border-radius: ${({ theme }) => theme.radius.lg};
+  border-radius: ${({ theme }) => theme.radius.md};
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   animation: ${riseIn} 0.5s ease both;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: ${({ theme }) => theme.shadow.md};
+    box-shadow: ${({ theme }) => theme.shadow.md}, 0 0 24px rgba(198, 137, 63, 0.16);
     border-color: ${({ theme }) => theme.color.accent};
   }
 `;
@@ -206,9 +360,9 @@ export const SpecsButton = styled.button`
   transition: all 0.2s ease;
 
   &:hover {
-    background: ${({ theme }) => theme.color.primary};
+    background: ${({ theme }) => theme.color.accent};
     color: white;
-    border-color: ${({ theme }) => theme.color.primary};
+    border-color: ${({ theme }) => theme.color.accent};
   }
 `;
 

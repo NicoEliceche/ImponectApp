@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { 
+  IconCatalog,
   IconSearch, 
   IconDownload, 
   IconClose,
-  IconVideo
 } from '../../../shared/components/Icons';
 import * as S from './CatalogScreenStyled';
 
@@ -74,19 +74,26 @@ const products = [
 
 export const CatalogScreen = () => {
   const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('Todos');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  const categories = useMemo(() => ['Todos', ...new Set(products.map(product => product.category))], []);
+
   const filteredProducts = useMemo(() => {
     const query = search.toLowerCase().trim();
-    if (!query) return products;
+    const byCategory = category === 'Todos'
+      ? products
+      : products.filter(product => product.category === category);
 
-    return products.filter(p => 
+    if (!query) return byCategory;
+
+    return byCategory.filter(p =>
       p.title.toLowerCase().includes(query) || 
       p.description.toLowerCase().includes(query) ||
       p.category.toLowerCase().includes(query)
     );
-  }, [search]);
+  }, [category, search]);
 
   const handleOpenModal = (product) => {
     setSelectedProduct(product);
@@ -110,6 +117,34 @@ export const CatalogScreen = () => {
   return (
     <S.ScreenWrapper>
       <S.MainArea>
+        <S.Header>
+          <S.HeaderCopy>
+            <S.Eyebrow>
+              <IconCatalog />
+              Arsenal comercial
+            </S.Eyebrow>
+            <S.Title>Catálogo Imponect</S.Title>
+            <S.Subtitle>
+              Base inicial para productos, fichas comerciales, casos de uso e insumos que después vamos a conectar con cotizaciones y presupuestos.
+            </S.Subtitle>
+          </S.HeaderCopy>
+
+          <S.StatGrid>
+            <S.StatCard>
+              <span>Productos</span>
+              <strong>{products.length}</strong>
+            </S.StatCard>
+            <S.StatCard>
+              <span>Categorías</span>
+              <strong>{categories.length - 1}</strong>
+            </S.StatCard>
+            <S.StatCard>
+              <span>Filtrados</span>
+              <strong>{filteredProducts.length}</strong>
+            </S.StatCard>
+          </S.StatGrid>
+        </S.Header>
+
         <S.TopBar>
           <S.SearchBox>
             <IconSearch />
@@ -125,6 +160,19 @@ export const CatalogScreen = () => {
             Descargar catálogo como PDF
           </S.DownloadButton>
         </S.TopBar>
+
+        <S.CategoryBar>
+          {categories.map(item => (
+            <S.CategoryButton
+              key={item}
+              type="button"
+              $active={category === item}
+              onClick={() => setCategory(item)}
+            >
+              {item}
+            </S.CategoryButton>
+          ))}
+        </S.CategoryBar>
 
         <S.ProductGrid>
           {filteredProducts.map(product => (

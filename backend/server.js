@@ -33,7 +33,7 @@ app.use(cors({
     callback(new Error(`CORS blocked origin: ${origin}`));
   }
 }));
-app.use(express.json({ limit: '25mb' }));
+app.use(express.json({ limit: '70mb' }));
 
 // Routes
 app.use('/api/auth/microsoft', require('./routes/auth/microsoft'));
@@ -43,6 +43,8 @@ app.use('/api/clickup', require('./routes/clickup'));
 app.use('/api/email', require('./routes/email'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/quotes', require('./routes/quotes'));
+app.use('/api/crm', require('./routes/crm'));
+app.use('/api/webhooks/whatsapp', require('./routes/whatsappWebhook'));
 
 app.get('/', (req, res) => {
   res.send('Imponect API Orchestrator is running');
@@ -116,6 +118,42 @@ const initDb = async () => {
     `);
 
     await db.query(`
+      CREATE TABLE IF NOT EXISTS channel_integrations (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
+        channel TEXT NOT NULL,
+        status TEXT DEFAULT 'needs_setup',
+        phone_number TEXT,
+        phone_number_id TEXT,
+        business_account_id TEXT,
+        access_token_encrypted TEXT,
+        app_secret_encrypted TEXT,
+        verify_token TEXT,
+        metadata JSONB DEFAULT '{}',
+        last_verified_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, channel)
+      );
+    `);
+
+    await db.query(`
+      ALTER TABLE channel_integrations ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id);
+      ALTER TABLE channel_integrations ADD COLUMN IF NOT EXISTS channel TEXT;
+      ALTER TABLE channel_integrations ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'needs_setup';
+      ALTER TABLE channel_integrations ADD COLUMN IF NOT EXISTS phone_number TEXT;
+      ALTER TABLE channel_integrations ADD COLUMN IF NOT EXISTS phone_number_id TEXT;
+      ALTER TABLE channel_integrations ADD COLUMN IF NOT EXISTS business_account_id TEXT;
+      ALTER TABLE channel_integrations ADD COLUMN IF NOT EXISTS access_token_encrypted TEXT;
+      ALTER TABLE channel_integrations ADD COLUMN IF NOT EXISTS app_secret_encrypted TEXT;
+      ALTER TABLE channel_integrations ADD COLUMN IF NOT EXISTS verify_token TEXT;
+      ALTER TABLE channel_integrations ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}';
+      ALTER TABLE channel_integrations ADD COLUMN IF NOT EXISTS last_verified_at TIMESTAMP;
+      ALTER TABLE channel_integrations ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+      ALTER TABLE channel_integrations ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+    `);
+
+    await db.query(`
       CREATE TABLE IF NOT EXISTS user_emails (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id),
@@ -163,6 +201,8 @@ const initDb = async () => {
         budget_number TEXT,
         pdf_base64 TEXT,
         pdf_filename TEXT,
+        sent_channel TEXT,
+        sent_at TIMESTAMP,
         payload JSONB DEFAULT '{}',
         cargas JSONB DEFAULT '[]',
         trade_assurance NUMERIC(14, 4),
@@ -203,6 +243,8 @@ const initDb = async () => {
       ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS budget_number TEXT;
       ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS pdf_base64 TEXT;
       ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS pdf_filename TEXT;
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS sent_channel TEXT;
+      ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS sent_at TIMESTAMP;
       ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS payload JSONB DEFAULT '{}';
       ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS cargas JSONB DEFAULT '[]';
       ALTER TABLE presupuestos ADD COLUMN IF NOT EXISTS trade_assurance NUMERIC(14, 4);

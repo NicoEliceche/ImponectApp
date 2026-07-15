@@ -1,10 +1,25 @@
-import styled, { css } from 'styled-components';
+import styled, { css, keyframes } from 'styled-components';
+
+const hudSweep = keyframes`
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+`;
 
 const panelBase = css`
   border: 1px solid ${({ theme }) => theme.color.border};
   border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.color.surface};
-  box-shadow: ${({ theme }) => theme.shadow.sm};
+  background:
+    linear-gradient(180deg, ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.035)' : theme.color.neutral[50]} 0%, ${({ theme }) => theme.color.surface} 100%);
+  box-shadow: ${({ theme }) => theme.shadow.sm}, 0 0 20px rgba(198, 137, 63, 0.08);
 `;
 
 const buttonBase = css`
@@ -66,27 +81,56 @@ const groupTone = ({ $tone, theme }) => {
 };
 
 export const ScreenWrapper = styled.div`
+  position: relative;
+  isolation: isolate;
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing[5]};
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -1rem;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, ${({ theme }) => theme.isDark ? 'rgba(198,137,63,0.055)' : 'rgba(0,51,77,0.035)'} 1px, transparent 1px),
+      linear-gradient(180deg, ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.03)' : 'rgba(198,137,63,0.035)'} 1px, transparent 1px);
+    background-size: 44px 44px;
+    opacity: 0.82;
+  }
 `;
 
 export const Header = styled.header`
   position: relative;
+  overflow: hidden;
   padding-right: calc(20rem + ${({ theme }) => theme.spacing[5]});
-  padding-bottom: ${({ theme }) => theme.spacing[4]};
-  border-bottom: 1px solid ${({ theme }) => theme.color.border};
+  padding: ${({ theme }) => theme.spacing[5]} calc(20rem + ${({ theme }) => theme.spacing[5]}) ${({ theme }) => theme.spacing[5]} ${({ theme }) => theme.spacing[5]};
+  border: 1px solid ${({ theme }) => theme.color.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background:
+    linear-gradient(135deg, ${({ theme }) => theme.isDark ? 'rgba(13,31,41,0.94)' : 'rgba(255,255,255,0.9)'} 0%, ${({ theme }) => theme.color.surface} 100%);
+  box-shadow: ${({ theme }) => theme.shadow.sm};
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(198, 137, 63, 0.15), transparent);
+    animation: ${hudSweep} 7s ease-in-out infinite;
+  }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    padding-right: 0;
+    padding: ${({ theme }) => theme.spacing[5]};
   }
 `;
 
 export const HeaderSummaryRow = styled.div`
   position: absolute;
-  bottom: ${({ theme }) => theme.spacing[2]};
-  right: 0;
+  bottom: ${({ theme }) => theme.spacing[4]};
+  right: ${({ theme }) => theme.spacing[5]};
   z-index: 2;
   width: auto;
   display: flex;
@@ -128,6 +172,7 @@ export const Title = styled.h1`
 
 export const HeaderSummary = styled.div`
   ${panelBase};
+  border-color: ${({ theme }) => theme.color.accent};
   padding: ${({ theme }) => theme.spacing[2]} ${({ theme }) => theme.spacing[3]};
   width: 100%;
   max-width: 20rem;
@@ -204,6 +249,7 @@ export const TabButton = styled.button`
     if (!$active) return theme.color.textSecondary;
     return theme.isDark ? theme.color.accent : theme.color.accentDark;
   }};
+  box-shadow: ${({ $active }) => ($active ? '0 0 16px rgba(198, 137, 63, 0.18)' : 'none')};
 `;
 
 export const WorkspaceGrid = styled.div`
@@ -1255,6 +1301,113 @@ export const BudgetSectionTitle = styled.h3`
   font-weight: ${({ theme }) => theme.typography.weight.extrabold};
   letter-spacing: 0.08em;
   text-transform: uppercase;
+`;
+
+export const BudgetImageDropZone = styled.div`
+  position: relative;
+  flex: 0 0 auto;
+  height: auto;
+  min-height: calc(4.5rem + ${({ theme }) => theme.spacing[6]});
+  overflow: visible;
+  border: 1px dashed ${({ $disabled, theme }) => ($disabled ? theme.color.border : theme.color.accent)};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.isDark ? theme.color.neutral[50] : theme.color.neutral[50]};
+  padding: ${({ theme }) => theme.spacing[3]};
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.color.accent};
+    background: ${({ theme }) => theme.isDark ? theme.color.neutral[100] : theme.color.accentFaded};
+  }
+`;
+
+export const HiddenFileInput = styled.input`
+  display: none;
+`;
+
+export const BudgetImageGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.5rem, 4.5rem));
+  grid-auto-rows: 4.5rem;
+  gap: ${({ theme }) => theme.spacing[2]};
+  align-content: start;
+  flex: 0 0 auto;
+  height: auto;
+  width: 100%;
+  min-width: 0;
+  padding-right: 3.25rem;
+`;
+
+export const BudgetImageTile = styled.div`
+  position: relative;
+  width: 4.5rem;
+  height: 4.5rem;
+  overflow: hidden;
+  border: 1px solid ${({ theme }) => theme.color.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.color.surface};
+
+  img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+`;
+
+export const BudgetImageAddButton = styled.button`
+  width: 4.5rem;
+  height: 4.5rem;
+  border: 1px solid ${({ theme }) => theme.color.accent};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.isDark ? theme.color.neutral[100] : theme.color.surface};
+  color: ${({ theme }) => theme.isDark ? theme.color.accent : theme.color.accentDark};
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  &:hover {
+    background: ${({ theme }) => theme.isDark ? theme.color.neutral[50] : theme.color.accentFaded};
+    transform: translateY(-1px);
+  }
+`;
+
+export const BudgetImageRemoveButton = styled.button`
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: ${({ theme }) => theme.radius.full};
+  background: rgba(0, 26, 38, 0.82);
+  color: ${({ theme }) => theme.color.textInverse};
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  svg {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+`;
+
+export const BudgetImageCounter = styled.span`
+  position: absolute;
+  top: ${({ theme }) => theme.spacing[3]};
+  right: ${({ theme }) => theme.spacing[3]};
+  color: ${({ theme }) => theme.color.textSecondary};
+  font-size: ${({ theme }) => theme.typography.size.xs};
+  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+  line-height: 1;
 `;
 
 export const SellerInfoGrid = styled.div`

@@ -39,6 +39,7 @@ export const buildStoredCargas = (loads, quoteResult) => loads.map((load, index)
 export const buildBudgetPdfPayload = ({
   form,
   sellerForm,
+  productImages = [],
   loads,
   settings,
   quoteResult,
@@ -46,6 +47,7 @@ export const buildBudgetPdfPayload = ({
 }) => ({
   form,
   sellerForm,
+  productImages,
   loads,
   settings,
   quote: quoteResult[method],
@@ -169,6 +171,7 @@ export const restoreQuoteState = (quote) => {
       budgetNumber: firstDefined(payload.form?.budgetNumber, quote?.budget_number, ''),
     },
     sellerForm: payload.sellerForm || {},
+    productImages: Array.isArray(payload.productImages) ? payload.productImages : [],
     method: payload.method || quote?.method || 'sea',
   };
 };

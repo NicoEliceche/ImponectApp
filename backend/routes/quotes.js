@@ -4,6 +4,7 @@ const db = require('../db');
 
 const QUOTE_STATUSES = ['Borrador', 'Pendiente de envío', 'Enviado'];
 const EDITABLE_STATUSES = ['Borrador', 'Pendiente de envío'];
+const SENT_CHANNELS = ['WhatsApp', 'Instagram', 'Facebook', 'TikTok', 'Email', 'Impreso en mano'];
 const QUOTE_DETAIL_FIELDS = [
   { name: 'cargas', type: 'json', defaultValue: [] },
   { name: 'trade_assurance', type: 'number' },
@@ -49,6 +50,11 @@ const normalizeStatus = (value) => {
 };
 
 const normalizeMethod = (value) => (value === 'air' ? 'air' : 'sea');
+
+const normalizeSentChannel = (value) => {
+  const channel = String(value || '').trim().toLowerCase();
+  return SENT_CHANNELS.find(option => option.toLowerCase() === channel) || null;
+};
 
 const normalizeAmount = (value) => {
   const amount = Number(value);
@@ -121,6 +127,8 @@ router.get('/', async (req, res) => {
         status,
         method,
         budget_number,
+        sent_channel,
+        sent_at,
         pdf_filename,
         created_at,
         updated_at
@@ -288,6 +296,74 @@ router.put('/:id', async (req, res) => {
     res.json(serializeQuote(result.rows[0]));
   } catch (error) {
     console.error('Quote update error:', error);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+router.patch('/:id/status', async (req, res) => {
+  try {
+    const currentQuote = await getQuoteById(req.params.id);
+    if (!currentQuote) {
+      res.status(404).json({ error: 'Presupuesto no encontrado.' });
+      return;
+    }
+
+    const nextStatus = normalizeStatus(req.body?.status || 'Enviado');
+
+    if (!nextStatus || !['Enviado', 'Pendiente de envío'].includes(nextStatus)) {
+      res.status(400).json({ error: 'El estado solicitado no es válido.' });
+      return;
+    }
+
+    if (nextStatus === 'Enviado') {
+      if (currentQuote.status !== 'Pendiente de envío') {
+        res.status(400).json({ error: 'Solo se pueden marcar como enviados los presupuestos pendientes de envío.' });
+        return;
+      }
+
+      const sentChannel = normalizeSentChannel(req.body?.sent_channel);
+
+      if (!sentChannel) {
+        res.status(400).json({ error: 'El canal de envío no es válido.' });
+        return;
+      }
+
+      const result = await db.query(
+        `UPDATE presupuestos
+        SET
+          status = 'Enviado',
+          sent_channel = $1,
+          sent_at = CURRENT_TIMESTAMP,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = $2 AND user_id = 1
+        RETURNING *`,
+        [sentChannel, req.params.id]
+      );
+
+      res.json(serializeQuote(result.rows[0]));
+      return;
+    }
+
+    if (currentQuote.status !== 'Enviado') {
+      res.status(400).json({ error: 'Solo se pueden regresar a pendiente los presupuestos enviados.' });
+      return;
+    }
+
+    const result = await db.query(
+      `UPDATE presupuestos
+      SET
+        status = 'Pendiente de envío',
+        sent_channel = NULL,
+        sent_at = NULL,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 AND user_id = 1
+      RETURNING *`,
+      [req.params.id]
+    );
+
+    res.json(serializeQuote(result.rows[0]));
+  } catch (error) {
+    console.error('Quote status update error:', error);
     res.status(500).json({ error: 'Database error' });
   }
 });

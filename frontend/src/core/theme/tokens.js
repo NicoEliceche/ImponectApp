@@ -50,6 +50,22 @@ export const tokens = {
     textDisabled:  '#d1d5db',
     textInverse:   '#ffffff',
     textLink:      '#005580',
+
+    syntax: {
+      keyword:     '#60a5fa',
+      string:      '#34d399',
+      number:      '#fbbf24',
+      comment:     '#94a3b8',
+      function:    '#c084fc',
+      variable:    '#f472b6',
+      tag:         '#fb7185',
+      attribute:   '#f59e0b',
+      operator:    '#cbd5e1',
+      punctuation: '#cbd5e1',
+      meta:        '#38bdf8',
+      deletion:    '#f87171',
+      addition:    '#4ade80',
+    },
   },
 
   typography: {
@@ -74,6 +90,7 @@ export const tokens = {
       tight:  1.2,
       snug:   1.375,
       normal: 1.5,
+      relaxed: 1.65,
     },
   },
 

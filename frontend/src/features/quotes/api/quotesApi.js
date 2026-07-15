@@ -45,3 +45,28 @@ export const updateQuote = async (id, payload) => {
 
   return parseResponse(response, 'No se pudo actualizar el presupuesto.');
 };
+
+export const markQuoteAsSent = async (id, payload) => {
+  const response = await fetch(`${API_BASE}/${id}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      status: 'Enviado',
+      sent_channel: payload?.sent_channel,
+    }),
+  });
+
+  return parseResponse(response, 'No se pudo marcar el presupuesto como enviado.');
+};
+
+export const returnQuoteToPending = async (id) => {
+  const response = await fetch(`${API_BASE}/${id}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      status: 'Pendiente de envío',
+    }),
+  });
+
+  return parseResponse(response, 'No se pudo regresar el presupuesto a pendiente de envío.');
+};

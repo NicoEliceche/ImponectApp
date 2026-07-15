@@ -1,4 +1,18 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
+
+const scan = keyframes`
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+`;
 
 export const FullscreenViewer = styled.div`
   position: fixed;
@@ -61,21 +75,42 @@ export const IframeContainer = styled.div`
 `;
 
 export const ExplorerWrapper = styled.div`
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   height: calc(100vh - 4rem);
-  background: ${({ theme }) => theme.color.background};
+  background:
+    linear-gradient(90deg, ${({ theme }) => theme.isDark ? 'rgba(198,137,63,0.055)' : 'rgba(0,51,77,0.035)'} 1px, transparent 1px),
+    linear-gradient(180deg, ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.03)' : 'rgba(198,137,63,0.035)'} 1px, transparent 1px),
+    ${({ theme }) => theme.color.background};
+  background-size: 48px 48px, 48px 48px, 100% 100%;
   color: ${({ theme }) => theme.color.text};
   user-select: none;
+  border: 1px solid ${({ theme }) => theme.color.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  overflow: hidden;
 `;
 
 export const Toolbar = styled.div`
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   padding: 0.75rem 1.5rem;
-  background: ${({ theme }) => theme.color.surface};
+  background:
+    linear-gradient(135deg, ${({ theme }) => theme.isDark ? 'rgba(13,31,41,0.94)' : 'rgba(255,255,255,0.92)'} 0%, ${({ theme }) => theme.color.surface} 100%);
   border-bottom: 1px solid ${({ theme }) => theme.color.border};
   gap: 1rem;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(198, 137, 63, 0.14), transparent);
+    animation: ${scan} 7s ease-in-out infinite;
+  }
 `;
 
 export const NavButtons = styled.div`
@@ -144,6 +179,7 @@ export const ActionBtn = styled.button`
     border-color: ${({ theme }) => theme.color.accent};
     background: ${({ theme }) => theme.color.accent};
     color: white;
+    box-shadow: 0 0 16px rgba(198, 137, 63, 0.22);
     svg {
       color: white !important;
     }
@@ -233,12 +269,12 @@ export const FileHeader = styled.div`
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
   padding: 0.75rem 1.5rem;
-  background: ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.02)' : '#f9fafb'};
+  background: ${({ theme }) => theme.isDark ? 'rgba(198,137,63,0.075)' : '#f9fafb'};
   border-bottom: 1px solid ${({ theme }) => theme.color.border};
   font-weight: 600;
   font-size: 0.8125rem;
   text-transform: uppercase;
-  letter-spacing: 0.025em;
+  letter-spacing: 0;
   color: ${({ theme }) => theme.color.textSecondary};
 `;
 
@@ -257,9 +293,9 @@ export const FileRow = styled.div`
   font-size: 0.875rem;
   cursor: pointer;
   transition: background 0.2s;
-  background-color: ${({ $selected, theme }) => $selected ? (theme.isDark ? 'rgba(66, 153, 225, 0.2)' : '#ebf8ff') : 'transparent'};
+  background-color: ${({ $selected, theme }) => $selected ? (theme.isDark ? 'rgba(198, 137, 63, 0.14)' : theme.color.accentFaded) : 'transparent'};
   &:hover {
-    background: ${({ $selected, theme }) => $selected ? (theme.isDark ? 'rgba(66, 153, 225, 0.25)' : '#e2f2ff') : theme.isDark ? 'rgba(255,255,255,0.05)' : '#f3f4f6'};
+    background: ${({ $selected, theme }) => $selected ? (theme.isDark ? 'rgba(198, 137, 63, 0.18)' : theme.color.accentFaded) : theme.isDark ? 'rgba(198, 137, 63, 0.08)' : '#f3f4f6'};
   }
 `;
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   IconCalculator,
@@ -109,6 +109,10 @@ const sellerBudgetFields = [
   ['validity', 'Validez por'],
 ];
 
+const MAX_BUDGET_IMAGES = 10;
+const MAX_BUDGET_IMAGE_SIZE = 1200;
+const BUDGET_IMAGE_QUALITY = 0.82;
+
 const formatMoney = (value) => new Intl.NumberFormat('es-AR', {
   style: 'currency',
   currency: 'USD',
@@ -130,6 +134,47 @@ const formatInputNumber = (value, digits = 2) => {
 const hasPositiveValue = (value) => {
   const parsed = Number.parseFloat(String(value ?? '').replace(',', '.'));
   return Number.isFinite(parsed) && parsed > 0;
+};
+
+const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve(String(reader.result || ''));
+  reader.onerror = () => reject(new Error(`No se pudo leer ${file.name}.`));
+  reader.readAsDataURL(file);
+});
+
+const optimizeImageDataUrl = (dataUrl) => new Promise((resolve, reject) => {
+  const image = new Image();
+  image.onload = () => {
+    const scale = Math.min(1, MAX_BUDGET_IMAGE_SIZE / Math.max(image.width, image.height));
+    const width = Math.max(Math.round(image.width * scale), 1);
+    const height = Math.max(Math.round(image.height * scale), 1);
+
+    if (scale === 1 && dataUrl.startsWith('data:image/jpeg')) {
+      resolve(dataUrl);
+      return;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d');
+    context.drawImage(image, 0, 0, width, height);
+    resolve(canvas.toDataURL('image/jpeg', BUDGET_IMAGE_QUALITY));
+  };
+  image.onerror = () => reject(new Error('No se pudo procesar una imagen seleccionada.'));
+  image.src = dataUrl;
+});
+
+const fileToBudgetImage = async (file) => {
+  const dataUrl = await readFileAsDataUrl(file);
+  const optimizedDataUrl = await optimizeImageDataUrl(dataUrl);
+
+  return {
+    id: `image-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    name: file.name,
+    src: optimizedDataUrl,
+  };
 };
 
 const NumberField = ({ label, unit, value, onChange, step = '0.01', placeholder }) => (
@@ -287,90 +332,147 @@ const BudgetModal = ({
   sellerForm,
   quote,
   method,
+  productImages = [],
   onChange,
   onSellerChange,
   onMethodChange,
+  onImagesSelected,
+  onImageRemove,
   onClose,
   onSubmit,
   isGenerating,
   canSubmit,
-}) => (
-  <S.ModalOverlay>
-    <S.BudgetModal role="dialog" aria-modal="true" aria-labelledby="budget-modal-title">
-      <S.BudgetHeaderImage src={budgetHeaderSrc} alt="Imponect Importaciones Estratégicas" />
-      <S.ModalHeader>
-        <div>
-          <S.ModalKicker>Presupuesto {methodLabels[method].toLowerCase()}</S.ModalKicker>
-          <S.ModalTitle id="budget-modal-title">Datos del cliente</S.ModalTitle>
-        </div>
-        <S.ModalHeaderControls>
-          <S.BudgetMethodSelect value={method} onChange={event => onMethodChange(event.target.value)} aria-label="Tipo de presupuesto">
-            <option value="sea">Marítimo</option>
-            <option value="air">Aéreo</option>
-          </S.BudgetMethodSelect>
-          <S.IconOnlyButton type="button" aria-label="Cerrar" onClick={onClose}>
-            <IconClose />
-          </S.IconOnlyButton>
-        </S.ModalHeaderControls>
-      </S.ModalHeader>
+}) => {
+  const imageInputRef = useRef(null);
+  const canAddImages = productImages.length < MAX_BUDGET_IMAGES;
 
-      <S.BudgetForm onSubmit={onSubmit}>
-        <S.BudgetFormGrid>
-          <BudgetFormField label="Razón social / cliente" value={form.client} onChange={value => onChange('client', value)} />
-          <BudgetFormField label="CUIT / DNI Cliente" value={form.clientTaxId} onChange={value => onChange('clientTaxId', value)} placeholder="XX-XXXXXXXX-X" />
-          <BudgetFormSelect
-            label="IVA"
-            value={form.clientVat}
-            onChange={value => onChange('clientVat', value)}
-            options={clientVatOptions}
-            placeholder="Seleccionar IVA"
-          />
-          <BudgetFormField label="Domicilio Cliente" value={form.clientAddress} onChange={value => onChange('clientAddress', value)} />
-          <BudgetFormField label="Teléfono / Email" value={form.clientContact} onChange={value => onChange('clientContact', value)} />
-          <BudgetFormField label="Número de Presupuesto" value={form.budgetNumber} onChange={value => onChange('budgetNumber', value)} />
-        </S.BudgetFormGrid>
+  const handleFileInputChange = (event) => {
+    onImagesSelected(event.target.files);
+    event.target.value = '';
+  };
 
-        <S.BudgetSectionTitle>Info vendedor</S.BudgetSectionTitle>
-        <S.BudgetFormGrid>
-          {sellerBudgetFields.map(([field, label]) => (
-            field === 'validity' ? (
-              <BudgetFormSelect
-                key={field}
-                label={label}
-                value={sellerForm[field]}
-                onChange={value => onSellerChange(field, value)}
-                options={sellerValidityOptions}
-                placeholder="Seleccionar validez"
-              />
-            ) : (
-              <BudgetFormField
-                key={field}
-                label={label}
-                value={sellerForm[field]}
-                onChange={value => onSellerChange(field, value)}
-              />
-            )
-          ))}
-        </S.BudgetFormGrid>
+  const handleDrop = (event) => {
+    event.preventDefault();
+    if (canAddImages) onImagesSelected(event.dataTransfer.files);
+  };
 
-        <S.BudgetModalSummary>
-          <span>Total general {methodLabels[method].toLowerCase()}</span>
-          <strong>{formatMoney(quote.grandTotal)}</strong>
-        </S.BudgetModalSummary>
+  return (
+    <S.ModalOverlay>
+      <S.BudgetModal role="dialog" aria-modal="true" aria-labelledby="budget-modal-title">
+        <S.BudgetHeaderImage src={budgetHeaderSrc} alt="Imponect Importaciones Estratégicas" />
+        <S.ModalHeader>
+          <div>
+            <S.ModalKicker>Presupuesto {methodLabels[method].toLowerCase()}</S.ModalKicker>
+            <S.ModalTitle id="budget-modal-title">Datos del cliente</S.ModalTitle>
+          </div>
+          <S.ModalHeaderControls>
+            <S.BudgetMethodSelect value={method} onChange={event => onMethodChange(event.target.value)} aria-label="Tipo de presupuesto">
+              <option value="sea">Marítimo</option>
+              <option value="air">Aéreo</option>
+            </S.BudgetMethodSelect>
+            <S.IconOnlyButton type="button" aria-label="Cerrar" onClick={onClose}>
+              <IconClose />
+            </S.IconOnlyButton>
+          </S.ModalHeaderControls>
+        </S.ModalHeader>
 
-        <S.ModalActions>
-          <S.SecondaryButton type="button" onClick={onClose}>
-            Cancelar
-          </S.SecondaryButton>
-          <S.PrimaryButton type="submit" disabled={isGenerating || !canSubmit}>
-            <IconQuotes />
-            {isGenerating ? 'Generando...' : 'GENERAR PRESUPUESTO'}
-          </S.PrimaryButton>
-        </S.ModalActions>
-      </S.BudgetForm>
-    </S.BudgetModal>
-  </S.ModalOverlay>
-);
+        <S.BudgetForm onSubmit={onSubmit}>
+          <S.BudgetFormGrid>
+            <BudgetFormField label="Razón social / cliente" value={form.client} onChange={value => onChange('client', value)} />
+            <BudgetFormField label="CUIT / DNI Cliente" value={form.clientTaxId} onChange={value => onChange('clientTaxId', value)} placeholder="XX-XXXXXXXX-X" />
+            <BudgetFormSelect
+              label="IVA"
+              value={form.clientVat}
+              onChange={value => onChange('clientVat', value)}
+              options={clientVatOptions}
+              placeholder="Seleccionar IVA"
+            />
+            <BudgetFormField label="Domicilio Cliente" value={form.clientAddress} onChange={value => onChange('clientAddress', value)} />
+            <BudgetFormField label="Teléfono / Email" value={form.clientContact} onChange={value => onChange('clientContact', value)} />
+            <BudgetFormField label="Número de Presupuesto" value={form.budgetNumber} onChange={value => onChange('budgetNumber', value)} />
+          </S.BudgetFormGrid>
+
+          <S.BudgetSectionTitle>Info vendedor</S.BudgetSectionTitle>
+          <S.BudgetFormGrid>
+            {sellerBudgetFields.map(([field, label]) => (
+              field === 'validity' ? (
+                <BudgetFormSelect
+                  key={field}
+                  label={label}
+                  value={sellerForm[field]}
+                  onChange={value => onSellerChange(field, value)}
+                  options={sellerValidityOptions}
+                  placeholder="Seleccionar validez"
+                />
+              ) : (
+                <BudgetFormField
+                  key={field}
+                  label={label}
+                  value={sellerForm[field]}
+                  onChange={value => onSellerChange(field, value)}
+                />
+              )
+            ))}
+          </S.BudgetFormGrid>
+
+          <S.BudgetSectionTitle>Imágenes de producto</S.BudgetSectionTitle>
+          <S.BudgetImageDropZone
+            onDragOver={event => event.preventDefault()}
+            onDrop={handleDrop}
+            $disabled={!canAddImages}
+          >
+            <S.HiddenFileInput
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileInputChange}
+            />
+            <S.BudgetImageGrid>
+              {productImages.map(image => (
+                <S.BudgetImageTile key={image.id}>
+                  <img src={image.src} alt={image.name || 'Imagen de producto'} />
+                  <S.BudgetImageRemoveButton
+                    type="button"
+                    onClick={() => onImageRemove(image.id)}
+                    aria-label="Quitar imagen"
+                  >
+                    <IconClose />
+                  </S.BudgetImageRemoveButton>
+                </S.BudgetImageTile>
+              ))}
+              {canAddImages && (
+                <S.BudgetImageAddButton
+                  type="button"
+                  onClick={() => imageInputRef.current?.click()}
+                  aria-label="Agregar imagen"
+                >
+                  <IconPlus />
+                </S.BudgetImageAddButton>
+              )}
+            </S.BudgetImageGrid>
+            <S.BudgetImageCounter>{productImages.length}/{MAX_BUDGET_IMAGES}</S.BudgetImageCounter>
+          </S.BudgetImageDropZone>
+
+          <S.BudgetModalSummary>
+            <span>Total general {methodLabels[method].toLowerCase()}</span>
+            <strong>{formatMoney(quote.grandTotal)}</strong>
+          </S.BudgetModalSummary>
+
+          <S.ModalActions>
+            <S.SecondaryButton type="button" onClick={onClose}>
+              Cancelar
+            </S.SecondaryButton>
+            <S.PrimaryButton type="submit" disabled={isGenerating || !canSubmit}>
+              <IconQuotes />
+              {isGenerating ? 'Generando...' : 'GENERAR PRESUPUESTO'}
+            </S.PrimaryButton>
+          </S.ModalActions>
+        </S.BudgetForm>
+      </S.BudgetModal>
+    </S.ModalOverlay>
+  );
+};
 
 const buildSeaGroups = (quote, methodLabel = 'Marítimo') => [
   {
@@ -440,6 +542,7 @@ export const CotizadorScreen = () => {
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isLoadingSavedQuote, setIsLoadingSavedQuote] = useState(false);
   const [currentQuoteId, setCurrentQuoteId] = useState(null);
+  const [budgetImages, setBudgetImages] = useState([]);
   const draftQuote = useMemo(() => calculateQuote({ loads, settings }), [loads, settings]);
   const [quoteResult, setQuoteResult] = useState(() => calculateQuote({
     loads: buildInitialLoads(),
@@ -476,6 +579,7 @@ export const CotizadorScreen = () => {
         setQuoteResult(restoredQuoteResult);
         setBudgetForm({ ...initialBudgetForm, ...restored.budgetForm });
         setSellerBudgetForm({ ...initialSellerBudgetForm, ...restored.sellerForm });
+        setBudgetImages(restored.productImages || []);
         setSelectedQuoteMethod(restoredMethod);
         setBudgetMethod(restoredMethod);
         setCurrentQuoteId(savedQuote.id);
@@ -535,6 +639,34 @@ export const CotizadorScreen = () => {
     }));
   };
 
+  const addBudgetImages = async (fileList) => {
+    const imageFiles = Array.from(fileList || []).filter(file => file.type.startsWith('image/'));
+    if (!imageFiles.length) return;
+
+    const remainingSlots = MAX_BUDGET_IMAGES - budgetImages.length;
+    if (remainingSlots <= 0) {
+      window.alert(`Podés cargar hasta ${MAX_BUDGET_IMAGES} imágenes.`);
+      return;
+    }
+
+    const filesToAdd = imageFiles.slice(0, remainingSlots);
+    if (imageFiles.length > remainingSlots) {
+      window.alert(`Se cargaron ${remainingSlots} imágenes. El máximo es ${MAX_BUDGET_IMAGES}.`);
+    }
+
+    try {
+      const nextImages = await Promise.all(filesToAdd.map(fileToBudgetImage));
+      setBudgetImages(currentImages => [...currentImages, ...nextImages].slice(0, MAX_BUDGET_IMAGES));
+    } catch (error) {
+      console.error('No se pudieron procesar las imágenes del presupuesto', error);
+      window.alert('No se pudieron procesar una o más imágenes. Probá con archivos JPG o PNG.');
+    }
+  };
+
+  const removeBudgetImage = (imageId) => {
+    setBudgetImages(currentImages => currentImages.filter(image => image.id !== imageId));
+  };
+
   const openBudgetModal = () => {
     setBudgetMethod(selectedQuoteMethod);
     setIsBudgetModalOpen(true);
@@ -562,6 +694,7 @@ export const CotizadorScreen = () => {
       const pdfPayload = buildBudgetPdfPayload({
         form: budgetForm,
         sellerForm: sellerBudgetForm,
+        productImages: budgetImages,
         loads,
         settings,
         quoteResult,
@@ -611,6 +744,7 @@ export const CotizadorScreen = () => {
       const pdfPayload = buildBudgetPdfPayload({
         form: draftForm,
         sellerForm: sellerBudgetForm,
+        productImages: budgetImages,
         loads,
         settings,
         quoteResult: draftQuote,
@@ -649,6 +783,7 @@ export const CotizadorScreen = () => {
     setQuoteResult(calculateQuote({ loads: resetLoads, settings: resetSettings }));
     setBudgetForm({ ...initialBudgetForm });
     setSellerBudgetForm({ ...initialSellerBudgetForm });
+    setBudgetImages([]);
     setSelectedQuoteMethod('sea');
     setBudgetMethod('sea');
     setIsGeneratingBudget(false);
@@ -986,11 +1121,14 @@ export const CotizadorScreen = () => {
         <BudgetModal
           form={budgetForm}
           sellerForm={sellerBudgetForm}
+          productImages={budgetImages}
           quote={quoteResult[budgetMethod]}
           method={budgetMethod}
           onChange={updateBudgetForm}
           onSellerChange={updateSellerBudgetForm}
           onMethodChange={setBudgetMethod}
+          onImagesSelected={addBudgetImages}
+          onImageRemove={removeBudgetImage}
           onClose={() => setIsBudgetModalOpen(false)}
           onSubmit={submitBudgetForm}
           isGenerating={isGeneratingBudget}

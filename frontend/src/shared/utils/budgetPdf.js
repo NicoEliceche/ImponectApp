@@ -1,5 +1,6 @@
 const A4_PAGE_SIZE_MM = [210, 297];
 const PAGE_WIDTH = A4_PAGE_SIZE_MM[0];
+const PAGE_HEIGHT = A4_PAGE_SIZE_MM[1];
 const MARGIN = 4;
 const CONTENT_WIDTH = PAGE_WIDTH - (MARGIN * 2);
 const HEADER_HEIGHT = 43.4;
@@ -220,6 +221,31 @@ const drawImage = (doc, imageDataUrl, x, y, width, height, opacity = 1) => {
 
   if (opacity < 1) {
     doc.restoreGraphicsState();
+  }
+};
+
+const getImageFormat = (imageDataUrl) => {
+  const match = String(imageDataUrl || '').match(/^data:image\/([^;]+)/i);
+  if (!match) return 'PNG';
+  if (match[1].toLowerCase().includes('jpg') || match[1].toLowerCase().includes('jpeg')) return 'JPEG';
+  return match[1].toUpperCase();
+};
+
+const drawContainedImage = (doc, imageDataUrl, x, y, width, height) => {
+  if (!imageDataUrl) return false;
+
+  try {
+    const imageProps = doc.getImageProperties(imageDataUrl);
+    const ratio = Math.min(width / imageProps.width, height / imageProps.height);
+    const imageWidth = imageProps.width * ratio;
+    const imageHeight = imageProps.height * ratio;
+    const imageX = x + ((width - imageWidth) / 2);
+    const imageY = y + ((height - imageHeight) / 2);
+
+    doc.addImage(imageDataUrl, getImageFormat(imageDataUrl), imageX, imageY, imageWidth, imageHeight);
+    return true;
+  } catch {
+    return false;
   }
 };
 
@@ -567,7 +593,89 @@ const getLoadDetail = (load) => {
   return `${dimensions}\n${formatNumber(load.cbm || 0, 2)} CBM / ${formatNumber(load.weightKg || 0, 2)} KG`;
 };
 
-const drawMerchandiseTable = (doc, loads) => {
+const drawProductImages = (doc, productImages, y, headerDataUrl) => {
+  const areaX = MARGIN;
+  const areaWidth = CONTENT_WIDTH;
+  const images = Array.isArray(productImages) ? productImages.slice(0, 10) : [];
+  const columns = 3;
+  const gap = 3;
+  const padding = 2;
+  const slotWidth = (areaWidth - ((columns + 1) * gap)) / columns;
+  const slotHeight = slotWidth;
+  const firstRowAreaHeight = slotHeight + (gap * 2);
+  const bottomY = PAGE_HEIGHT - MARGIN;
+  const continuationY = 58;
+
+  if (!images.length) {
+    let placeholderY = y;
+    if (placeholderY + firstRowAreaHeight > bottomY) {
+      doc.addPage();
+      drawHeader(doc, 'DETALLE DE MERCADERÍA', headerDataUrl);
+      placeholderY = continuationY;
+    }
+
+    drawCell(doc, {
+      x: areaX,
+      y: placeholderY,
+      width: areaWidth,
+      height: firstRowAreaHeight,
+      text: 'Espacio reservado para imagenes de producto',
+      fill: COLORS.white,
+      border: COLORS.lightGray,
+      textColor: [120, 120, 120],
+      fontSize: 14,
+      align: 'center',
+      wrap: false,
+      minFontSize: 10,
+    });
+    return;
+  }
+
+  let imageIndex = 0;
+  let currentY = y;
+
+  while (imageIndex < images.length) {
+    if (currentY + firstRowAreaHeight > bottomY) {
+      doc.addPage();
+      drawHeader(doc, 'DETALLE DE MERCADERÍA', headerDataUrl);
+      currentY = continuationY;
+    }
+
+    const availableHeight = bottomY - currentY;
+    const maxRowsOnPage = Math.max(1, Math.floor((availableHeight - gap) / (slotHeight + gap)));
+    const remainingImages = images.length - imageIndex;
+    const rowsOnPage = Math.min(maxRowsOnPage, Math.ceil(remainingImages / columns));
+    const imagesOnPage = Math.min(remainingImages, rowsOnPage * columns);
+    const areaHeight = (rowsOnPage * slotHeight) + ((rowsOnPage + 1) * gap);
+
+    setFillColor(doc, COLORS.white);
+    setDrawColor(doc, COLORS.lightGray);
+    doc.rect(areaX, currentY, areaWidth, areaHeight, 'FD');
+
+    images.slice(imageIndex, imageIndex + imagesOnPage).forEach((image, index) => {
+      const column = index % columns;
+      const row = Math.floor(index / columns);
+      const slotX = areaX + gap + (column * (slotWidth + gap));
+      const slotY = currentY + gap + (row * (slotHeight + gap));
+
+      setDrawColor(doc, COLORS.gray);
+      doc.rect(slotX, slotY, slotWidth, slotHeight);
+      drawContainedImage(
+        doc,
+        image.src || image.dataUrl || image,
+        slotX + padding,
+        slotY + padding,
+        slotWidth - (padding * 2),
+        slotHeight - (padding * 2)
+      );
+    });
+
+    imageIndex += imagesOnPage;
+    currentY += areaHeight + 6;
+  }
+};
+
+const drawMerchandiseTable = (doc, loads, productImages = [], headerDataUrl = null) => {
   const y = 58;
   const headerHeight = 6.8;
   const minRowHeight = 11.5;
@@ -649,26 +757,13 @@ const drawMerchandiseTable = (doc, loads) => {
   });
 
   const imageY = currentY + 8;
-  drawCell(doc, {
-    x: 22,
-    y: imageY,
-    width: 166,
-    height: 64,
-    text: 'Espacio reservado para imagenes de producto',
-    fill: COLORS.white,
-    border: COLORS.lightGray,
-    textColor: [120, 120, 120],
-    fontSize: 14,
-    align: 'center',
-    wrap: false,
-    minFontSize: 10,
-  });
+  drawProductImages(doc, productImages, imageY, headerDataUrl);
 };
 
-const drawPageTwo = ({ doc, headerDataUrl, loads }) => {
+const drawPageTwo = ({ doc, headerDataUrl, loads, productImages }) => {
   doc.addPage();
   drawHeader(doc, 'DETALLE DE MERCADERÍA', headerDataUrl);
-  drawMerchandiseTable(doc, loads);
+  drawMerchandiseTable(doc, loads, productImages, headerDataUrl);
 };
 
 const getPdfBase64 = (doc) => {
@@ -682,6 +777,7 @@ const buildBudgetPdf = async ({
   quote,
   quoteResult,
   method,
+  productImages = [],
   headerSrc,
   signatureStampSrc,
   sellerSignatureSrc,
@@ -722,6 +818,7 @@ const buildBudgetPdf = async ({
     doc,
     headerDataUrl,
     loads: quoteResult?.loads || [],
+    productImages,
   });
 
   const budgetNumber = sanitizeFileName(form.budgetNumber || formatDate().replace(/\//g, '-'));

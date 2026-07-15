@@ -1,10 +1,18 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { isUploadedAgentIcon, normalizeAgentIconSrc, normalizeAgentIconValue } from '../utils/agentIcons';
+import {
+  AGENT_SECTION_OPTIONS,
+  getAgentSectionLabel,
+  inferAgentSection,
+  normalizeAgentSection,
+} from '../utils/agentSections';
 import { apiUrl } from '../utils/urls';
 import {
   IconClose,
   IconCode,
   IconDatabase,
+  IconFile,
   IconFolder,
   IconIA,
   IconMCP,
@@ -14,6 +22,7 @@ import {
   IconSettings,
   IconShield,
   IconTrash,
+  IconUserSilhouette,
 } from './Icons';
 import { useUIStore } from '../../app/stores/uiStore';
 import * as S from './AgentModalStyled';
@@ -41,6 +50,7 @@ const defaultAgentForm = {
   external_url: '',
   icon_url: '',
   config: {
+    sidebar_group: 'agent',
     instructions: '',
     agent_mode: 'single',
     model_provider: 'openai',
@@ -79,6 +89,7 @@ const defaultAgentForm = {
       enabled: true,
       assistant_id: '',
       vector_store_id: '',
+      knowledge_files: [],
       data_sources: 'documentos, drive, base de datos',
       ingestion_mode: 'manual',
       chunking_strategy: 'recursive',
@@ -118,6 +129,161 @@ const defaultAgentForm = {
   },
 };
 
+const MAX_AGENT_ICON_SIZE = 512;
+const AGENT_ICON_QUALITY = 0.86;
+const RAG_FILE_LIMIT = 20;
+const RAG_FILE_SIZE_LIMIT_MB = 20;
+const RAG_TOTAL_SIZE_LIMIT_MB = 40;
+const RAG_FILE_SIZE_LIMIT_BYTES = RAG_FILE_SIZE_LIMIT_MB * 1024 * 1024;
+const RAG_TOTAL_SIZE_LIMIT_BYTES = RAG_TOTAL_SIZE_LIMIT_MB * 1024 * 1024;
+const RAG_TEXT_PREVIEW_LIMIT = 12000;
+const RAG_TEXT_EXTENSION_LIST = [
+  '.txt',
+  '.md',
+  '.markdown',
+  '.csv',
+  '.tsv',
+  '.json',
+  '.jsonl',
+  '.xml',
+  '.yaml',
+  '.yml',
+  '.html',
+  '.htm',
+  '.rtf',
+  '.log',
+  '.sql',
+  '.js',
+  '.jsx',
+  '.ts',
+  '.tsx',
+  '.css',
+  '.scss',
+  '.py',
+  '.java',
+  '.cs',
+  '.cpp',
+  '.c',
+  '.go',
+  '.rb',
+  '.php',
+  '.sh',
+  '.ps1',
+];
+const RAG_ACCEPTED_EXTENSION_LIST = [
+  ...RAG_TEXT_EXTENSION_LIST,
+  '.pdf',
+  '.doc',
+  '.docx',
+  '.ppt',
+  '.pptx',
+  '.xls',
+  '.xlsx',
+  '.xlsm',
+  '.ods',
+  '.numbers',
+  '.sheet',
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.webp',
+  '.gif',
+  '.bmp',
+  '.svg',
+  '.heic',
+  '.heif',
+  '.avif',
+];
+const RAG_TEXT_EXTENSIONS = new Set(RAG_TEXT_EXTENSION_LIST);
+const RAG_ACCEPTED_EXTENSIONS = new Set(RAG_ACCEPTED_EXTENSION_LIST);
+const RAG_FILE_ACCEPT = ['image/*', ...RAG_ACCEPTED_EXTENSION_LIST].join(',');
+
+const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve(String(reader.result || ''));
+  reader.onerror = () => reject(new Error(`No se pudo leer ${file.name}.`));
+  reader.readAsDataURL(file);
+});
+
+const optimizeAgentIconDataUrl = (dataUrl) => new Promise((resolve, reject) => {
+  const image = new Image();
+  image.onload = () => {
+    const scale = Math.min(1, MAX_AGENT_ICON_SIZE / Math.max(image.width, image.height));
+    const width = Math.max(Math.round(image.width * scale), 1);
+    const height = Math.max(Math.round(image.height * scale), 1);
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d');
+    context.drawImage(image, 0, 0, width, height);
+
+    const outputType = dataUrl.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
+    resolve(canvas.toDataURL(outputType, AGENT_ICON_QUALITY));
+  };
+  image.onerror = () => reject(new Error('No se pudo procesar la imagen seleccionada.'));
+  image.src = dataUrl;
+});
+
+const fileToAgentIconDataUrl = async (file) => optimizeAgentIconDataUrl(await readFileAsDataUrl(file));
+
+const getFileExtension = (fileName = '') => {
+  const dotIndex = fileName.lastIndexOf('.');
+  return dotIndex >= 0 ? fileName.slice(dotIndex).toLowerCase() : '';
+};
+
+const formatFileSize = (bytes = 0) => {
+  if (!bytes) return '0 KB';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  const unitIndex = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const value = bytes / (1024 ** unitIndex);
+  return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+};
+
+const isRagImageFile = (file) => {
+  const extension = getFileExtension(file?.name || file?.file_name || '');
+  return String(file?.mime_type || file?.type || '').startsWith('image/')
+    || String(file?.data_url || '').startsWith('data:image/')
+    || ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.svg', '.heic', '.heif', '.avif'].includes(extension);
+};
+
+const isAcceptedRagFile = (file) => {
+  const extension = getFileExtension(file.name);
+  return String(file.type || '').startsWith('image/') || RAG_ACCEPTED_EXTENSIONS.has(extension);
+};
+
+const getRagKnowledgeFiles = (rag) => {
+  if (Array.isArray(rag?.knowledge_files)) return rag.knowledge_files;
+  if (Array.isArray(rag?.knowledgeFiles)) return rag.knowledgeFiles;
+  return [];
+};
+
+const fileToRagKnowledgeFile = async (file) => {
+  const extension = getFileExtension(file.name);
+  const mimeType = String(file.type || '');
+  const isTextLike = mimeType.startsWith('text/') || RAG_TEXT_EXTENSIONS.has(extension);
+  let textPreview = '';
+
+  if (isTextLike) {
+    try {
+      textPreview = (await file.text()).slice(0, RAG_TEXT_PREVIEW_LIMIT);
+    } catch {
+      textPreview = '';
+    }
+  }
+
+  return {
+    id: `rag-file-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    name: file.name,
+    extension: extension.replace('.', '') || 'file',
+    mime_type: mimeType || 'application/octet-stream',
+    size: file.size,
+    content_kind: mimeType.startsWith('image/') ? 'image' : isTextLike ? 'text' : 'binary',
+    added_at: new Date().toISOString(),
+    data_url: await readFileAsDataUrl(file),
+    text_preview: textPreview,
+  };
+};
+
 const cloneDefaultAgentForm = () => ({
   ...defaultAgentForm,
   config: {
@@ -125,7 +291,7 @@ const cloneDefaultAgentForm = () => ({
     model_settings: { ...defaultAgentForm.config.model_settings },
     runtime: { ...defaultAgentForm.config.runtime },
     guardrails: { ...defaultAgentForm.config.guardrails },
-    rag: { ...defaultAgentForm.config.rag },
+    rag: { ...defaultAgentForm.config.rag, knowledge_files: [] },
     skills: { ...defaultAgentForm.config.skills },
     mcp: {
       ...defaultAgentForm.config.mcp,
@@ -163,6 +329,7 @@ const hydrateAgentForm = (agent) => {
     icon_url: agent?.icon_url || '',
     config: {
       ...base.config,
+      sidebar_group: inferAgentSection(agent, base.config.sidebar_group),
       instructions: config.instructions || '',
       agent_mode: config.agent_mode || base.config.agent_mode,
       model_provider: config.model_provider || base.config.model_provider,
@@ -205,6 +372,7 @@ const hydrateAgentForm = (agent) => {
         enabled: rag.enabled ?? base.config.rag.enabled,
         assistant_id: rag.assistant_id || '',
         vector_store_id: rag.vector_store_id || '',
+        knowledge_files: getRagKnowledgeFiles(rag),
         data_sources: stringifyListValue(rag.data_sources || base.config.rag.data_sources),
         ingestion_mode: rag.ingestion_mode || base.config.rag.ingestion_mode,
         chunking_strategy: rag.chunking_strategy || base.config.rag.chunking_strategy,
@@ -336,10 +504,20 @@ const buildGuidedMcpConfig = (servers) => ({
 export const AgentModal = () => {
   const queryClient = useQueryClient();
   const { isAgentModalOpen, closeAgentModal, editingAgent } = useUIStore();
+  const iconInputRef = useRef(null);
+  const ragFilesInputRef = useRef(null);
   const [activeTab, setActiveTab] = useState('config');
   const [validationError, setValidationError] = useState('');
   const [agentForm, setAgentForm] = useState(() => cloneDefaultAgentForm());
+  const [iconPreviewFailed, setIconPreviewFailed] = useState(false);
+  const [ragUploadProgress, setRagUploadProgress] = useState({ active: false, processed: 0, total: 0, fileName: '' });
   const isEditingAgent = Boolean(editingAgent?.id);
+  const iconPreviewSrc = normalizeAgentIconSrc(agentForm.icon_url);
+  const iconUrlInputValue = isUploadedAgentIcon(agentForm.icon_url) ? '' : agentForm.icon_url;
+  const ragKnowledgeFiles = getRagKnowledgeFiles(agentForm.config.rag);
+  const ragUploadPercent = ragUploadProgress.total
+    ? Math.round((ragUploadProgress.processed / ragUploadProgress.total) * 100)
+    : 0;
 
   const generatedMcpConfig = useMemo(
     () => buildGuidedMcpConfig(agentForm.config.mcp.servers),
@@ -354,6 +532,7 @@ export const AgentModal = () => {
   const resetForm = () => {
     setAgentForm(cloneDefaultAgentForm());
     setValidationError('');
+    setRagUploadProgress({ active: false, processed: 0, total: 0, fileName: '' });
     setActiveTab('config');
   };
 
@@ -369,14 +548,164 @@ export const AgentModal = () => {
     resetForm();
   }, [isAgentModalOpen, editingAgent]);
 
+  useEffect(() => {
+    setIconPreviewFailed(false);
+  }, [agentForm.icon_url]);
+
   const updateField = (key, value) => {
     setAgentForm(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleIconFile = async (file) => {
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      window.alert('Seleccioná una imagen JPG, PNG o WebP.');
+      return;
+    }
+
+    try {
+      const dataUrl = await fileToAgentIconDataUrl(file);
+      updateField('icon_url', dataUrl);
+    } catch (error) {
+      console.error('No se pudo procesar la imagen del agente', error);
+      window.alert('No se pudo procesar la imagen. Probá con otro archivo JPG o PNG.');
+    }
+  };
+
+  const handleIconInputChange = (event) => {
+    handleIconFile(event.target.files?.[0]);
+    event.target.value = '';
+  };
+
+  const handleIconDrop = (event) => {
+    event.preventDefault();
+    const imageFile = Array.from(event.dataTransfer.files || []).find(file => file.type.startsWith('image/'));
+    handleIconFile(imageFile);
+  };
+
+  const clearAgentIcon = () => {
+    updateField('icon_url', '');
+    setIconPreviewFailed(false);
+  };
+
+  const updateRagKnowledgeFiles = (updater) => {
+    setAgentForm(prev => {
+      const currentFiles = getRagKnowledgeFiles(prev.config.rag);
+      const nextFiles = typeof updater === 'function' ? updater(currentFiles) : updater;
+
+      return {
+        ...prev,
+        config: {
+          ...prev.config,
+          rag: {
+            ...prev.config.rag,
+            knowledge_files: nextFiles,
+          },
+        },
+      };
+    });
+  };
+
+  const handleRagFiles = async (fileList) => {
+    const selectedFiles = Array.from(fileList || []);
+    if (!selectedFiles.length) return;
+
+    if (ragUploadProgress.active) {
+      setValidationError('Esperá a que termine la carga de archivos actual.');
+      return;
+    }
+
+    const existingSize = ragKnowledgeFiles.reduce((total, file) => total + Number(file.size || 0), 0);
+    const selectedSize = selectedFiles.reduce((total, file) => total + file.size, 0);
+    const invalidFile = selectedFiles.find(file => !isAcceptedRagFile(file));
+    const oversizedFile = selectedFiles.find(file => file.size > RAG_FILE_SIZE_LIMIT_BYTES);
+
+    if (ragKnowledgeFiles.length + selectedFiles.length > RAG_FILE_LIMIT) {
+      setValidationError(`Podés cargar hasta ${RAG_FILE_LIMIT} archivos de knowledge por agente.`);
+      return;
+    }
+
+    if (invalidFile) {
+      setValidationError(`"${invalidFile.name}" no tiene una extensión soportada para Knowledge/RAG.`);
+      return;
+    }
+
+    if (oversizedFile) {
+      setValidationError(`"${oversizedFile.name}" supera el límite de ${RAG_FILE_SIZE_LIMIT_MB} MB por archivo.`);
+      return;
+    }
+
+    if (existingSize + selectedSize > RAG_TOTAL_SIZE_LIMIT_BYTES) {
+      setValidationError(`El total de archivos del agente no puede superar ${RAG_TOTAL_SIZE_LIMIT_MB} MB en esta versión.`);
+      return;
+    }
+
+    try {
+      const preparedFiles = [];
+      setRagUploadProgress({ active: true, processed: 0, total: selectedFiles.length, fileName: selectedFiles[0]?.name || '' });
+
+      for (const [index, file] of selectedFiles.entries()) {
+        setRagUploadProgress({
+          active: true,
+          processed: index,
+          total: selectedFiles.length,
+          fileName: file.name,
+        });
+
+        preparedFiles.push(await fileToRagKnowledgeFile(file));
+
+        setRagUploadProgress({
+          active: true,
+          processed: index + 1,
+          total: selectedFiles.length,
+          fileName: file.name,
+        });
+      }
+
+      updateRagKnowledgeFiles(currentFiles => [...currentFiles, ...preparedFiles]);
+      setValidationError('');
+      setRagUploadProgress({ active: false, processed: 0, total: 0, fileName: '' });
+    } catch (error) {
+      console.error('No se pudieron procesar los archivos RAG', error);
+      setValidationError('No se pudieron procesar los archivos seleccionados. Probá nuevamente.');
+      setRagUploadProgress({ active: false, processed: 0, total: 0, fileName: '' });
+    }
+  };
+
+  const handleRagFileInputChange = (event) => {
+    handleRagFiles(event.target.files);
+    event.target.value = '';
+  };
+
+  const removeRagFile = (fileIndex) => {
+    updateRagKnowledgeFiles(currentFiles => currentFiles.filter((_, index) => index !== fileIndex));
+  };
+
+  const clearRagFiles = () => {
+    updateRagKnowledgeFiles([]);
   };
 
   const updateConfig = (key, value) => {
     setAgentForm(prev => ({
       ...prev,
       config: { ...prev.config, [key]: value },
+    }));
+  };
+
+  const updateAgentSection = (value) => {
+    const section = normalizeAgentSection(value);
+
+    setAgentForm(prev => ({
+      ...prev,
+      config: {
+        ...prev.config,
+        sidebar_group: section,
+        rag: {
+          ...prev.config.rag,
+          enabled: section === 'rag' ? true : prev.config.rag.enabled,
+        },
+      },
     }));
   };
 
@@ -469,6 +798,7 @@ export const AgentModal = () => {
     }
 
     const config = cleanObject({
+      sidebar_group: normalizeAgentSection(agentForm.config.sidebar_group),
       instructions: agentForm.config.instructions,
       agent_mode: agentForm.config.agent_mode,
       model_provider: agentForm.config.model_provider,
@@ -526,7 +856,7 @@ export const AgentModal = () => {
       description: agentForm.description,
       type: agentForm.type,
       external_url: agentForm.type === 'external' ? agentForm.external_url : '',
-      icon_url: agentForm.icon_url,
+      icon_url: normalizeAgentIconValue(agentForm.icon_url),
       config,
     };
   };
@@ -543,11 +873,15 @@ export const AgentModal = () => {
 
   if (!isAgentModalOpen) return null;
 
+  const selectedAgentSectionLabel = getAgentSectionLabel(agentForm.config.sidebar_group);
+  const modalEntityTitle = isEditingAgent ? 'Editar Agente/Asistente/RAG' : 'Nuevo Agente/Asistente/RAG';
+  const submitLabel = `${isEditingAgent ? 'Actualizar' : 'Crear'} ${selectedAgentSectionLabel}`;
+
   return (
     <S.ModalOverlay onClick={closeAgentModal}>
       <S.ModalUI onClick={event => event.stopPropagation()}>
         <S.ModalHeader>
-          <S.ModalTitle>{isEditingAgent ? <IconPencil /> : <IconPlus />} {isEditingAgent ? 'Editar Agente/Asistente' : 'Nuevo Agente/Asistente'}</S.ModalTitle>
+          <S.ModalTitle>{isEditingAgent ? <IconPencil /> : <IconPlus />} {modalEntityTitle}</S.ModalTitle>
           <S.CloseButton onClick={closeAgentModal}><IconClose /></S.CloseButton>
         </S.ModalHeader>
 
@@ -593,6 +927,14 @@ export const AgentModal = () => {
                         <option value="external">Externo (iFrame Link)</option>
                       </select>
                     </S.FormGroup>
+                    <S.FormGroup>
+                      <label>Sección</label>
+                      <select value={agentForm.config.sidebar_group} onChange={event => updateAgentSection(event.target.value)}>
+                        {AGENT_SECTION_OPTIONS.map(option => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                      </select>
+                    </S.FormGroup>
                     <S.FormGroup $wide>
                       <label>Descripción</label>
                       <textarea
@@ -613,13 +955,54 @@ export const AgentModal = () => {
                       </S.FormGroup>
                     )}
                     <S.FormGroup $wide>
-                      <label>URL del Icono</label>
+                      <label>URL de imagen</label>
                       <input
                         type="text"
-                        placeholder="assets/mi-agente.png"
-                        value={agentForm.icon_url}
+                        placeholder={isUploadedAgentIcon(agentForm.icon_url) ? 'Imagen cargada desde archivo' : 'https://... o assets/mi-agente.png'}
+                        value={iconUrlInputValue}
                         onChange={event => updateField('icon_url', event.target.value)}
                       />
+                    </S.FormGroup>
+                    <S.FormGroup $wide>
+                      <label>Imagen de perfil</label>
+                      <S.AgentIconDropZone
+                        onDragOver={event => event.preventDefault()}
+                        onDrop={handleIconDrop}
+                      >
+                        <S.HiddenFileInput
+                          ref={iconInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleIconInputChange}
+                        />
+                        <S.AgentIconPreview $empty={!iconPreviewSrc || iconPreviewFailed}>
+                          {iconPreviewSrc && !iconPreviewFailed ? (
+                            <img
+                              src={iconPreviewSrc}
+                              alt="Imagen de perfil"
+                              onError={() => setIconPreviewFailed(true)}
+                            />
+                          ) : (
+                            <IconUserSilhouette />
+                          )}
+                        </S.AgentIconPreview>
+                        <S.AgentIconUploadCopy>
+                          <strong>Perfil del agente</strong>
+                          <span>URL externa o una imagen local. Se guarda una sola imagen.</span>
+                        </S.AgentIconUploadCopy>
+                        <S.AgentIconActions>
+                          <S.SmallButton type="button" onClick={() => iconInputRef.current?.click()}>
+                            <IconPlus />
+                            Cargar
+                          </S.SmallButton>
+                          {agentForm.icon_url && (
+                            <S.SmallButton type="button" onClick={clearAgentIcon}>
+                              <IconTrash />
+                              Quitar
+                            </S.SmallButton>
+                          )}
+                        </S.AgentIconActions>
+                      </S.AgentIconDropZone>
                     </S.FormGroup>
                   </S.FieldGrid>
                 </S.SectionBlock>
@@ -994,6 +1377,107 @@ export const AgentModal = () => {
                     />
                     RAG activo
                   </S.CheckboxRow>
+                </S.SectionBlock>
+
+                <S.SectionBlock>
+                  <S.SectionHeader>
+                    <div>
+                      <S.SectionTitle>Knowledge / Archivos RAG</S.SectionTitle>
+                      <S.SectionSubtitle>Base de conocimiento cargada como en un GPT propio: documentos, planillas, PDFs, markdown, CSV, código e imágenes.</S.SectionSubtitle>
+                    </div>
+                    <IconFile />
+                  </S.SectionHeader>
+                  <S.HiddenFileInput
+                    ref={ragFilesInputRef}
+                    type="file"
+                    multiple
+                    accept={RAG_FILE_ACCEPT}
+                    onChange={handleRagFileInputChange}
+                  />
+                  <S.RagFilesDropZone
+                    role="button"
+                    tabIndex={0}
+                    $loading={ragUploadProgress.active}
+                    onClick={() => {
+                      if (!ragUploadProgress.active) ragFilesInputRef.current?.click();
+                    }}
+                    onDragOver={event => event.preventDefault()}
+                    onDrop={event => {
+                      event.preventDefault();
+                      if (!ragUploadProgress.active) handleRagFiles(event.dataTransfer.files);
+                    }}
+                    onKeyDown={event => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        if (!ragUploadProgress.active) ragFilesInputRef.current?.click();
+                      }
+                    }}
+                  >
+                    <S.RagFilesDropIcon $loading={ragUploadProgress.active}>
+                      {ragUploadProgress.active ? <S.RagUploadSpinner /> : <IconPlus />}
+                    </S.RagFilesDropIcon>
+                    <S.AgentIconUploadCopy aria-live="polite">
+                      <strong>{ragUploadProgress.active ? 'Cargando archivos de Knowledge' : 'Arrastrá archivos o hacé click para elegir'}</strong>
+                      {ragUploadProgress.active ? (
+                        <span>
+                          Procesando {ragUploadProgress.processed}/{ragUploadProgress.total}
+                          {ragUploadProgress.fileName ? ` · ${ragUploadProgress.fileName}` : ''}
+                        </span>
+                      ) : (
+                        <span>
+                          Hasta {RAG_FILE_LIMIT} archivos. Soporta imágenes, PDF, DOC/DOCX, XLS/XLSX,
+                          CSV/TSV, TXT, MD, JSON, YAML, XML, PPT/PPTX y código. Límite actual:
+                          {' '}{RAG_FILE_SIZE_LIMIT_MB} MB por archivo y {RAG_TOTAL_SIZE_LIMIT_MB} MB total.
+                        </span>
+                      )}
+                    </S.AgentIconUploadCopy>
+                    <S.RagFilesCounter>
+                      {ragUploadProgress.active ? `${ragUploadPercent}%` : `${ragKnowledgeFiles.length}/${RAG_FILE_LIMIT}`}
+                    </S.RagFilesCounter>
+                    {ragUploadProgress.active && (
+                      <S.RagUploadProgress aria-label={`Carga de archivos ${ragUploadPercent}%`}>
+                        <S.RagUploadProgressFill $progress={ragUploadPercent} />
+                      </S.RagUploadProgress>
+                    )}
+                  </S.RagFilesDropZone>
+                  {ragKnowledgeFiles.length > 0 && (
+                    <>
+                      <S.RagFileGrid>
+                        {ragKnowledgeFiles.map((file, index) => (
+                          <S.RagFileItem key={file.id || `${file.name}-${file.size}-${index}`}>
+                            <S.RagFileThumb $isImage={isRagImageFile(file)}>
+                              {isRagImageFile(file) ? (
+                                <img src={file.data_url} alt={file.name} />
+                              ) : (
+                                <IconFile />
+                              )}
+                            </S.RagFileThumb>
+                            <S.RagFileMeta>
+                              <strong title={file.name}>{file.name}</strong>
+                              <span>{String(file.extension || 'file').toUpperCase()} · {formatFileSize(file.size)}</span>
+                            </S.RagFileMeta>
+                            <S.RagFileRemove
+                              type="button"
+                              aria-label={`Quitar ${file.name}`}
+                              onClick={() => removeRagFile(index)}
+                            >
+                              <IconClose />
+                            </S.RagFileRemove>
+                          </S.RagFileItem>
+                        ))}
+                      </S.RagFileGrid>
+                      <S.InlineActions>
+                        <S.SmallButton type="button" onClick={() => ragFilesInputRef.current?.click()}>
+                          <IconPlus />
+                          Agregar más
+                        </S.SmallButton>
+                        <S.SmallButton type="button" onClick={clearRagFiles}>
+                          <IconTrash />
+                          Quitar todos
+                        </S.SmallButton>
+                      </S.InlineActions>
+                    </>
+                  )}
                 </S.SectionBlock>
 
                 <S.SectionBlock>
@@ -1489,7 +1973,7 @@ export const AgentModal = () => {
             onClick={handleSaveAgent}
             disabled={saveAgentMutation.isPending}
           >
-            {isEditingAgent ? 'Actualizar Agente' : 'Guardar Agente'}
+            {submitLabel}
           </S.Button>
         </S.ModalFooter>
       </S.ModalUI>

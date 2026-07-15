@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   IconAttachment,
   IconBack,
@@ -17,10 +17,20 @@ import {
   IconDots,
 } from '../../../shared/components/Icons';
 import { publicAsset } from '../../../shared/utils/urls';
+import {
+  disconnectWhatsAppIntegration,
+  fetchWhatsAppIntegrationStatus,
+  saveWhatsAppManualConfig,
+  testWhatsAppIntegration,
+} from '../api/crmApi';
 import * as S from './CRMScreenStyled';
 
 const SESSION_FILTER_KEY = 'imponect.chats.channelFilter';
 const SESSION_ACCOUNTS_KEY = 'imponect.chats.connectedAccounts';
+const WHATSAPP_CONNECTED_STATUSES = new Set(['connected']);
+const WHATSAPP_ATTENTION_STATUSES = new Set(['needs_setup', 'requires_attention', 'disconnected']);
+
+const createVerifyToken = () => `imponect-whatsapp-${Date.now().toString(36)}-${Math.random().toString(16).slice(2, 8)}`;
 
 const channels = [
   { id: 'all', label: 'Todo', shortLabel: 'Todo', sync: 'synced' },
@@ -31,6 +41,99 @@ const channels = [
   { id: 'made', label: 'Made-in-China', shortLabel: 'MIC', sync: 'warning' },
   { id: '1688', label: '1688', shortLabel: '1688', sync: 'synced' },
 ];
+
+const channelMessagingPolicies = {
+  whatsapp: {
+    open: {
+      locked: false,
+      tone: 'success',
+      badge: 'WhatsApp 24h activa',
+      note: 'Respuesta libre habilitada porque el cliente escribió dentro de la ventana permitida.',
+    },
+    template_required: {
+      locked: true,
+      tone: 'warning',
+      badge: 'Template requerido',
+      note: 'La ventana de 24h de WhatsApp está vencida. Imponect bloquea mensajes libres para evitar incumplir la política.',
+      actionLabel: 'Enviar template aprobado',
+      actionTitle: 'Templates aprobados de WhatsApp',
+      actionOptions: ['Enviar seguimiento de cotización', 'Solicitar confirmación de datos', 'Avisar novedad de presupuesto', 'Enviar actualización de carga'],
+      placeholder: 'Esperando respuesta del cliente o envío de template aprobado',
+    },
+  },
+  instagram: {
+    open: {
+      locked: false,
+      tone: 'success',
+      badge: 'Instagram 24h activa',
+      note: 'Respuesta libre habilitada por interacción reciente del usuario.',
+    },
+    human_agent: {
+      locked: false,
+      tone: 'warning',
+      badge: 'Agente humano',
+      note: 'Fuera de 24h, pero dentro de la ventana manual extendida de Meta. Solo respuesta humana, sin automatizaciones ni mensajes masivos.',
+    },
+    expired: {
+      locked: true,
+      tone: 'danger',
+      badge: 'Instagram vencido',
+      note: 'Meta no permite mensajes libres para este DM. Hace falta una opción permitida por la plataforma.',
+      actionLabel: 'Ver opciones permitidas',
+      actionTitle: 'Opciones permitidas por Instagram',
+      actionOptions: ['Revisar respuesta humana disponible', 'Esperar nuevo mensaje del usuario', 'Asignar a revisión manual'],
+      placeholder: 'Chat bloqueado por política de Meta',
+    },
+  },
+  facebook: {
+    open: {
+      locked: false,
+      tone: 'success',
+      badge: 'Facebook 24h activa',
+      note: 'Respuesta libre habilitada por interacción reciente del usuario.',
+    },
+    human_agent: {
+      locked: false,
+      tone: 'warning',
+      badge: 'Agente humano',
+      note: 'Fuera de 24h, pero dentro de la ventana manual extendida de Meta. Solo respuesta humana, sin automatizaciones ni mensajes masivos.',
+    },
+    expired: {
+      locked: true,
+      tone: 'danger',
+      badge: 'Messenger vencido',
+      note: 'Meta no permite mensajes libres para este chat. Hace falta una opción permitida por la plataforma.',
+      actionLabel: 'Ver opciones permitidas',
+      actionTitle: 'Opciones permitidas por Facebook',
+      actionOptions: ['Revisar respuesta humana disponible', 'Esperar nuevo mensaje del usuario', 'Asignar a revisión manual'],
+      placeholder: 'Chat bloqueado por política de Meta',
+    },
+  },
+  alibaba: {
+    external_pending: {
+      locked: false,
+      tone: 'info',
+      badge: 'Alibaba pendiente',
+      note: 'El chat web de Alibaba queda para una etapa posterior. Por ahora este canal funciona como registro operativo.',
+    },
+  },
+  made: {
+    trade_messenger: {
+      locked: false,
+      tone: 'info',
+      badge: 'Trade Messenger',
+      note: 'Made-in-China usa Message Centre y Trade Messenger. No hay API pública de chat confirmada para integrarlo como inbox propio todavía.',
+    },
+  },
+  '1688': {
+    wangwang_restricted: {
+      locked: false,
+      tone: 'warning',
+      badge: 'WangWang restringido',
+      note: '1688/WangWang requiere capacidades del ecosistema Alibaba TOP y permisos específicos. La integración directa de mensajes queda en evaluación.',
+    },
+  },
+};
 
 const conversations = [
   {
@@ -46,6 +149,7 @@ const conversations = [
     time: 'Ayer',
     status: 'read',
     lastMessage: 'Última semana de Junio, Bingo',
+    messagingWindow: 'template_required',
     tags: ['Catálogo', 'Cliente activo'],
     messages: [
       { id: 'm1', from: 'them', text: 'Hola Nico, ¿nos pasás el recibo de pago?', time: '17:04' },
@@ -69,6 +173,7 @@ const conversations = [
     time: 'Martes',
     status: 'delivered',
     lastMessage: 'Cámara argentina de la constru...',
+    messagingWindow: 'open',
     tags: ['Grupo'],
     messages: [
       { id: 'm1', from: 'them', text: '¿Tenés el presupuesto final?', time: '09:12' },
@@ -88,6 +193,7 @@ const conversations = [
     time: '06:39',
     status: 'sent',
     lastMessage: 'Alan: Yo ahora mientras llegan me pon...',
+    messagingWindow: 'template_required',
     tags: ['Equipo'],
     messages: [
       { id: 'm1', from: 'them', text: 'Alan: Yo ahora mientras llegan me pongo con eso.', time: '06:39' },
@@ -107,6 +213,7 @@ const conversations = [
     time: '08:12',
     status: 'read',
     lastMessage: 'Te mandé las medidas por DM.',
+    messagingWindow: 'human_agent',
     tags: ['Diseño', 'Story reply'],
     messages: [
       { id: 'm1', from: 'them', text: 'Vi la historia de packaging. ¿Tienen medidas chicas?', time: '08:08' },
@@ -127,6 +234,7 @@ const conversations = [
     time: 'Ayer',
     status: 'delivered',
     lastMessage: '¿Pueden cotizar retiro en Avellaneda?',
+    messagingWindow: 'open',
     tags: ['Ad response'],
     messages: [
       { id: 'm1', from: 'them', text: '¿Pueden cotizar retiro en Avellaneda?', time: '18:22' },
@@ -146,6 +254,7 @@ const conversations = [
     time: '02:18',
     status: 'read',
     lastMessage: 'PI updated with Trade Assurance.',
+    messagingWindow: 'external_pending',
     tags: ['Trade Assurance', 'Cotización'],
     messages: [
       { id: 'm1', from: 'them', text: 'MOQ can be 500 units with custom logo.', time: '01:52' },
@@ -166,6 +275,7 @@ const conversations = [
     time: 'Lun',
     status: 'sent',
     lastMessage: 'We attached CE certificate.',
+    messagingWindow: 'trade_messenger',
     tags: ['Inquiry', 'Certificados'],
     messages: [
       { id: 'm1', from: 'them', text: 'We attached CE certificate.', time: '11:08' },
@@ -185,6 +295,7 @@ const conversations = [
     time: '00:41',
     status: 'delivered',
     lastMessage: '可以混批，今天能发货。',
+    messagingWindow: 'wangwang_restricted',
     tags: ['采购', 'Traducir'],
     messages: [
       { id: 'm1', from: 'them', text: '可以混批，今天能发货。', time: '00:38' },
@@ -271,7 +382,44 @@ const getSyncText = (sync) => {
 
 const getPlatformLabel = (platform) => channelById[platform]?.label || platform;
 
+const getWhatsAppSyncState = (integration, isLoading) => {
+  if (isLoading) return 'syncing';
+  if (!integration || WHATSAPP_ATTENTION_STATUSES.has(integration.status)) return 'warning';
+  return 'synced';
+};
+
+const getWhatsAppConnectionLabel = (integration, isLoading) => {
+  if (isLoading) return 'Consultando conexión';
+  if (!integration || integration.status === 'needs_setup') return 'Requiere configuración';
+  if (integration.status === 'requires_attention') return 'Requiere actualizar credenciales';
+  if (integration.status === 'disconnected') return 'Desconectada';
+  if (integration.last_verified_at) return 'Conectada y verificada';
+  return 'Conectada sin prueba reciente';
+};
+
+const getWhatsAppStatusTitle = (integration) => {
+  if (!integration || integration.status === 'needs_setup') return 'WhatsApp no conectado';
+  if (integration.status === 'requires_attention') return 'WhatsApp requiere atención';
+  if (integration.status === 'disconnected') return 'WhatsApp desconectado';
+  return 'WhatsApp conectado';
+};
+
 const isBusinessLike = (chat) => ['Business Account', 'Supplier', 'Manufacturer', 'Store'].includes(chat.accountType);
+
+const getMessagingGuardrail = (chat) => {
+  if (!chat) return null;
+
+  const platformPolicies = channelMessagingPolicies[chat.platform] || {};
+  const state = chat.messagingWindow || 'open';
+  const policy = platformPolicies[state] || platformPolicies.open;
+
+  return policy || {
+    locked: false,
+    tone: 'info',
+    badge: 'Canal conectado',
+    note: 'Este canal se gestionará según las reglas de su integración cuando conectemos la API real.',
+  };
+};
 
 const MessageStatus = ({ status }) => {
   if (!status) return null;
@@ -404,6 +552,203 @@ const AccountSettingsModal = ({ accounts, onClose, onMove, onRefresh, onSave, on
   </S.ModalOverlay>
 );
 
+const WhatsAppSetupPanel = ({
+  integration,
+  isLoading,
+  error,
+  onOpenManualConfig,
+  onRefresh,
+  onTest,
+  onDisconnect,
+  onShowMetaInfo,
+  isTesting,
+  isDisconnecting,
+}) => {
+  const isConnected = WHATSAPP_CONNECTED_STATUSES.has(integration?.status);
+  const canTest = Boolean(integration?.has_access_token && integration?.phone_number_id);
+  const lastVerifiedText = integration?.last_verified_at
+    ? new Intl.DateTimeFormat('es-AR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(new Date(integration.last_verified_at))
+    : 'Sin prueba registrada';
+
+  return (
+    <S.SetupPanel>
+      <S.SetupBadge $sync={getWhatsAppSyncState(integration, isLoading)}>
+        <S.SyncIndicator $sync={getWhatsAppSyncState(integration, isLoading)} />
+        {getWhatsAppConnectionLabel(integration, isLoading)}
+      </S.SetupBadge>
+
+      <S.SetupTitle>{getWhatsAppStatusTitle(integration)}</S.SetupTitle>
+      <S.SetupText>
+        Para recibir y responder mensajes desde Imponect, vinculá una cuenta de WhatsApp Business Platform.
+        Podés conectar con Meta más adelante o cargar credenciales manualmente desde esta pantalla.
+      </S.SetupText>
+
+      {error && <S.SetupError>{error}</S.SetupError>}
+
+      <S.SetupGrid>
+        <S.SetupInfoCard>
+          <span>Webhook URL</span>
+          <strong>{integration?.webhook_url || 'Disponible al consultar el backend'}</strong>
+        </S.SetupInfoCard>
+        <S.SetupInfoCard>
+          <span>Número</span>
+          <strong>{integration?.phone_number || 'Sin número vinculado'}</strong>
+        </S.SetupInfoCard>
+        <S.SetupInfoCard>
+          <span>Phone Number ID</span>
+          <strong>{integration?.phone_number_id || 'Pendiente'}</strong>
+        </S.SetupInfoCard>
+        <S.SetupInfoCard>
+          <span>Última verificación</span>
+          <strong>{lastVerifiedText}</strong>
+        </S.SetupInfoCard>
+      </S.SetupGrid>
+
+      <S.SetupActions>
+        <S.PrimaryButton type="button" onClick={onOpenManualConfig}>
+          <IconSettings />
+          {isConnected ? 'Actualizar credenciales' : 'Configuración manual'}
+        </S.PrimaryButton>
+        <S.SecondaryButton type="button" onClick={onShowMetaInfo}>
+          Conectar con Meta
+        </S.SecondaryButton>
+        <S.SecondaryButton type="button" onClick={onTest} disabled={!canTest || isTesting}>
+          <IconRefresh />
+          {isTesting ? 'Probando...' : 'Probar conexión'}
+        </S.SecondaryButton>
+        {integration?.status && integration.status !== 'needs_setup' && (
+          <S.SecondaryButton type="button" onClick={onDisconnect} disabled={isDisconnecting}>
+            {isDisconnecting ? 'Desconectando...' : 'Desconectar'}
+          </S.SecondaryButton>
+        )}
+        <S.IconButton type="button" onClick={onRefresh} title="Actualizar estado">
+          <IconRefresh />
+        </S.IconButton>
+      </S.SetupActions>
+    </S.SetupPanel>
+  );
+};
+
+const WhatsAppManualModal = ({
+  form,
+  integration,
+  error,
+  isSaving,
+  isTesting,
+  onChange,
+  onClose,
+  onCopyWebhook,
+  onSubmit,
+  onSubmitAndTest,
+}) => (
+  <S.ModalOverlay onClick={onClose}>
+    <S.WhatsAppConfigModal as="form" onSubmit={onSubmit} onClick={event => event.stopPropagation()}>
+      <S.ModalHeader>
+        <div>
+          <S.ModalTitle>Configuración manual de WhatsApp</S.ModalTitle>
+          <S.ModalSubtitle>
+            Pegá las credenciales de WhatsApp Cloud API. Los tokens se guardan en backend y no se devuelven completos al navegador.
+          </S.ModalSubtitle>
+        </div>
+        <S.IconButton type="button" onClick={onClose} title="Cerrar">
+          <IconClose />
+        </S.IconButton>
+      </S.ModalHeader>
+
+      <S.ConfigBody>
+        <S.ConfigWarning>
+          <IconCheck />
+          <span>Si el token expiró, escribí uno nuevo. Si dejás el campo vacío y ya había token guardado, se conserva el anterior.</span>
+        </S.ConfigWarning>
+
+        <S.ConfigGrid>
+          <S.ConfigField>
+            <span>Número asociado</span>
+            <input
+              value={form.phone_number}
+              onChange={event => onChange('phone_number', event.target.value)}
+              placeholder="+54 9 ..."
+            />
+          </S.ConfigField>
+          <S.ConfigField>
+            <span>WhatsApp Business Account ID</span>
+            <input
+              value={form.business_account_id}
+              onChange={event => onChange('business_account_id', event.target.value)}
+              placeholder="WABA ID"
+              required
+            />
+          </S.ConfigField>
+          <S.ConfigField>
+            <span>Phone Number ID</span>
+            <input
+              value={form.phone_number_id}
+              onChange={event => onChange('phone_number_id', event.target.value)}
+              placeholder="Phone Number ID"
+              required
+            />
+          </S.ConfigField>
+          <S.ConfigField>
+            <span>Verify Token</span>
+            <input
+              value={form.verify_token}
+              onChange={event => onChange('verify_token', event.target.value)}
+              placeholder="Token para validar webhook"
+              required
+            />
+          </S.ConfigField>
+          <S.ConfigField $wide>
+            <span>Access Token</span>
+            <input
+              value={form.access_token}
+              onChange={event => onChange('access_token', event.target.value)}
+              placeholder={integration?.access_token_masked || 'Pegá el token de Meta'}
+              autoComplete="off"
+            />
+          </S.ConfigField>
+          <S.ConfigField $wide>
+            <span>App Secret</span>
+            <input
+              value={form.app_secret}
+              onChange={event => onChange('app_secret', event.target.value)}
+              placeholder={integration?.app_secret_masked || 'Opcional, recomendado para producción'}
+              autoComplete="off"
+            />
+          </S.ConfigField>
+          <S.ConfigField $wide>
+            <span>Webhook URL</span>
+            <S.CopyRow>
+              <input value={integration?.webhook_url || ''} readOnly />
+              <S.SecondaryButton type="button" onClick={onCopyWebhook}>Copiar</S.SecondaryButton>
+            </S.CopyRow>
+          </S.ConfigField>
+        </S.ConfigGrid>
+
+        {error && <S.SetupError>{error}</S.SetupError>}
+      </S.ConfigBody>
+
+      <S.ModalFooter>
+        <S.SecondaryButton type="button" onClick={onClose} disabled={isSaving || isTesting}>
+          Cancelar
+        </S.SecondaryButton>
+        <S.SecondaryButton type="button" onClick={onSubmitAndTest} disabled={isSaving || isTesting}>
+          <IconRefresh />
+          {isTesting ? 'Probando...' : 'Guardar y probar'}
+        </S.SecondaryButton>
+        <S.PrimaryButton type="submit" disabled={isSaving || isTesting}>
+          {isSaving ? 'Guardando...' : 'Guardar configuración'}
+        </S.PrimaryButton>
+      </S.ModalFooter>
+    </S.WhatsAppConfigModal>
+  </S.ModalOverlay>
+);
+
 export const CRMScreen = () => {
   const [activeChannels, setActiveChannels] = useState(getStoredFilter);
   const [connectedAccounts, setConnectedAccounts] = useState(getStoredAccounts);
@@ -411,13 +756,59 @@ export const CRMScreen = () => {
   const [activeChatId, setActiveChatId] = useState('');
   const [modal, setModal] = useState(null);
   const [showAccountsModal, setShowAccountsModal] = useState(false);
+  const [whatsappIntegration, setWhatsappIntegration] = useState(null);
+  const [isWhatsappLoading, setIsWhatsappLoading] = useState(true);
+  const [whatsappAction, setWhatsappAction] = useState('');
+  const [whatsappError, setWhatsappError] = useState('');
+  const [showWhatsAppManualModal, setShowWhatsAppManualModal] = useState(false);
+  const [whatsappForm, setWhatsappForm] = useState({
+    phone_number: '',
+    business_account_id: '',
+    phone_number_id: '',
+    verify_token: '',
+    access_token: '',
+    app_secret: '',
+  });
+
+  const loadWhatsAppIntegration = useCallback(async () => {
+    setIsWhatsappLoading(true);
+    setWhatsappError('');
+
+    try {
+      const data = await fetchWhatsAppIntegrationStatus();
+      setWhatsappIntegration(data);
+    } catch (error) {
+      setWhatsappError(error.message || 'No se pudo consultar WhatsApp.');
+    } finally {
+      setIsWhatsappLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadWhatsAppIntegration();
+  }, [loadWhatsAppIntegration]);
 
   const visibleChannelIds = useMemo(() => (
     connectedAccounts.filter(account => account.enabled).map(account => account.id)
   ), [connectedAccounts]);
 
+  const isWhatsAppConnected = WHATSAPP_CONNECTED_STATUSES.has(whatsappIntegration?.status);
+  const whatsappSyncState = getWhatsAppSyncState(whatsappIntegration, isWhatsappLoading);
+  const unreadVisibleChannelIds = useMemo(() => (
+    isWhatsAppConnected ? visibleChannelIds : visibleChannelIds.filter(channelId => channelId !== 'whatsapp')
+  ), [isWhatsAppConnected, visibleChannelIds]);
+  const displayedConnectedAccounts = useMemo(() => connectedAccounts.map(account => (
+    account.id === 'whatsapp'
+      ? {
+          ...account,
+          sync: whatsappSyncState,
+          connection: getWhatsAppConnectionLabel(whatsappIntegration, isWhatsappLoading),
+        }
+      : account
+  )), [connectedAccounts, isWhatsappLoading, whatsappIntegration, whatsappSyncState]);
+
   const orderedChannels = useMemo(() => {
-    const accountChannels = [...connectedAccounts]
+    const accountChannels = [...displayedConnectedAccounts]
       .sort((a, b) => a.order - b.order)
       .filter(account => account.enabled)
       .map(account => ({
@@ -427,13 +818,15 @@ export const CRMScreen = () => {
       }));
 
     return [channelById.all, ...accountChannels];
-  }, [connectedAccounts]);
+  }, [displayedConnectedAccounts]);
 
   const filteredConversations = useMemo(() => {
     const showAllChannels = activeChannels.includes('all');
     const visibleChannels = new Set(visibleChannelIds);
     const channelFiltered = conversations.filter(chat => (
-      visibleChannels.has(chat.platform) && (showAllChannels || activeChannels.includes(chat.platform))
+      visibleChannels.has(chat.platform)
+      && (chat.platform !== 'whatsapp' || isWhatsAppConnected)
+      && (showAllChannels || activeChannels.includes(chat.platform))
     ));
     const quickFiltered = channelFiltered.filter((chat) => {
       if (quickFilter === 'unread') return chat.unread > 0;
@@ -442,11 +835,14 @@ export const CRMScreen = () => {
     });
 
     return [...quickFiltered].sort((a, b) => Number(b.pinned) - Number(a.pinned));
-  }, [activeChannels, quickFilter, visibleChannelIds]);
+  }, [activeChannels, isWhatsAppConnected, quickFilter, visibleChannelIds]);
 
   const activeChat = useMemo(() => (
     filteredConversations.find(chat => chat.id === activeChatId) || filteredConversations[0]
   ), [activeChatId, filteredConversations]);
+  const activeGuardrail = useMemo(() => getMessagingGuardrail(activeChat), [activeChat]);
+  const isWhatsAppFocused = !activeChannels.includes('all') && activeChannels.includes('whatsapp');
+  const shouldShowWhatsAppSetup = isWhatsAppFocused && !isWhatsAppConnected;
 
   useEffect(() => {
     sessionStorage.setItem(SESSION_FILTER_KEY, JSON.stringify(activeChannels));
@@ -521,6 +917,105 @@ export const CRMScreen = () => {
     setShowAccountsModal(false);
   };
 
+  const openWhatsAppManualConfig = () => {
+    setWhatsappForm({
+      phone_number: whatsappIntegration?.phone_number || '',
+      business_account_id: whatsappIntegration?.business_account_id || '',
+      phone_number_id: whatsappIntegration?.phone_number_id || '',
+      verify_token: whatsappIntegration?.verify_token || createVerifyToken(),
+      access_token: '',
+      app_secret: '',
+    });
+    setWhatsappError('');
+    setShowWhatsAppManualModal(true);
+  };
+
+  const updateWhatsAppForm = (field, value) => {
+    setWhatsappForm(currentForm => ({
+      ...currentForm,
+      [field]: value,
+    }));
+  };
+
+  const saveWhatsAppConfig = async ({ testAfterSave = false } = {}) => {
+    setWhatsappAction(testAfterSave ? 'save-test' : 'save');
+    setWhatsappError('');
+
+    try {
+      const savedIntegration = await saveWhatsAppManualConfig(whatsappForm);
+      setWhatsappIntegration(savedIntegration);
+
+      if (testAfterSave) {
+        const testResult = await testWhatsAppIntegration();
+        setWhatsappIntegration(testResult.integration);
+      }
+
+      setShowWhatsAppManualModal(false);
+    } catch (error) {
+      setWhatsappError(error.message || 'No se pudo guardar la configuración de WhatsApp.');
+    } finally {
+      setWhatsappAction('');
+    }
+  };
+
+  const handleWhatsAppConfigSubmit = (event) => {
+    event.preventDefault();
+    saveWhatsAppConfig();
+  };
+
+  const testWhatsAppConnection = async () => {
+    setWhatsappAction('test');
+    setWhatsappError('');
+
+    try {
+      const result = await testWhatsAppIntegration();
+      setWhatsappIntegration(result.integration);
+    } catch (error) {
+      setWhatsappError(error.message || 'No se pudo probar la conexión de WhatsApp.');
+      loadWhatsAppIntegration();
+    } finally {
+      setWhatsappAction('');
+    }
+  };
+
+  const disconnectWhatsApp = async () => {
+    setWhatsappAction('disconnect');
+    setWhatsappError('');
+
+    try {
+      const updatedIntegration = await disconnectWhatsAppIntegration();
+      setWhatsappIntegration(updatedIntegration);
+      setActiveChatId('');
+    } catch (error) {
+      setWhatsappError(error.message || 'No se pudo desconectar WhatsApp.');
+    } finally {
+      setWhatsappAction('');
+    }
+  };
+
+  const copyWhatsAppWebhook = async () => {
+    if (!whatsappIntegration?.webhook_url) return;
+    try {
+      await navigator.clipboard?.writeText(whatsappIntegration.webhook_url);
+    } catch {
+      setWhatsappError('No se pudo copiar la URL automáticamente.');
+    }
+  };
+
+  const showMetaSignupInfo = () => {
+    openOptionsModal(
+      'Conectar con Meta',
+      'Embedded Signup queda preparado como camino recomendado para producción.',
+      [
+        'Iniciar sesión con Meta Business',
+        'Elegir Business Manager y WABA',
+        'Seleccionar número de WhatsApp',
+        'Guardar Phone Number ID y WABA ID automáticamente',
+        'Validar webhook con el Verify Token de Imponect',
+      ],
+    );
+  };
+
   return (
     <S.ScreenWrapper>
       <S.TopSection>
@@ -539,7 +1034,9 @@ export const CRMScreen = () => {
               <S.SyncIndicator $sync={channel.sync} />
               <PlatformLogo platform={channel.id} />
               <span>{channel.label}</span>
-              <S.UnreadBadge>{getUnreadCount(channel.id, visibleChannelIds)}</S.UnreadBadge>
+              <S.UnreadBadge>
+                {getUnreadCount(channel.id, unreadVisibleChannelIds)}
+              </S.UnreadBadge>
             </S.ChannelButton>
           ))}
         </S.ChannelBar>
@@ -582,7 +1079,7 @@ export const CRMScreen = () => {
           </S.QuickFilters>
 
           <S.ChatItems>
-            {filteredConversations.map(chat => (
+            {filteredConversations.length ? filteredConversations.map(chat => (
               <S.ChatItem
                 key={chat.id}
                 $active={activeChat?.id === chat.id}
@@ -608,14 +1105,20 @@ export const CRMScreen = () => {
                   {chat.unread > 0 && <S.ChatUnread>{chat.unread}</S.ChatUnread>}
                 </S.ChatIndicators>
               </S.ChatItem>
-            ))}
+            )) : (
+              <S.ListEmptyState>
+                {shouldShowWhatsAppSetup
+                  ? 'WhatsApp requiere configuración para mostrar conversaciones.'
+                  : 'No hay conversaciones para este filtro.'}
+              </S.ListEmptyState>
+            )}
           </S.ChatItems>
 
           <S.AccountFooter>
             <S.AccountAvatar src={publicAsset('assets/imponect_logo.jpg')} alt="Imponect WhatsApp" />
             <S.AccountInfo>
               <strong>Imponect WhatsApp</strong>
-              <span>Business Account · {getSyncText(channelById.whatsapp.sync)}</span>
+              <span>Business Account · {getWhatsAppConnectionLabel(whatsappIntegration, isWhatsappLoading)}</span>
             </S.AccountInfo>
             <S.FooterActions>
               <S.IconButton
@@ -635,7 +1138,20 @@ export const CRMScreen = () => {
         </S.ConversationsList>
 
         <S.ChatView>
-          {activeChat ? (
+          {shouldShowWhatsAppSetup ? (
+            <WhatsAppSetupPanel
+              integration={whatsappIntegration}
+              isLoading={isWhatsappLoading}
+              error={whatsappError}
+              onOpenManualConfig={openWhatsAppManualConfig}
+              onRefresh={loadWhatsAppIntegration}
+              onTest={testWhatsAppConnection}
+              onDisconnect={disconnectWhatsApp}
+              onShowMetaInfo={showMetaSignupInfo}
+              isTesting={whatsappAction === 'test' || whatsappAction === 'save-test'}
+              isDisconnecting={whatsappAction === 'disconnect'}
+            />
+          ) : activeChat ? (
             <>
               <S.ChatHeader>
                 <S.HeaderIdentity>
@@ -665,6 +1181,25 @@ export const CRMScreen = () => {
                   </S.IconButton>
                 </S.OpenChatActions>
               </S.ChatHeader>
+
+              {activeGuardrail && (
+                <S.PolicyBanner $locked={activeGuardrail.locked} $tone={activeGuardrail.tone}>
+                  <S.PolicyBadge $platform={activeChat.platform}>{activeGuardrail.badge}</S.PolicyBadge>
+                  <S.PolicyText $locked={activeGuardrail.locked} $tone={activeGuardrail.tone}>{activeGuardrail.note}</S.PolicyText>
+                  {activeGuardrail.actionLabel && (
+                    <S.TemplateAction
+                      type="button"
+                      onClick={() => openOptionsModal(
+                        activeGuardrail.actionTitle || 'Opciones permitidas',
+                        activeChat.name,
+                        activeGuardrail.actionOptions || [],
+                      )}
+                    >
+                      {activeGuardrail.actionLabel}
+                    </S.TemplateAction>
+                  )}
+                </S.PolicyBanner>
+              )}
 
               <S.MessageArea $platform={activeChat.platform}>
                 <S.DateDivider>Hoy</S.DateDivider>
@@ -697,11 +1232,14 @@ export const CRMScreen = () => {
                 ))}
               </S.MessageArea>
 
-              <S.Composer>
-                <S.IconButton title="Adjuntar"><IconAttachment /></S.IconButton>
-                <S.EmojiButton>☺</S.EmojiButton>
-                <S.ComposerInput placeholder="Escribe un mensaje" />
-                <S.IconButton title="Enviar"><IconSend /></S.IconButton>
+              <S.Composer $locked={activeGuardrail?.locked}>
+                <S.IconButton title="Adjuntar" disabled={activeGuardrail?.locked}><IconAttachment /></S.IconButton>
+                <S.EmojiButton type="button" disabled={activeGuardrail?.locked}>☺</S.EmojiButton>
+                <S.ComposerInput
+                  disabled={activeGuardrail?.locked}
+                  placeholder={activeGuardrail?.locked ? activeGuardrail.placeholder : 'Escribe un mensaje'}
+                />
+                <S.IconButton title="Enviar" disabled={activeGuardrail?.locked}><IconSend /></S.IconButton>
               </S.Composer>
             </>
           ) : (
@@ -713,12 +1251,26 @@ export const CRMScreen = () => {
       <ChatModal modal={modal} onClose={() => setModal(null)} />
       {showAccountsModal && (
         <AccountSettingsModal
-          accounts={[...connectedAccounts].sort((a, b) => a.order - b.order)}
+          accounts={[...displayedConnectedAccounts].sort((a, b) => a.order - b.order)}
           onClose={() => setShowAccountsModal(false)}
           onMove={moveConnectedAccount}
           onRefresh={refreshConnectedAccount}
           onSave={saveConnectedAccounts}
           onUpdate={updateConnectedAccount}
+        />
+      )}
+      {showWhatsAppManualModal && (
+        <WhatsAppManualModal
+          form={whatsappForm}
+          integration={whatsappIntegration}
+          error={whatsappError}
+          isSaving={whatsappAction === 'save' || whatsappAction === 'save-test'}
+          isTesting={whatsappAction === 'test' || whatsappAction === 'save-test'}
+          onChange={updateWhatsAppForm}
+          onClose={() => setShowWhatsAppManualModal(false)}
+          onCopyWebhook={copyWhatsAppWebhook}
+          onSubmit={handleWhatsAppConfigSubmit}
+          onSubmitAndTest={() => saveWhatsAppConfig({ testAfterSave: true })}
         />
       )}
     </S.ScreenWrapper>
