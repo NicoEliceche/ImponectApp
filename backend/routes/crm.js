@@ -70,7 +70,14 @@ const shouldUpdateSecret = (value) => {
 const buildWebhookUrl = (req) => {
   const baseUrl = String(process.env.PUBLIC_API_URL || process.env.API_PUBLIC_URL || '').replace(/\/+$/, '');
   if (baseUrl) return `${baseUrl}/api/webhooks/whatsapp`;
-  return `${req.protocol}://${req.get('host')}/api/webhooks/whatsapp`;
+
+  const forwardedProto = String(req.get('x-forwarded-proto') || '').split(',')[0].trim();
+  const forwardedHost = String(req.get('x-forwarded-host') || '').split(',')[0].trim();
+  const host = forwardedHost || req.get('host');
+  const protocol = forwardedProto || req.protocol;
+  const publicProtocol = host?.includes('onrender.com') && protocol === 'http' ? 'https' : protocol;
+
+  return `${publicProtocol}://${host}/api/webhooks/whatsapp`;
 };
 
 const getWhatsAppIntegration = async () => {
