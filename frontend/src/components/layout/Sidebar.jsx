@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { useThemeStore } from '../../app/stores/themeStore';
 import { publicAsset } from '../../shared/utils/urls';
+import { preloadRoute } from '../../shared/utils/routePreload';
 import { 
   IconDashboard, 
   IconCRM, 
@@ -302,8 +303,8 @@ const navItems = [
   { name: 'CHATS', path: '/crm', icon: IconCRM },
   { name: 'EMAIL', path: '/email', icon: IconMail },
   { name: 'COTIZADOR', path: '/cotizador', icon: IconCalculator },
-  { name: 'DOCUMENTOS', path: '/documents', icon: IconFolder },
   { name: 'PRESUPUESTOS', path: '/quotes', icon: IconQuotes },
+  { name: 'DOCUMENTOS', path: '/documents', icon: IconFolder },
   {
     name: 'AGENTES / ASISTENTES',
     path: '/ai-hub',
@@ -313,6 +314,10 @@ const navItems = [
   { name: 'NEGOCIO', path: '/business', icon: IconBusiness },
   { name: 'CATÁLOGO', path: '/catalog', icon: IconCatalog },
 ];
+
+const warmRoute = (path) => {
+  preloadRoute(path).catch(() => undefined);
+};
 
 const Sidebar = () => {
   const { mode, toggleTheme } = useThemeStore();
@@ -351,6 +356,9 @@ const Sidebar = () => {
             $collapsed={isCollapsed}
             title={isCollapsed ? item.name : undefined}
             aria-label={item.name}
+            onMouseEnter={() => warmRoute(item.path)}
+            onFocus={() => warmRoute(item.path)}
+            onTouchStart={() => warmRoute(item.path)}
           >
             {item.textIcon ? <NavTextIcon>{item.textIcon}</NavTextIcon> : <item.icon />}
             {item.labelRows ? (

@@ -31,7 +31,12 @@ const scan = keyframes`
 export const EmailWrapper = styled.div`
   position: relative;
   isolation: isolate;
-  display: flex;
+  display: grid;
+  grid-template-columns: ${({ $setup, $sidebarWidth = 220, $listWidth = 420, theme }) => (
+    $setup
+      ? '1fr'
+      : `${Math.round(Number($sidebarWidth) || 220)}px ${theme.spacing[2]} ${Math.round(Number($listWidth) || 420)}px ${theme.spacing[2]} minmax(0, 1fr)`
+  )};
   height: calc(100vh - 3rem);
   background:
     linear-gradient(90deg, ${({ theme }) => theme?.isDark ? 'rgba(198,137,63,0.055)' : 'rgba(0,51,77,0.035)'} 1px, transparent 1px),
@@ -42,14 +47,23 @@ export const EmailWrapper = styled.div`
   border: 1px solid ${({ theme }) => theme?.color?.border || '#e2e8f0'};
   border-radius: ${({ theme }) => theme.radius.md};
   overflow: hidden;
+  cursor: ${({ $isResizing }) => ($isResizing ? 'col-resize' : 'default')};
+  user-select: ${({ $isResizing }) => ($isResizing ? 'none' : 'auto')};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: calc(100vh - 3rem);
+    cursor: default;
+    user-select: auto;
+  }
 `;
 
 export const EmailSidebar = styled.div`
   position: relative;
-  width: 190px;
+  min-width: 0;
   background:
     linear-gradient(180deg, ${({ theme }) => theme?.isDark ? '#0d1f29' : '#ffffff'} 0%, ${({ theme }) => theme?.isDark ? '#06131a' : '#f8fafc'} 100%);
-  border-right: 1px solid ${({ theme }) => theme?.color?.border || '#e2e8f0'};
   display: flex;
   flex-direction: column;
   padding: 1rem 0.6rem;
@@ -61,6 +75,58 @@ export const EmailSidebar = styled.div`
     pointer-events: none;
     background: linear-gradient(90deg, transparent, rgba(198, 137, 63, 0.12), transparent);
     animation: ${scan} 7s ease-in-out infinite;
+  }
+`;
+
+export const EmailResizeHandle = styled.button`
+  position: relative;
+  width: 100%;
+  min-width: ${({ theme }) => theme.spacing[2]};
+  align-self: stretch;
+  border: none;
+  border-left: 1px solid ${({ $active, theme }) => ($active ? theme.color.accent : theme.color.border)};
+  border-right: 1px solid ${({ $active, theme }) => ($active ? theme.color.accent : theme.color.border)};
+  padding: 0;
+  background: ${({ $active, theme }) => (
+    $active
+      ? (theme.isDark ? 'rgba(198, 137, 63, 0.24)' : theme.color.accentFaded)
+      : (theme.isDark ? 'rgba(255,255,255,0.035)' : theme.color.neutral[100])
+  )};
+  cursor: col-resize;
+  touch-action: none;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+  z-index: 2;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.13rem;
+    height: 3.5rem;
+    border-radius: ${({ theme }) => theme.radius.full};
+    background: ${({ theme }) => theme.color.accent};
+    opacity: ${({ $active }) => ($active ? 1 : 0.4)};
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 16px rgba(198, 137, 63, 0.24);
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: ${({ theme }) => theme.color.accent};
+    background: ${({ theme }) => theme.isDark ? 'rgba(198, 137, 63, 0.18)' : theme.color.accentFaded};
+    outline: none;
+  }
+
+  &:hover::before,
+  &:focus-visible::before {
+    opacity: 1;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
+    display: none;
   }
 `;
 
@@ -79,8 +145,8 @@ export const AccountSelect = styled.select`
   background: ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.04)' : theme.color.neutral[50]};
   color: ${({ theme }) => theme.color.text};
   padding: 0 ${({ theme }) => theme.spacing[3]};
-  font-size: ${({ theme }) => theme.typography.size.xs};
-  font-weight: ${({ theme }) => theme.typography.weight.bold};
+  font-size: ${({ theme }) => theme.typography.size.base};
+  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
   outline: none;
   cursor: pointer;
 
@@ -107,7 +173,7 @@ export const SidebarSpacer = styled.div`
 `;
 
 export const SetupState = styled.div`
-  flex: 1;
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -271,12 +337,11 @@ export const FolderItem = styled.div`
 `;
 
 export const EmailListContainer = styled.div`
-  flex: 0 0 420px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   background:
     linear-gradient(180deg, ${({ theme }) => theme?.isDark ? 'rgba(255,255,255,0.025)' : '#ffffff'} 0%, ${({ theme }) => theme?.color?.background || '#f4f7f9'} 100%);
-  border-right: 1px solid ${({ theme }) => theme?.color?.border || '#e2e8f0'};
 `;
 
 export const ListToolbar = styled.div`
@@ -1013,7 +1078,7 @@ export const ConfigError = styled.div`
 `;
 
 export const ReadingPane = styled.div`
-  flex: 1;
+  min-width: 0;
   background: ${({ theme }) => theme?.color?.surface || '#ffffff'};
   display: flex;
   flex-direction: column;

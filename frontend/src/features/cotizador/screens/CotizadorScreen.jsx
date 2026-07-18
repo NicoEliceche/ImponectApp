@@ -25,7 +25,7 @@ import {
   restoreQuoteState,
 } from '../utils/quotePersistence';
 import { createBudgetPdfFile, downloadBudgetPdfFile } from '../utils/budgetPdf';
-import { createQuote, fetchQuote, updateQuote } from '../../quotes';
+import { createQuote, fetchQuote, updateQuote } from '../../quotes/api/quotesApi';
 import * as S from './CotizadorScreenStyled';
 
 const buildInitialLoads = () => [
@@ -886,8 +886,14 @@ export const CotizadorScreen = () => {
     <S.ScreenWrapper>
       <S.Header>
         <S.TitleBlock>
-          <S.Eyebrow>Cotizador</S.Eyebrow>
-          <S.Title>Importación marítima y comparación automática</S.Title>
+          <S.Eyebrow>
+            <IconCalculator />
+            Motor de cotización
+          </S.Eyebrow>
+          <S.Title>Cotizador Imponect</S.Title>
+          <S.Subtitle>
+            Calculá importaciones marítimas, compará contra aéreo y prepará presupuestos con costos, impuestos y ganancia.
+          </S.Subtitle>
         </S.TitleBlock>
         <S.HeaderSummaryRow>
           <S.HeaderSummary>

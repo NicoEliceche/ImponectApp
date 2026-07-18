@@ -1,4 +1,10 @@
 import styled, { css, keyframes } from 'styled-components';
+import {
+  pageHeaderEyebrow,
+  pageHeaderSubtitle,
+  pageHeaderSurface,
+  pageHeaderTitle,
+} from '../../../shared/styles/pageHeader';
 
 const riseIn = keyframes`
   from {
@@ -581,50 +587,41 @@ export const IconButton = styled.button`
 // ── Header ──────────────────────────────────────────────────────────────────
 
 export const TopBar = styled.header`
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: ${({ theme }) => theme.spacing[5]};
-  padding: ${({ theme }) => theme.spacing[5]};
-  border: 1px solid ${({ theme }) => theme.color.border};
-  border-radius: ${({ theme }) => theme.radius.md};
-  background:
-    linear-gradient(135deg, ${({ theme }) => theme.isDark ? 'rgba(13,31,41,0.94)' : 'rgba(255,255,255,0.9)'} 0%, ${({ theme }) => theme.color.surface} 100%);
-  box-shadow: ${({ theme }) => theme.shadow.sm}, 0 0 24px rgba(198, 137, 63, 0.12);
+  ${pageHeaderSurface};
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
   flex-shrink: 0;
 
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: linear-gradient(90deg, transparent, rgba(198, 137, 63, 0.14), transparent);
-    animation: ${neuralSweep} 6.5s ease-in-out infinite;
+  > div:first-child {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: 1fr;
   }
 `;
 
 export const Title = styled.h1`
-  margin: 0;
-  color: ${({ theme }) => theme.color.text};
-  font-size: ${({ theme }) => theme.typography.size['3xl']};
-  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+  ${pageHeaderTitle};
+`;
+
+export const Eyebrow = styled.p`
+  ${pageHeaderEyebrow};
 `;
 
 export const Subtitle = styled.p`
-  margin: ${({ theme }) => theme.spacing[1]} 0 0;
-  color: ${({ theme }) => theme.color.textSecondary};
-  font-size: ${({ theme }) => theme.typography.size.sm};
-  font-weight: ${({ theme }) => theme.typography.weight.medium};
+  ${pageHeaderSubtitle};
 `;
 
 export const TopActions = styled.div`
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing[3]};
@@ -1298,6 +1295,13 @@ export const MessageText = styled.div`
       margin-bottom: ${({ theme }) => theme.spacing[4]};
     }
   }
+`;
+
+export const MarkdownFallback = styled.div`
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: inherit;
+  line-height: inherit;
 `;
 
 export const MarkdownCodeBlock = styled.div`

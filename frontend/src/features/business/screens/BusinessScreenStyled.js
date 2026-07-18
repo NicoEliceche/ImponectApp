@@ -1,4 +1,11 @@
 import styled, { css, keyframes } from 'styled-components';
+import {
+  pageHeaderContent,
+  pageHeaderEyebrow,
+  pageHeaderSubtitle,
+  pageHeaderSurface,
+  pageHeaderTitle,
+} from '../../../shared/styles/pageHeader';
 
 const riseIn = keyframes`
   from {
@@ -8,15 +15,6 @@ const riseIn = keyframes`
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-`;
-
-const scan = keyframes`
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
   }
 `;
 
@@ -61,30 +59,10 @@ export const ScreenWrapper = styled.div`
 `;
 
 export const Header = styled.header`
-  position: relative;
-  overflow: hidden;
+  ${pageHeaderSurface};
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.6fr);
-  gap: ${({ theme }) => theme.spacing[5]};
-  align-items: center;
-  padding: ${({ theme }) => theme.spacing[5]};
-  border: 1px solid ${({ theme }) => theme.color.border};
-  border-radius: ${({ theme }) => theme.radius.md};
-  background:
-    linear-gradient(90deg, ${({ theme }) => theme.isDark ? 'rgba(198, 137, 63, 0.08)' : 'rgba(198, 137, 63, 0.09)'} 1px, transparent 1px),
-    linear-gradient(180deg, ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,51,77,0.06)'} 1px, transparent 1px),
-    ${({ theme }) => theme.color.surface};
-  background-size: 44px 44px;
-  box-shadow: ${({ theme }) => theme.shadow.sm};
-
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(198, 137, 63, 0.14), transparent);
-    animation: ${scan} 6s linear infinite;
-    pointer-events: none;
-  }
+  align-items: stretch;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
     grid-template-columns: 1fr;
@@ -92,9 +70,7 @@ export const Header = styled.header`
 `;
 
 export const HeaderText = styled.div`
-  position: relative;
-  z-index: 1;
-  min-width: 0;
+  ${pageHeaderContent};
 `;
 
 export const HeaderActions = styled.div`
@@ -129,15 +105,7 @@ export const ContentGrid = styled.section`
 // ── Header ─────────────────────────────────────────────────────────────────
 
 export const Eyebrow = styled.p`
-  display: inline-flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing[2]};
-  margin: 0 0 ${({ theme }) => theme.spacing[3]};
-  color: ${({ theme }) => theme.color.accent};
-  font-size: ${({ theme }) => theme.typography.size.sm};
-  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
-  text-transform: uppercase;
-  letter-spacing: 0;
+  ${pageHeaderEyebrow};
 
   svg {
     width: 1rem;
@@ -146,21 +114,12 @@ export const Eyebrow = styled.p`
 `;
 
 export const PageTitle = styled.h1`
-  margin: 0;
-  color: ${({ theme }) => theme.color.text};
-  font-size: ${({ theme }) => theme.typography.size['4xl']};
-  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
-  line-height: ${({ theme }) => theme.typography.lineHeight.tight};
-  letter-spacing: 0;
+  ${pageHeaderTitle};
 `;
 
 export const PageDescription = styled.p`
+  ${pageHeaderSubtitle};
   max-width: 52rem;
-  margin: ${({ theme }) => theme.spacing[3]} 0 0;
-  color: ${({ theme }) => theme.color.textSecondary};
-  font-size: ${({ theme }) => theme.typography.size.lg};
-  font-weight: ${({ theme }) => theme.typography.weight.medium};
-  line-height: ${({ theme }) => theme.typography.lineHeight.normal};
 `;
 
 export const SearchBox = styled.label`

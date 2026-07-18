@@ -100,7 +100,10 @@ export const TopSection = styled.div`
   border-radius: ${({ theme }) => theme.radius.md};
   padding: ${({ theme }) => theme.spacing[4]};
   background:
+    linear-gradient(90deg, ${({ theme }) => theme.isDark ? 'rgba(198, 137, 63, 0.08)' : 'rgba(198, 137, 63, 0.10)'} 1px, transparent 1px),
+    linear-gradient(180deg, ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,51,77,0.06)'} 1px, transparent 1px),
     linear-gradient(135deg, ${({ theme }) => theme.isDark ? 'rgba(13, 31, 41, 0.92)' : 'rgba(255,255,255,0.88)'} 0%, ${({ theme }) => theme.color.surface} 100%);
+  background-size: 46px 46px, 46px 46px, 100% 100%;
   box-shadow: ${({ theme }) => theme.shadow.sm};
 
   &::before {
@@ -218,17 +221,21 @@ export const UnreadBadge = styled.span`
 export const ChatLayout = styled.div`
   position: relative;
   display: grid;
-  grid-template-columns: minmax(21rem, 25rem) minmax(0, 1fr);
+  grid-template-columns: ${({ $chatListWidth }) => `${Math.round(Number($chatListWidth) || 400)}px 0.45rem minmax(0, 1fr)`};
   min-height: calc(100vh - 7rem);
   border: 1px solid ${({ theme }) => theme.color.border};
   border-radius: ${({ theme }) => theme.radius.md};
   overflow: hidden;
+  cursor: ${({ $isResizing }) => ($isResizing ? 'col-resize' : 'default')};
+  user-select: ${({ $isResizing }) => ($isResizing ? 'none' : 'auto')};
   background:
     linear-gradient(180deg, ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.025)' : theme.color.neutral[50]} 0%, ${({ theme }) => theme.color.surface} 100%);
   box-shadow: ${({ theme }) => theme.shadow.md}, 0 0 28px rgba(0, 51, 77, 0.12);
 
   @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
     grid-template-columns: 1fr;
+    cursor: default;
+    user-select: auto;
   }
 `;
 
@@ -236,7 +243,6 @@ export const ConversationsList = styled.aside`
   min-width: 0;
   background:
     linear-gradient(180deg, ${({ theme }) => theme.isDark ? '#0d1f29' : theme.color.surface} 0%, ${({ theme }) => theme.isDark ? '#111b21' : theme.color.neutral[50]} 100%);
-  border-right: 1px solid ${({ theme }) => theme.color.border};
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -245,6 +251,58 @@ export const ConversationsList = styled.aside`
     border-right: none;
     border-bottom: 1px solid ${({ theme }) => theme.color.border};
     max-height: 34rem;
+  }
+`;
+
+export const ChatResizeHandle = styled.button`
+  position: relative;
+  width: 100%;
+  min-width: 0.45rem;
+  align-self: stretch;
+  border: none;
+  border-left: 1px solid ${({ $active, theme }) => ($active ? theme.color.accent : theme.color.border)};
+  border-right: 1px solid ${({ $active, theme }) => ($active ? theme.color.accent : theme.color.border)};
+  padding: 0;
+  background: ${({ $active, theme }) => (
+    $active
+      ? (theme.isDark ? 'rgba(198, 137, 63, 0.24)' : theme.color.accentFaded)
+      : (theme.isDark ? 'rgba(255,255,255,0.035)' : theme.color.neutral[100])
+  )};
+  cursor: col-resize;
+  touch-action: none;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+  z-index: 2;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.13rem;
+    height: 3.5rem;
+    border-radius: ${({ theme }) => theme.radius.full};
+    background: ${({ theme }) => theme.color.accent};
+    opacity: ${({ $active }) => ($active ? 1 : 0.38)};
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 16px rgba(198, 137, 63, 0.22);
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: ${({ theme }) => theme.color.accent};
+    background: ${({ theme }) => theme.isDark ? 'rgba(198, 137, 63, 0.18)' : theme.color.accentFaded};
+    outline: none;
+  }
+
+  &:hover::before,
+  &:focus-visible::before {
+    opacity: 1;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
+    display: none;
   }
 `;
 

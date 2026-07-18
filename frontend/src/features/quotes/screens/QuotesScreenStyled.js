@@ -1,18 +1,11 @@
-import styled, { keyframes } from 'styled-components';
-
-const scan = keyframes`
-  0% {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  18% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-`;
+import styled from 'styled-components';
+import {
+  pageHeaderContent,
+  pageHeaderEyebrow,
+  pageHeaderSubtitle,
+  pageHeaderSurface,
+  pageHeaderTitle,
+} from '../../../shared/styles/pageHeader';
 
 const getBadgeBackground = (variant, theme) => {
   if (theme.isDark) {
@@ -73,54 +66,30 @@ export const ScreenWrapper = styled.div`
 `;
 
 export const Header = styled.header`
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: ${({ theme }) => theme.spacing[5]};
-  padding: ${({ theme }) => theme.spacing[5]};
-  border: 1px solid ${({ theme }) => theme.color.border};
-  border-radius: ${({ theme }) => theme.radius.md};
-  background:
-    linear-gradient(135deg, ${({ theme }) => theme.isDark ? 'rgba(13,31,41,0.94)' : 'rgba(255,255,255,0.9)'} 0%, ${({ theme }) => theme.color.surface} 100%);
-  box-shadow: ${({ theme }) => theme.shadow.sm};
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: linear-gradient(90deg, transparent, rgba(198, 137, 63, 0.15), transparent);
-    animation: ${scan} 7s ease-in-out infinite;
-  }
+  ${pageHeaderSurface};
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: 1fr;
   }
 `;
 
 export const TitleContainer = styled.div`
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing[2]};
+  ${pageHeaderContent};
+`;
+
+export const Eyebrow = styled.p`
+  ${pageHeaderEyebrow};
 `;
 
 export const Title = styled.h1`
-  margin: 0;
-  font-size: ${({ theme }) => theme.typography.size['3xl']};
-  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
-  color: ${({ theme }) => theme.color.text};
+  ${pageHeaderTitle};
 `;
 
 export const Description = styled.p`
-  margin: 0;
-  color: ${({ theme }) => theme.color.textSecondary};
-  font-weight: ${({ theme }) => theme.typography.weight.medium};
-  font-size: ${({ theme }) => theme.typography.size.sm};
+  ${pageHeaderSubtitle};
 `;
 
 export const HeaderActions = styled.div`

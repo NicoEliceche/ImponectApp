@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   IconAttachment,
   IconBack,
@@ -27,6 +27,11 @@ import * as S from './CRMScreenStyled';
 
 const SESSION_FILTER_KEY = 'imponect.chats.channelFilter';
 const SESSION_ACCOUNTS_KEY = 'imponect.chats.connectedAccounts';
+const SESSION_CHAT_LIST_WIDTH_KEY = 'imponect.chats.listWidth';
+const CHAT_LIST_DEFAULT_WIDTH = 400;
+const CHAT_LIST_MIN_WIDTH = 320;
+const CHAT_LIST_MAX_WIDTH = 620;
+const CHAT_VIEW_MIN_WIDTH = 420;
 const WHATSAPP_CONNECTED_STATUSES = new Set(['connected']);
 const WHATSAPP_ATTENTION_STATUSES = new Set(['needs_setup', 'requires_attention', 'disconnected']);
 
@@ -329,6 +334,25 @@ const defaultConnectedAccounts = channels
     order: index,
     connection: channel.sync === 'warning' ? 'Requiere revisión' : 'Conectada',
   }));
+
+const clampChatListWidth = (width, layoutWidth = null) => {
+  const layoutMaxWidth = layoutWidth
+    ? Math.max(CHAT_LIST_MIN_WIDTH, Math.min(CHAT_LIST_MAX_WIDTH, layoutWidth - CHAT_VIEW_MIN_WIDTH))
+    : CHAT_LIST_MAX_WIDTH;
+
+  return Math.min(Math.max(width, CHAT_LIST_MIN_WIDTH), layoutMaxWidth);
+};
+
+const getStoredChatListWidth = () => {
+  if (typeof window === 'undefined') return CHAT_LIST_DEFAULT_WIDTH;
+
+  const storedWidth = window.localStorage.getItem(SESSION_CHAT_LIST_WIDTH_KEY);
+  const parsedWidth = Number(storedWidth);
+
+  return Number.isFinite(parsedWidth)
+    ? clampChatListWidth(parsedWidth)
+    : CHAT_LIST_DEFAULT_WIDTH;
+};
 
 const getStoredFilter = () => {
   if (typeof window === 'undefined') return ['all'];
@@ -750,10 +774,13 @@ const WhatsAppManualModal = ({
 );
 
 export const CRMScreen = () => {
+  const chatLayoutRef = useRef(null);
   const [activeChannels, setActiveChannels] = useState(getStoredFilter);
   const [connectedAccounts, setConnectedAccounts] = useState(getStoredAccounts);
   const [quickFilter, setQuickFilter] = useState('all');
   const [activeChatId, setActiveChatId] = useState('');
+  const [chatListWidth, setChatListWidth] = useState(getStoredChatListWidth);
+  const [isResizingChatList, setIsResizingChatList] = useState(false);
   const [modal, setModal] = useState(null);
   const [showAccountsModal, setShowAccountsModal] = useState(false);
   const [whatsappIntegration, setWhatsappIntegration] = useState(null);
@@ -787,6 +814,26 @@ export const CRMScreen = () => {
   useEffect(() => {
     loadWhatsAppIntegration();
   }, [loadWhatsAppIntegration]);
+
+  useEffect(() => {
+    const fitChatListToLayout = () => {
+      const layoutWidth = chatLayoutRef.current?.getBoundingClientRect().width;
+
+      if (!layoutWidth) return;
+
+      setChatListWidth(currentWidth => {
+        const nextWidth = clampChatListWidth(currentWidth, layoutWidth);
+        window.localStorage.setItem(SESSION_CHAT_LIST_WIDTH_KEY, String(Math.round(nextWidth)));
+
+        return nextWidth;
+      });
+    };
+
+    fitChatListToLayout();
+    window.addEventListener('resize', fitChatListToLayout);
+
+    return () => window.removeEventListener('resize', fitChatListToLayout);
+  }, []);
 
   const visibleChannelIds = useMemo(() => (
     connectedAccounts.filter(account => account.enabled).map(account => account.id)
@@ -864,6 +911,43 @@ export const CRMScreen = () => {
   const openOptionsModal = (title, subtitle, options) => {
     setModal({ title, subtitle, options });
   };
+
+  const startChatListResize = useCallback((event) => {
+    if (event.button !== undefined && event.button !== 0) return;
+
+    const layout = chatLayoutRef.current;
+    if (!layout) return;
+
+    event.preventDefault();
+    setIsResizingChatList(true);
+
+    const handleElement = event.currentTarget;
+    const layoutRect = layout.getBoundingClientRect();
+    handleElement.setPointerCapture?.(event.pointerId);
+
+    const updateWidth = (clientX) => {
+      const nextWidth = clampChatListWidth(clientX - layoutRect.left, layoutRect.width);
+      setChatListWidth(nextWidth);
+      window.localStorage.setItem(SESSION_CHAT_LIST_WIDTH_KEY, String(Math.round(nextWidth)));
+    };
+
+    const handlePointerMove = (moveEvent) => {
+      updateWidth(moveEvent.clientX);
+    };
+
+    const stopResize = (upEvent) => {
+      setIsResizingChatList(false);
+      handleElement.releasePointerCapture?.(upEvent.pointerId);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', stopResize);
+      window.removeEventListener('pointercancel', stopResize);
+    };
+
+    updateWidth(event.clientX);
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', stopResize);
+    window.addEventListener('pointercancel', stopResize);
+  }, []);
 
   const handleChannelChange = (channelId) => {
     setActiveChannels((currentChannels) => {
@@ -1042,7 +1126,11 @@ export const CRMScreen = () => {
         </S.ChannelBar>
       </S.TopSection>
 
-      <S.ChatLayout>
+      <S.ChatLayout
+        ref={chatLayoutRef}
+        $chatListWidth={chatListWidth}
+        $isResizing={isResizingChatList}
+      >
         <S.ConversationsList>
           <S.ListTopBar>
             <S.ListTitle>Chats</S.ListTitle>
@@ -1136,6 +1224,14 @@ export const CRMScreen = () => {
             </S.FooterActions>
           </S.AccountFooter>
         </S.ConversationsList>
+
+        <S.ChatResizeHandle
+          type="button"
+          aria-label="Ajustar ancho de la lista de chats"
+          title="Ajustar ancho de la lista de chats"
+          onPointerDown={startChatListResize}
+          $active={isResizingChatList}
+        />
 
         <S.ChatView>
           {shouldShowWhatsAppSetup ? (

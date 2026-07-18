@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   IconWarning, IconFile, IconClose, 
@@ -68,6 +68,57 @@ const withoutEmailFlag = (email, flag) => {
   };
 };
 
+const SESSION_EMAIL_LAYOUT_WIDTHS_KEY = 'imponect.email.layoutWidths';
+const EMAIL_SIDEBAR_DEFAULT_WIDTH = 220;
+const EMAIL_SIDEBAR_MIN_WIDTH = 190;
+const EMAIL_SIDEBAR_MAX_WIDTH = 340;
+const EMAIL_LIST_DEFAULT_WIDTH = 420;
+const EMAIL_LIST_MIN_WIDTH = 320;
+const EMAIL_LIST_MAX_WIDTH = 680;
+const EMAIL_READING_MIN_WIDTH = 380;
+const EMAIL_RESIZE_HANDLE_WIDTH = 8;
+
+const clampNumber = (value, min, max) => Math.min(Math.max(Number(value) || min, min), max);
+
+const clampEmailLayoutWidths = (widths, availableWidth = Number.POSITIVE_INFINITY) => {
+  let sidebarWidth = clampNumber(widths?.sidebarWidth, EMAIL_SIDEBAR_MIN_WIDTH, EMAIL_SIDEBAR_MAX_WIDTH);
+  let listWidth = clampNumber(widths?.listWidth, EMAIL_LIST_MIN_WIDTH, EMAIL_LIST_MAX_WIDTH);
+
+  if (Number.isFinite(availableWidth)) {
+    const maxCombinedWidth = availableWidth - EMAIL_READING_MIN_WIDTH - (EMAIL_RESIZE_HANDLE_WIDTH * 2);
+
+    if (maxCombinedWidth > 0 && sidebarWidth + listWidth > maxCombinedWidth) {
+      const overflow = sidebarWidth + listWidth - maxCombinedWidth;
+      const listShrink = Math.min(overflow, Math.max(0, listWidth - EMAIL_LIST_MIN_WIDTH));
+      listWidth -= listShrink;
+
+      const sidebarShrink = Math.min(overflow - listShrink, Math.max(0, sidebarWidth - EMAIL_SIDEBAR_MIN_WIDTH));
+      sidebarWidth -= sidebarShrink;
+    }
+  }
+
+  return {
+    sidebarWidth: Math.round(sidebarWidth),
+    listWidth: Math.round(listWidth)
+  };
+};
+
+const getStoredEmailLayoutWidths = () => {
+  const defaultWidths = {
+    sidebarWidth: EMAIL_SIDEBAR_DEFAULT_WIDTH,
+    listWidth: EMAIL_LIST_DEFAULT_WIDTH
+  };
+
+  if (typeof window === 'undefined') return defaultWidths;
+
+  try {
+    const storedWidths = window.sessionStorage.getItem(SESSION_EMAIL_LAYOUT_WIDTHS_KEY);
+    return storedWidths ? clampEmailLayoutWidths(JSON.parse(storedWidths)) : defaultWidths;
+  } catch {
+    return defaultWidths;
+  }
+};
+
 export const EmailScreen = () => {
   const queryClient = useQueryClient();
   const [activeFolder, setActiveFolder] = useState('INBOX');
@@ -97,6 +148,80 @@ export const EmailScreen = () => {
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
   const lastMarkedReadId = useRef(null);
+  const emailLayoutRef = useRef(null);
+  const [emailLayoutWidths, setEmailLayoutWidths] = useState(getStoredEmailLayoutWidths);
+  const [emailResizeTarget, setEmailResizeTarget] = useState('');
+
+  useEffect(() => {
+    window.sessionStorage.setItem(SESSION_EMAIL_LAYOUT_WIDTHS_KEY, JSON.stringify(emailLayoutWidths));
+  }, [emailLayoutWidths]);
+
+  useEffect(() => {
+    const fitEmailLayout = () => {
+      const layoutWidth = emailLayoutRef.current?.getBoundingClientRect().width;
+      if (!layoutWidth) return;
+
+      setEmailLayoutWidths(currentWidths => clampEmailLayoutWidths(currentWidths, layoutWidth));
+    };
+
+    fitEmailLayout();
+    window.addEventListener('resize', fitEmailLayout);
+
+    return () => window.removeEventListener('resize', fitEmailLayout);
+  }, []);
+
+  const startEmailResize = useCallback((event, resizeTarget) => {
+    if (event.button !== 0) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const layoutElement = emailLayoutRef.current;
+    if (!layoutElement) return;
+
+    setEmailResizeTarget(resizeTarget);
+
+    const handlePointerMove = (moveEvent) => {
+      const layoutBounds = layoutElement.getBoundingClientRect();
+      const pointerX = moveEvent.clientX;
+
+      setEmailLayoutWidths(currentWidths => {
+        if (resizeTarget === 'sidebar') {
+          return clampEmailLayoutWidths(
+            { ...currentWidths, sidebarWidth: pointerX - layoutBounds.left },
+            layoutBounds.width
+          );
+        }
+
+        return clampEmailLayoutWidths(
+          {
+            ...currentWidths,
+            listWidth: pointerX - layoutBounds.left - currentWidths.sidebarWidth - EMAIL_RESIZE_HANDLE_WIDTH
+          },
+          layoutBounds.width
+        );
+      });
+    };
+
+    const stopResize = () => {
+      setEmailResizeTarget('');
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', stopResize);
+      window.removeEventListener('pointercancel', stopResize);
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', stopResize);
+    window.addEventListener('pointercancel', stopResize);
+  }, []);
+
+  const startEmailSidebarResize = useCallback((event) => {
+    startEmailResize(event, 'sidebar');
+  }, [startEmailResize]);
+
+  const startEmailListResize = useCallback((event) => {
+    startEmailResize(event, 'list');
+  }, [startEmailResize]);
 
   // Queries
   const { data: accountData = [], isLoading: isLoadingAccounts } = useQuery({
@@ -575,7 +700,7 @@ export const EmailScreen = () => {
   const isEmailLoading = isLoadingAccounts || isLoadingConfig || isLoading;
 
   if (!isLoadingAccounts && emailAccounts.length === 0 && !showConfig) return (
-    <S.EmailWrapper>
+    <S.EmailWrapper $setup>
       <S.SetupState>
         <S.SetupCard>
           <S.SetupIcon><IconMail /></S.SetupIcon>
@@ -587,7 +712,13 @@ export const EmailScreen = () => {
   );
 
   return (
-    <S.EmailWrapper onClick={() => { setEmailContextMenu(null); }}>
+    <S.EmailWrapper
+      ref={emailLayoutRef}
+      $sidebarWidth={emailLayoutWidths.sidebarWidth}
+      $listWidth={emailLayoutWidths.listWidth}
+      $isResizing={Boolean(emailResizeTarget)}
+      onClick={() => { setEmailContextMenu(null); }}
+    >
       <S.EmailSidebar>
         <S.AccountSwitcher>
           <S.AccountSelect value={activeAccountId || ''} onChange={handleAccountChange} disabled={emailAccounts.length === 0}>
@@ -612,6 +743,14 @@ export const EmailScreen = () => {
         <S.FolderItem onClick={openNewAccountConfig}><IconPlus /> Agregar cuenta</S.FolderItem>
         <S.FolderItem onClick={openSelectedAccountConfig}><IconSettings /> Config</S.FolderItem>
       </S.EmailSidebar>
+
+      <S.EmailResizeHandle
+        type="button"
+        aria-label="Ajustar ancho del menú de email"
+        title="Ajustar ancho del menú de email"
+        onPointerDown={startEmailSidebarResize}
+        $active={emailResizeTarget === 'sidebar'}
+      />
 
       <S.EmailListContainer>
         <S.SearchHeader>
@@ -686,6 +825,14 @@ export const EmailScreen = () => {
           }
         </S.ScrollArea>
       </S.EmailListContainer>
+
+      <S.EmailResizeHandle
+        type="button"
+        aria-label="Ajustar ancho de la lista de emails"
+        title="Ajustar ancho de la lista de emails"
+        onPointerDown={startEmailListResize}
+        $active={emailResizeTarget === 'list'}
+      />
 
       <S.ReadingPane>
         {viewingEmail ? (

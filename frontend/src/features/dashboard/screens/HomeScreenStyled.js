@@ -1,4 +1,11 @@
 import styled, { keyframes } from 'styled-components';
+import {
+  pageHeaderContent,
+  pageHeaderEyebrow,
+  pageHeaderSubtitle,
+  pageHeaderSurface,
+  pageHeaderTitle,
+} from '../../../shared/styles/pageHeader';
 
 const riseIn = keyframes`
   from {
@@ -8,20 +15,6 @@ const riseIn = keyframes`
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-`;
-
-const scanLine = keyframes`
-  0% {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  18% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(100%);
-    opacity: 0;
   }
 `;
 
@@ -98,30 +91,10 @@ export const ScreenWrapper = styled.div`
 `;
 
 export const Header = styled.header`
-  position: relative;
-  overflow: hidden;
+  ${pageHeaderSurface};
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: stretch;
-  gap: ${({ theme }) => theme.spacing[3]};
-  padding: ${({ theme }) => theme.spacing[3]} ${({ theme }) => theme.spacing[4]};
-  border: 1px solid ${({ theme }) => theme.color.border};
-  border-radius: ${({ theme }) => theme.radius.md};
-  background:
-    linear-gradient(90deg, ${({ theme }) => theme.isDark ? 'rgba(198, 137, 63, 0.08)' : 'rgba(198, 137, 63, 0.10)'} 1px, transparent 1px),
-    linear-gradient(180deg, ${({ theme }) => theme.isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 51, 77, 0.06)'} 1px, transparent 1px),
-    ${({ theme }) => theme.color.surface};
-  background-size: 46px 46px;
-  box-shadow: ${({ theme }) => theme.shadow.sm};
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(198, 137, 63, 0.15), transparent);
-    animation: ${scanLine} 5.5s ease-in-out infinite;
-    pointer-events: none;
-  }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     grid-template-columns: 1fr;
@@ -129,12 +102,7 @@ export const Header = styled.header`
 `;
 
 export const HeaderContent = styled.div`
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-width: 0;
+  ${pageHeaderContent};
 `;
 
 export const HeaderPanel = styled.div`
@@ -175,16 +143,7 @@ export const ControlGrid = styled.section`
 // ── Header ─────────────────────────────────────────────────────────────────
 
 export const Eyebrow = styled.p`
-  display: inline-flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing[2]};
-  width: fit-content;
-  margin: 0 0 ${({ theme }) => theme.spacing[1]} 0;
-  color: ${({ theme }) => theme.color.accent};
-  font-size: ${({ theme }) => theme.typography.size.sm};
-  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
-  text-transform: uppercase;
-  letter-spacing: 0;
+  ${pageHeaderEyebrow};
 `;
 
 export const SignalIcon = styled.span`
@@ -217,21 +176,12 @@ export const SignalIcon = styled.span`
 `;
 
 export const MainTitle = styled.h1`
-  margin: 0;
-  color: ${({ theme }) => theme.color.text};
-  font-size: ${({ theme }) => theme.typography.size['4xl']};
-  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
-  line-height: ${({ theme }) => theme.typography.lineHeight.tight};
-  letter-spacing: 0;
+  ${pageHeaderTitle};
 `;
 
 export const SubTitle = styled.p`
+  ${pageHeaderSubtitle};
   max-width: 48rem;
-  margin: ${({ theme }) => theme.spacing[1]} 0 0;
-  color: ${({ theme }) => theme.color.textSecondary};
-  font-size: ${({ theme }) => theme.typography.size.lg};
-  font-weight: ${({ theme }) => theme.typography.weight.medium};
-  line-height: ${({ theme }) => theme.typography.lineHeight.normal};
 `;
 
 export const DateLabel = styled.p`

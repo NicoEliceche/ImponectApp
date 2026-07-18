@@ -1,9 +1,31 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Outlet } from 'react-router-dom';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
+import { useUIStore } from '../../app/stores/uiStore';
 import Sidebar from './Sidebar';
-import { AgentModal } from '../../shared/components/AgentModal';
 import { AssistantPanel } from '../../features/app-assistant';
+
+const AgentModal = lazy(() => import('../../shared/components/AgentModal').then(module => ({ default: module.AgentModal })));
+
+const pageBackgroundSweep = keyframes`
+  0% {
+    transform: translate3d(-115%, 18%, 0) rotate(-7deg);
+    opacity: 0;
+  }
+
+  18% {
+    opacity: 0.92;
+  }
+
+  62% {
+    opacity: 0.76;
+  }
+
+  100% {
+    transform: translate3d(115%, -18%, 0) rotate(-7deg);
+    opacity: 0;
+  }
+`;
 
 const LayoutWrapper = styled.div`
   position: relative;
@@ -86,9 +108,43 @@ const Main = styled.main`
     inset: 0;
     pointer-events: none;
     background:
-      linear-gradient(115deg, transparent 0%, ${({ theme }) => theme.isDark ? 'rgba(198, 137, 63, 0.07)' : 'rgba(198, 137, 63, 0.04)'} 48%, transparent 72%);
-    opacity: 0.65;
-    z-index: -1;
+      linear-gradient(90deg, ${({ theme }) => theme.isDark ? 'rgba(198, 137, 63, 0.055)' : 'rgba(0, 51, 77, 0.035)'} 1px, transparent 1px),
+      linear-gradient(180deg, ${({ theme }) => theme.isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(198, 137, 63, 0.035)'} 1px, transparent 1px);
+    background-size: 52px 52px;
+    opacity: 0.74;
+    z-index: 0;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.92), transparent 92%);
+  }
+
+  &::after {
+    content: '';
+    position: fixed;
+    top: -28%;
+    bottom: -28%;
+    left: -34%;
+    width: 48%;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      linear-gradient(
+        115deg,
+        transparent 0%,
+        rgba(198, 137, 63, 0.00) 28%,
+        rgba(198, 137, 63, ${({ theme }) => theme.isDark ? 0.16 : 0.12}) 48%,
+        rgba(212, 163, 106, ${({ theme }) => theme.isDark ? 0.09 : 0.07}) 58%,
+        transparent 76%
+      );
+    filter: blur(0.16rem);
+    transform: translate3d(-115%, 18%, 0) rotate(-7deg);
+    animation: ${pageBackgroundSweep} 8s ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::after {
+      animation: none;
+      opacity: 0;
+    }
   }
 `;
 
@@ -101,6 +157,8 @@ const Container = styled.div`
 `;
 
 const MainLayout = () => {
+  const isAgentModalOpen = useUIStore(state => state.isAgentModalOpen);
+
   return (
     <LayoutWrapper>
       <Sidebar />
@@ -112,7 +170,11 @@ const MainLayout = () => {
         </Main>
       </ContentArea>
       <AssistantPanel />
-      <AgentModal />
+      {isAgentModalOpen && (
+        <Suspense fallback={null}>
+          <AgentModal />
+        </Suspense>
+      )}
     </LayoutWrapper>
   );
 };

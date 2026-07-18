@@ -113,11 +113,11 @@ export const BusinessScreen = () => {
         <S.HeaderText>
           <S.Eyebrow>
             <IconShield />
-            Unidad de negocio
+            Centro de negocio
           </S.Eyebrow>
           <S.PageTitle>Negocio Imponect</S.PageTitle>
           <S.PageDescription>
-            Área profunda para analizar caja, marketing, compras y reportes sin mezclarlo con la torre de control diaria.
+            Caja, marketing, compras y reportes para tomar decisiones comerciales sin mezclarlo con la torre de control diaria.
           </S.PageDescription>
         </S.HeaderText>
 

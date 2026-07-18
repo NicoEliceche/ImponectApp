@@ -6,6 +6,7 @@ import {
   IconEye,
   IconPencil,
   IconPlus,
+  IconQuotes,
   IconRefresh,
   IconUndo,
 } from '../../../shared/components/Icons';
@@ -272,8 +273,12 @@ export const QuotesScreen = () => {
     <S.ScreenWrapper>
       <S.Header>
         <S.TitleContainer>
-          <S.Title>Presupuestos</S.Title>
-          <S.Description>Historial de presupuestos generados desde el cotizador.</S.Description>
+          <S.Eyebrow>
+            <IconQuotes />
+            Historial comercial
+          </S.Eyebrow>
+          <S.Title>Presupuestos Imponect</S.Title>
+          <S.Description>Controlá presupuestos generados, estados de envío, PDFs descargables y edición de borradores.</S.Description>
         </S.TitleContainer>
         <S.HeaderActions>
           <S.SecondaryButton type="button" onClick={loadQuotes} disabled={isLoading}>

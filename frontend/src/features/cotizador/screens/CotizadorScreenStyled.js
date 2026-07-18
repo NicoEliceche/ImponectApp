@@ -1,18 +1,11 @@
-import styled, { css, keyframes } from 'styled-components';
-
-const hudSweep = keyframes`
-  0% {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  18% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-`;
+import styled, { css } from 'styled-components';
+import {
+  pageHeaderContent,
+  pageHeaderEyebrow,
+  pageHeaderSubtitle,
+  pageHeaderSurface,
+  pageHeaderTitle,
+} from '../../../shared/styles/pageHeader';
 
 const panelBase = css`
   border: 1px solid ${({ theme }) => theme.color.border};
@@ -103,43 +96,27 @@ export const ScreenWrapper = styled.div`
 `;
 
 export const Header = styled.header`
-  position: relative;
-  overflow: hidden;
-  padding-right: calc(20rem + ${({ theme }) => theme.spacing[5]});
-  padding: ${({ theme }) => theme.spacing[5]} calc(20rem + ${({ theme }) => theme.spacing[5]}) ${({ theme }) => theme.spacing[5]} ${({ theme }) => theme.spacing[5]};
-  border: 1px solid ${({ theme }) => theme.color.border};
-  border-radius: ${({ theme }) => theme.radius.md};
-  background:
-    linear-gradient(135deg, ${({ theme }) => theme.isDark ? 'rgba(13,31,41,0.94)' : 'rgba(255,255,255,0.9)'} 0%, ${({ theme }) => theme.color.surface} 100%);
-  box-shadow: ${({ theme }) => theme.shadow.sm};
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: linear-gradient(90deg, transparent, rgba(198, 137, 63, 0.15), transparent);
-    animation: ${hudSweep} 7s ease-in-out infinite;
-  }
+  ${pageHeaderSurface};
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    padding: ${({ theme }) => theme.spacing[5]};
+    grid-template-columns: 1fr;
   }
 `;
 
 export const HeaderSummaryRow = styled.div`
-  position: absolute;
-  bottom: ${({ theme }) => theme.spacing[4]};
-  right: ${({ theme }) => theme.spacing[5]};
+  position: relative;
   z-index: 2;
-  width: auto;
+  width: 20rem;
   display: flex;
   justify-content: flex-end;
+  align-self: stretch;
   pointer-events: none;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    position: static;
-    margin-top: ${({ theme }) => theme.spacing[4]};
+    width: 100%;
     pointer-events: auto;
   }
 
@@ -149,30 +126,26 @@ export const HeaderSummaryRow = styled.div`
 `;
 
 export const TitleBlock = styled.div`
-  min-width: 0;
+  ${pageHeaderContent};
 `;
 
 export const Eyebrow = styled.p`
-  margin: 0 0 ${({ theme }) => theme.spacing[2]};
-  color: ${({ theme }) => theme.color.accent};
-  font-size: ${({ theme }) => theme.typography.size.xs};
-  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  ${pageHeaderEyebrow};
 `;
 
 export const Title = styled.h1`
-  margin: 0;
-  color: ${({ theme }) => theme.color.text};
-  font-size: ${({ theme }) => theme.typography.size['3xl']};
-  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
-  letter-spacing: 0;
-  line-height: ${({ theme }) => theme.typography.lineHeight.tight};
+  ${pageHeaderTitle};
+`;
+
+export const Subtitle = styled.p`
+  ${pageHeaderSubtitle};
+  max-width: 58rem;
 `;
 
 export const HeaderSummary = styled.div`
   ${panelBase};
   border-color: ${({ theme }) => theme.color.accent};
+  height: 100%;
   padding: ${({ theme }) => theme.spacing[2]} ${({ theme }) => theme.spacing[3]};
   width: 100%;
   max-width: 20rem;
