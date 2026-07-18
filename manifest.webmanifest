@@ -1,0 +1,1 @@
+{"name":"Imponect App","short_name":"Imponect","start_url":"/ImponectApp/","display":"standalone","background_color":"#ffffff","lang":"en","scope":"/ImponectApp/","description":"Gestión integral de negocio","theme_color":"#00334d","icons":[{"src":"pwa-192x192.png","sizes":"192x192","type":"image/png"},{"src":"pwa-512x512.png","sizes":"512x512","type":"image/png"}]}
