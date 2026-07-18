@@ -19,6 +19,10 @@ export const ModalOverlay = styled.div`
   justify-content: center;
   z-index: 5000;
   padding: ${({ theme }) => theme.spacing[5]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: 0;
+  }
 `;
 
 export const ModalUI = styled.div`
@@ -32,6 +36,14 @@ export const ModalUI = styled.div`
   flex-direction: column;
   overflow: hidden;
   animation: ${fadeIn} 0.28s ease;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+    height: 100dvh;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
 `;
 
 export const ModalHeader = styled.div`
@@ -42,6 +54,11 @@ export const ModalHeader = styled.div`
   align-items: center;
   gap: ${({ theme }) => theme.spacing[5]};
   background: ${({ theme }) => theme.color.neutral[50]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: calc(${({ theme }) => theme.spacing[4]} + env(safe-area-inset-top)) ${({ theme }) => theme.spacing[4]} ${({ theme }) => theme.spacing[4]};
+    gap: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const ModalTitle = styled.h2`
@@ -58,6 +75,11 @@ export const ModalTitle = styled.h2`
   svg {
     width: 1.25rem;
     height: 1.25rem;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    font-size: ${({ theme }) => theme.typography.size.base};
+    line-height: ${({ theme }) => theme.typography.lineHeight.snug};
   }
 `;
 
@@ -82,6 +104,12 @@ export const CloseButton = styled.button`
   svg {
     width: 1.25rem;
     height: 1.25rem;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: ${({ theme }) => theme.layout.buttonHeight};
+    height: ${({ theme }) => theme.layout.buttonHeight};
+    flex: 0 0 ${({ theme }) => theme.layout.buttonHeight};
   }
 `;
 
@@ -110,6 +138,16 @@ export const SidebarTabs = styled.div`
     border-bottom: 1px solid ${({ theme }) => theme.color.border};
     flex-direction: row;
     overflow-x: auto;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[3]};
+    gap: ${({ theme }) => theme.spacing[2]};
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 `;
 
@@ -140,6 +178,11 @@ export const TabItem = styled.button`
     height: 1.1rem;
     flex-shrink: 0;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+    flex: 0 0 auto;
+  }
 `;
 
 export const ConfigPane = styled.div`
@@ -149,6 +192,11 @@ export const ConfigPane = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing[5]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[4]};
+    gap: ${({ theme }) => theme.spacing[4]};
+  }
 `;
 
 export const SectionBlock = styled.section`
@@ -159,6 +207,11 @@ export const SectionBlock = styled.section`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing[4]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[4]};
+    border-radius: ${({ theme }) => theme.radius.md};
+  }
 `;
 
 export const SectionHeader = styled.div`
@@ -172,6 +225,10 @@ export const SectionHeader = styled.div`
     height: ${({ theme }) => theme.spacing[6]};
     flex: 0 0 ${({ theme }) => theme.spacing[6]};
     color: ${({ theme }) => theme.color.accent};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    gap: ${({ theme }) => theme.spacing[3]};
   }
 `;
 
@@ -193,6 +250,11 @@ export const FieldGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
   gap: ${({ theme }) => theme.spacing[4]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    grid-template-columns: 1fr;
+    gap: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const FormGroup = styled.div`
@@ -226,6 +288,13 @@ export const FormGroup = styled.div`
     &:focus {
       border-color: ${({ theme }) => theme.color.accent};
       box-shadow: 0 0 0 0.2rem ${({ theme }) => (theme.isDark ? theme.color.accentDark : theme.color.accentFaded)};
+    }
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    input,
+    select {
+      min-height: ${({ theme }) => theme.layout.inputHeight};
     }
   }
 
@@ -330,6 +399,14 @@ export const AgentIconActions = styled.div`
     grid-column: 1 / -1;
     justify-content: flex-start;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    align-items: stretch;
+
+    > * {
+      flex: 1 1 100%;
+    }
+  }
 `;
 
 export const RagFilesDropZone = styled.div`
@@ -430,6 +507,10 @@ export const RagFileGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
   gap: ${({ theme }) => theme.spacing[3]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 export const RagFileItem = styled.div`
@@ -516,6 +597,11 @@ export const RagFileRemove = styled.button`
     width: 1rem;
     height: 1rem;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: ${({ theme }) => theme.layout.buttonHeight};
+    height: ${({ theme }) => theme.layout.buttonHeight};
+  }
 `;
 
 export const CodeTextarea = styled.textarea`
@@ -546,6 +632,11 @@ export const SegmentedControl = styled.div`
   border-radius: ${({ theme }) => theme.radius.md};
   border: 1px solid ${({ theme }) => theme.color.border};
   background-color: ${({ theme }) => theme.color.neutral[50]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+    overflow-x: auto;
+  }
 `;
 
 export const SegmentButton = styled.button`
@@ -558,6 +649,11 @@ export const SegmentButton = styled.button`
   font-weight: ${({ theme }) => theme.typography.weight.bold};
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex: 1 0 auto;
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+  }
 `;
 
 export const SmallButton = styled.button`
@@ -584,6 +680,11 @@ export const SmallButton = styled.button`
     width: 1rem;
     height: 1rem;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+    width: 100%;
+  }
 `;
 
 export const ServerCard = styled.div`
@@ -601,6 +702,11 @@ export const ServerHeader = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: ${({ theme }) => theme.spacing[4]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
 
 export const InlineActions = styled.div`
@@ -644,6 +750,13 @@ export const ModalFooter = styled.div`
   justify-content: flex-end;
   gap: ${({ theme }) => theme.spacing[4]};
   background: ${({ theme }) => theme.color.surface};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[4]};
+    padding-bottom: calc(${({ theme }) => theme.spacing[4]} + env(safe-area-inset-bottom));
+    flex-direction: column-reverse;
+    gap: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const Button = styled.button`
@@ -682,4 +795,8 @@ export const Button = styled.button`
       background: ${({ theme }) => theme.color.neutral[100]};
     }
   `}
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+  }
 `;

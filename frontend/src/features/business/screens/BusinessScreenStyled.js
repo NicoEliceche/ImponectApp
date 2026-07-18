@@ -56,6 +56,10 @@ export const ScreenWrapper = styled.div`
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing[5]};
   color: ${({ theme }) => theme.color.text};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    gap: ${({ theme }) => theme.spacing[4]};
+  }
 `;
 
 export const Header = styled.header`
@@ -81,7 +85,7 @@ export const HeaderActions = styled.div`
   gap: ${({ theme }) => theme.spacing[3]};
   align-items: center;
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     grid-template-columns: 1fr;
   }
 `;
@@ -177,6 +181,10 @@ export const CommandButton = styled.button`
     width: 1rem;
     height: 1rem;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    width: 100%;
+  }
 `;
 
 // ── Modules ────────────────────────────────────────────────────────────────
@@ -191,10 +199,6 @@ export const ModuleRail = styled.nav`
   }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
     grid-template-columns: 1fr;
   }
 `;
@@ -244,6 +248,10 @@ export const ModuleButton = styled.button`
     color: ${({ theme }) => theme.color.textSecondary};
     font-size: ${({ theme }) => theme.typography.size.xs};
     font-weight: ${({ theme }) => theme.typography.weight.medium};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
   }
 `;
 
@@ -311,7 +319,7 @@ export const KpiGrid = styled.section`
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     grid-template-columns: 1fr;
   }
 `;
@@ -409,6 +417,10 @@ export const Panel = styled.article`
   border-radius: ${({ theme }) => theme.radius.md};
   background: ${({ theme }) => theme.color.surface};
   box-shadow: ${({ theme }) => theme.shadow.sm};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[4]};
+  }
 `;
 
 export const PanelHeader = styled.div`
@@ -419,6 +431,8 @@ export const PanelHeader = styled.div`
 
   @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
     flex-direction: column;
+    align-items: stretch;
+    gap: ${({ theme }) => theme.spacing[3]};
   }
 `;
 
@@ -475,6 +489,11 @@ export const PanelAction = styled.button`
     width: 0.9rem;
     height: 0.9rem;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+    width: 100%;
+  }
 `;
 
 // ── Tables ─────────────────────────────────────────────────────────────────
@@ -482,6 +501,7 @@ export const PanelAction = styled.button`
 export const TableWrap = styled.div`
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 `;
 
 export const DataTable = styled.table`
@@ -584,6 +604,10 @@ export const RowActions = styled.div`
   display: inline-flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing[2]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    gap: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const IconAction = styled.button`
@@ -606,6 +630,11 @@ export const IconAction = styled.button`
   svg {
     width: 0.95rem;
     height: 0.95rem;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: ${({ theme }) => theme.layout.buttonHeight};
+    height: ${({ theme }) => theme.layout.buttonHeight};
   }
 `;
 
@@ -750,6 +779,10 @@ export const ChannelMetrics = styled.div`
     font-size: ${({ theme }) => theme.typography.size.xs};
     font-weight: ${({ theme }) => theme.typography.weight.medium};
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 // ── Purchases ──────────────────────────────────────────────────────────────
@@ -808,6 +841,10 @@ export const TypeGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: ${({ theme }) => theme.spacing[3]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 export const TypeButton = styled.button`
@@ -823,6 +860,10 @@ export const TypeButton = styled.button`
   &:hover {
     border-color: ${({ theme }) => theme.color.accent};
     color: ${({ theme }) => theme.color.accent};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
   }
 `;
 

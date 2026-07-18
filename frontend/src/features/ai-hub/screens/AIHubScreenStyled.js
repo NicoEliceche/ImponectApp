@@ -92,6 +92,20 @@ export const ScreenWrapper = styled.div`
     height: auto;
     min-height: calc(100vh - 3rem);
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    min-height: auto;
+    border-radius: ${({ theme }) => theme.radius.md};
+    border: none;
+    background-size: 2.5rem 2.5rem, 2.5rem 2.5rem, 100% 100%;
+    overflow: visible;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    border: none;
+    background-size: 2.5rem 2.5rem, 2.5rem 2.5rem, 100% 100%;
+    overflow: visible;
+  }
 `;
 
 export const InternalSidebar = styled.aside`
@@ -121,6 +135,20 @@ export const InternalSidebar = styled.aside`
   @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
     max-height: 24rem;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    max-height: 20rem;
+    padding: ${({ theme }) => theme.spacing[3]};
+    border: 1px solid rgba(198, 137, 63, 0.2);
+    border-radius: ${({ theme }) => theme.radius.md};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    max-height: 20rem;
+    padding: ${({ theme }) => theme.spacing[3]};
+    border: 1px solid rgba(198, 137, 63, 0.2);
+    border-radius: ${({ theme }) => theme.radius.md};
+  }
 `;
 
 export const MainArea = styled.main`
@@ -135,8 +163,15 @@ export const MainArea = styled.main`
     min-height: calc(100vh - 27rem);
   }
 
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    min-height: auto;
+    padding: ${({ theme }) => theme.spacing[3]} 0 0;
+    overflow: visible;
+  }
+
   @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
-    padding: ${({ theme }) => theme.spacing[4]};
+    min-height: auto;
+    padding: ${({ theme }) => theme.spacing[3]} 0 0;
   }
 `;
 
@@ -625,6 +660,16 @@ export const TopActions = styled.div`
   display: flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing[3]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
 `;
 
 // ── Agent Library ───────────────────────────────────────────────────────────
@@ -642,6 +687,18 @@ export const LibraryHeader = styled.div`
   align-items: flex-end;
   justify-content: space-between;
   gap: ${({ theme }) => theme.spacing[5]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    align-items: stretch;
+    flex-direction: column;
+    gap: ${({ theme }) => theme.spacing[3]};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    align-items: stretch;
+    flex-direction: column;
+    gap: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const LibraryTitle = styled.h2`
@@ -649,6 +706,7 @@ export const LibraryTitle = styled.h2`
   color: ${({ theme }) => theme.color.text};
   font-size: ${({ theme }) => theme.typography.size['2xl']};
   font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+  overflow-wrap: anywhere;
 `;
 
 export const LibrarySubtitle = styled.p`
@@ -657,12 +715,23 @@ export const LibrarySubtitle = styled.p`
   color: ${({ theme }) => theme.color.textSecondary};
   font-size: ${({ theme }) => theme.typography.size.sm};
   line-height: ${({ theme }) => theme.typography.lineHeight.normal};
+  overflow-wrap: anywhere;
 `;
 
 export const AgentsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
   gap: ${({ theme }) => theme.spacing[5]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    grid-template-columns: 1fr;
+    gap: ${({ theme }) => theme.spacing[4]};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-template-columns: 1fr;
+    gap: ${({ theme }) => theme.spacing[4]};
+  }
 `;
 
 export const AgentCard = styled.article`
@@ -699,6 +768,14 @@ export const AgentCard = styled.article`
 
   &:hover::before {
     transform: translateX(120%);
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[4]};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    padding: ${({ theme }) => theme.spacing[4]};
   }
 `;
 
@@ -856,6 +933,14 @@ export const ChatWorkspace = styled.section`
     linear-gradient(180deg, ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.035)' : theme.color.neutral[50]} 0%, ${({ theme }) => theme.color.surface} 100%);
   overflow: hidden;
   box-shadow: ${({ theme }) => theme.shadow.sm}, 0 0 32px rgba(198, 137, 63, 0.12);
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: 68dvh;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    min-height: 68dvh;
+  }
 `;
 
 export const ChatHeader = styled.header`
@@ -882,6 +967,16 @@ export const ChatHeader = styled.header`
   @media (max-width: ${({ theme }) => theme.breakpoints.xl}) {
     flex-direction: column;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    gap: ${({ theme }) => theme.spacing[3]};
+    padding: ${({ theme }) => theme.spacing[3]};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    gap: ${({ theme }) => theme.spacing[3]};
+    padding: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const ActiveAgentInfo = styled.div`
@@ -889,6 +984,10 @@ export const ActiveAgentInfo = styled.div`
   display: flex;
   align-items: flex-start;
   gap: ${({ theme }) => theme.spacing[4]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    gap: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const ActiveAgentName = styled.h2`
@@ -897,6 +996,10 @@ export const ActiveAgentName = styled.h2`
   font-size: ${({ theme }) => theme.typography.size.xl};
   font-weight: ${({ theme }) => theme.typography.weight.extrabold};
   line-height: ${({ theme }) => theme.typography.lineHeight.snug};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    font-size: ${({ theme }) => theme.typography.size.lg};
+  }
 `;
 
 export const ActiveAgentDescription = styled.p`
@@ -912,6 +1015,18 @@ export const ChatHeaderActions = styled.div`
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: ${({ theme }) => theme.spacing[2]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    width: 100%;
+    align-items: stretch;
+    justify-content: stretch;
+  }
 `;
 
 export const ControlGroup = styled.div`
@@ -941,6 +1056,14 @@ export const ControlGroup = styled.div`
     font-weight: ${({ theme }) => theme.typography.weight.bold};
     outline: none;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    width: 100%;
+  }
 `;
 
 export const ToggleButton = styled.button`
@@ -963,6 +1086,14 @@ export const ToggleButton = styled.button`
     width: 1rem;
     height: 1rem;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    width: 100%;
+  }
 `;
 
 export const ExternalFrame = styled.iframe`
@@ -982,6 +1113,28 @@ export const ToolStrip = styled.div`
   padding: ${({ theme }) => theme.spacing[3]} ${({ theme }) => theme.spacing[5]};
   border-bottom: 1px solid ${({ theme }) => theme.color.border};
   background: ${({ theme }) => theme.isDark ? 'rgba(6,19,26,0.72)' : theme.color.surface};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: ${({ theme }) => theme.spacing[3]};
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: ${({ theme }) => theme.spacing[3]};
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
 `;
 
 export const ToolChip = styled.span`
@@ -1000,6 +1153,16 @@ export const ToolChip = styled.span`
     width: 0.9rem;
     height: 0.9rem;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex: 0 0 auto;
+    min-height: ${({ theme }) => theme.spacing[8]};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    flex: 0 0 auto;
+    min-height: ${({ theme }) => theme.spacing[8]};
+  }
 `;
 
 export const MessagesPane = styled.div`
@@ -1012,6 +1175,16 @@ export const MessagesPane = styled.div`
     linear-gradient(180deg, ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.03)' : 'rgba(198,137,63,0.035)'} 1px, transparent 1px),
     linear-gradient(180deg, ${({ theme }) => theme.color.background} 0%, ${({ theme }) => theme.color.neutral[50]} 100%);
   background-size: 42px 42px, 42px 42px, 100% 100%;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[4]} ${({ theme }) => theme.spacing[3]};
+    background-size: 2.35rem 2.35rem, 2.35rem 2.35rem, 100% 100%;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    padding: ${({ theme }) => theme.spacing[4]} ${({ theme }) => theme.spacing[3]};
+    background-size: 2.35rem 2.35rem, 2.35rem 2.35rem, 100% 100%;
+  }
 `;
 
 export const EmptyChat = styled.div`
@@ -1098,6 +1271,10 @@ export const MessageRow = styled.div`
   display: flex;
   justify-content: ${({ $role }) => ($role === 'user' ? 'flex-end' : 'flex-start')};
   margin-bottom: ${({ theme }) => theme.spacing[5]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    margin-bottom: ${({ theme }) => theme.spacing[4]};
+  }
 `;
 
 export const MessageBubble = styled.article`
@@ -1598,6 +1775,16 @@ export const Composer = styled.div`
       box-shadow: 0 0 0 0.2rem ${({ theme }) => theme.isDark ? 'rgba(198,137,63,0.18)' : theme.color.accentFaded}, 0 0 20px rgba(198, 137, 63, 0.16);
     }
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    grid-template-columns: 1fr;
+    gap: ${({ theme }) => theme.spacing[2]};
+    padding: ${({ theme }) => theme.spacing[3]};
+
+    textarea {
+      min-height: 5rem;
+    }
+  }
 `;
 
 export const SendButton = styled.button`
@@ -1628,6 +1815,10 @@ export const SendButton = styled.button`
     width: 1.1rem;
     height: 1.1rem;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+  }
 `;
 
 // ── Delete Confirmation ─────────────────────────────────────────────────────
@@ -1642,6 +1833,11 @@ export const DeleteModalOverlay = styled.div`
   padding: ${({ theme }) => theme.spacing[5]};
   background: ${({ theme }) => theme.color.overlay};
   backdrop-filter: blur(0.35rem);
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    align-items: flex-end;
+    padding: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const DeleteModalCard = styled.div`
@@ -1656,6 +1852,11 @@ export const DeleteModalCard = styled.div`
   align-items: center;
   gap: ${({ theme }) => theme.spacing[4]};
   text-align: center;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    border-radius: ${({ theme }) => theme.radius.lg} ${({ theme }) => theme.radius.lg} ${({ theme }) => theme.radius.md} ${({ theme }) => theme.radius.md};
+    padding: ${({ theme }) => theme.spacing[5]};
+  }
 `;
 
 export const DeleteModalIcon = styled.div`
@@ -1793,6 +1994,13 @@ export const ToastNotification = styled.div`
   svg {
     width: 1.15rem;
     height: 1.15rem;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    left: ${({ theme }) => theme.spacing[3]};
+    right: ${({ theme }) => theme.spacing[3]};
+    bottom: calc(5.6rem + env(safe-area-inset-bottom));
+    width: auto;
   }
 `;
 

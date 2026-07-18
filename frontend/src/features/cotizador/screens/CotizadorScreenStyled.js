@@ -93,6 +93,10 @@ export const ScreenWrapper = styled.div`
     background-size: 44px 44px;
     opacity: 0.82;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    gap: ${({ theme }) => theme.spacing[4]};
+  }
 `;
 
 export const Header = styled.header`
@@ -120,7 +124,7 @@ export const HeaderSummaryRow = styled.div`
     pointer-events: auto;
   }
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     justify-content: stretch;
   }
 `;
@@ -152,7 +156,7 @@ export const HeaderSummary = styled.div`
   min-width: 16rem;
   pointer-events: auto;
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     max-width: none;
     min-width: 0;
   }
@@ -182,6 +186,11 @@ export const SummaryValueRow = styled.div`
   justify-content: space-between;
   gap: ${({ theme }) => theme.spacing[2]};
   margin-top: ${({ theme }) => theme.spacing[1]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 `;
 
 export const SummaryBadge = styled.span`
@@ -195,6 +204,10 @@ export const SummaryBadge = styled.span`
   font-weight: ${({ theme }) => theme.typography.weight.extrabold};
   line-height: ${({ theme }) => theme.typography.lineHeight.tight};
   white-space: nowrap;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    white-space: normal;
+  }
 `;
 
 export const SummaryMeta = styled.span`
@@ -209,6 +222,11 @@ export const TabBar = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: ${({ theme }) => theme.spacing[2]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
 `;
 
 export const TabButton = styled.button`
@@ -223,6 +241,10 @@ export const TabButton = styled.button`
     return theme.isDark ? theme.color.accent : theme.color.accentDark;
   }};
   box-shadow: ${({ $active }) => ($active ? '0 0 16px rgba(198, 137, 63, 0.18)' : 'none')};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    width: 100%;
+  }
 `;
 
 export const WorkspaceGrid = styled.div`
@@ -241,6 +263,10 @@ export const MainColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing[5]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    gap: ${({ theme }) => theme.spacing[4]};
+  }
 `;
 
 export const SideColumn = styled.aside`
@@ -256,7 +282,7 @@ export const SectionHeader = styled.div`
   justify-content: space-between;
   gap: ${({ theme }) => theme.spacing[4]};
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     align-items: stretch;
     flex-direction: column;
   }
@@ -268,7 +294,7 @@ export const PanelHeader = styled.div`
   justify-content: space-between;
   gap: ${({ theme }) => theme.spacing[4]};
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     align-items: stretch;
     flex-direction: column;
   }
@@ -280,7 +306,7 @@ export const PanelActions = styled.div`
   justify-content: flex-end;
   gap: ${({ theme }) => theme.spacing[2]};
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     justify-content: stretch;
 
     button {
@@ -324,6 +350,11 @@ export const LoadHeader = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: ${({ theme }) => theme.spacing[4]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    align-items: stretch;
+    flex-direction: column;
+  }
 `;
 
 export const LoadTitle = styled.div`
@@ -389,10 +420,10 @@ export const LoadGrid = styled.div`
   justify-content: start;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
-    grid-template-columns: repeat(2, minmax(0, 10.75rem));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     grid-template-columns: 1fr;
   }
 `;
@@ -552,10 +583,10 @@ export const SettingsFields = styled.div`
   justify-content: start;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
-    grid-template-columns: repeat(2, minmax(0, 10.75rem));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     grid-template-columns: 1fr;
   }
 `;
@@ -573,10 +604,10 @@ export const DestinationRow = styled.div`
   justify-content: start;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
-    grid-template-columns: repeat(2, minmax(0, 10.75rem));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     grid-template-columns: 1fr;
   }
 `;
@@ -697,7 +728,7 @@ export const FiscalScaleRow = styled.div`
     text-align: right;
   }
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     align-items: flex-start;
     flex-direction: column;
   }
@@ -708,7 +739,7 @@ export const MetricGrid = styled.div`
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: ${({ theme }) => theme.spacing[3]};
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     grid-template-columns: 1fr;
   }
 `;
@@ -756,6 +787,10 @@ export const BudgetTable = styled.div`
   border-radius: ${({ theme }) => theme.radius.md};
   background: ${({ theme }) => theme.color.neutral[50]};
   overflow: hidden;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 export const BudgetCell = styled.div`
@@ -806,7 +841,7 @@ export const ActionPanel = styled.div`
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: ${({ theme }) => theme.spacing[3]};
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     grid-template-columns: 1fr;
   }
 `;
@@ -951,7 +986,7 @@ export const MethodHeader = styled.div`
   border-bottom: 1px solid ${({ theme }) => theme.color.border};
   background: ${({ theme }) => theme.color.neutral[50]};
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     grid-template-columns: auto minmax(0, 1fr);
   }
 `;
@@ -1005,7 +1040,7 @@ export const WinnerBadge = styled.span`
     height: 0.9rem;
   }
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     grid-column: 1 / -1;
     justify-self: start;
   }
@@ -1016,6 +1051,10 @@ export const MethodRows = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing[2]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    padding: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const ChartPanel = styled.section`
@@ -1077,10 +1116,6 @@ export const SummaryBand = styled.div`
   }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
     grid-template-columns: 1fr;
   }
 `;
@@ -1095,7 +1130,8 @@ export const ModalOverlay = styled.div`
   padding: ${({ theme }) => theme.spacing[5]};
   background: ${({ theme }) => theme.color.overlay};
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    align-items: flex-end;
     padding: ${({ theme }) => theme.spacing[3]};
   }
 `;
@@ -1110,6 +1146,12 @@ export const BudgetModal = styled.div`
   border-radius: ${({ theme }) => theme.radius.md};
   background: ${({ theme }) => theme.color.surface};
   box-shadow: ${({ theme }) => theme.shadow['2xl']};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    width: 100%;
+    max-height: calc(100dvh - ${({ theme }) => theme.spacing[6]});
+    border-radius: ${({ theme }) => theme.radius.lg} ${({ theme }) => theme.radius.lg} ${({ theme }) => theme.radius.md} ${({ theme }) => theme.radius.md};
+  }
 `;
 
 export const BudgetHeaderImage = styled.img`
@@ -1118,6 +1160,11 @@ export const BudgetHeaderImage = styled.img`
   object-fit: contain;
   display: block;
   background: ${({ theme }) => theme.color.primary};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    max-height: 5rem;
+    object-fit: cover;
+  }
 `;
 
 export const ModalHeader = styled.div`
@@ -1127,6 +1174,11 @@ export const ModalHeader = styled.div`
   gap: ${({ theme }) => theme.spacing[4]};
   padding: ${({ theme }) => theme.spacing[4]};
   border-bottom: 1px solid ${({ theme }) => theme.color.border};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    flex-direction: column;
+    padding: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const ModalHeaderControls = styled.div`
@@ -1135,7 +1187,8 @@ export const ModalHeaderControls = styled.div`
   gap: ${({ theme }) => theme.spacing[2]};
   flex-shrink: 0;
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    width: 100%;
     align-items: stretch;
     flex-direction: column-reverse;
   }
@@ -1210,6 +1263,10 @@ export const BudgetForm = styled.form`
   gap: ${({ theme }) => theme.spacing[3]};
   padding: ${({ theme }) => theme.spacing[3]} ${({ theme }) => theme.spacing[4]};
   overflow-y: auto;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    padding: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const BudgetFormGrid = styled.div`
@@ -1309,6 +1366,13 @@ export const BudgetImageGrid = styled.div`
   width: 100%;
   min-width: 0;
   padding-right: 3.25rem;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-template-columns: repeat(auto-fill, minmax(4rem, 1fr));
+    grid-auto-rows: 4rem;
+    padding-right: 0;
+    padding-top: ${({ theme }) => theme.spacing[5]};
+  }
 `;
 
 export const BudgetImageTile = styled.div`
@@ -1325,6 +1389,11 @@ export const BudgetImageTile = styled.div`
     height: 100%;
     display: block;
     object-fit: cover;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    width: 100%;
+    height: 4rem;
   }
 `;
 
@@ -1349,6 +1418,11 @@ export const BudgetImageAddButton = styled.button`
   &:hover {
     background: ${({ theme }) => theme.isDark ? theme.color.neutral[50] : theme.color.accentFaded};
     transform: translateY(-1px);
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    width: 100%;
+    height: 4rem;
   }
 `;
 
@@ -1450,7 +1524,7 @@ export const SellerInfoItem = styled.div`
     }
   }
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     grid-template-columns: 1fr;
   }
 `;
@@ -1488,7 +1562,7 @@ export const BudgetModalSummary = styled.div`
     text-transform: none;
   }
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     grid-template-columns: 1fr;
 
     strong {
@@ -1502,7 +1576,7 @@ export const ModalActions = styled.div`
   justify-content: flex-end;
   gap: ${({ theme }) => theme.spacing[2]};
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     flex-direction: column-reverse;
 
     button {

@@ -5,6 +5,11 @@ export const LogsWrapper = styled.section`
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing[5]};
   min-height: calc(100vh - 4rem);
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    gap: ${({ theme }) => theme.spacing[4]};
+    min-height: auto;
+  }
 `;
 
 export const Header = styled.header`
@@ -13,6 +18,10 @@ export const Header = styled.header`
   justify-content: space-between;
   gap: ${({ theme }) => theme.spacing[4]};
   flex-wrap: wrap;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    align-items: stretch;
+  }
 `;
 
 export const TitleGroup = styled.div`
@@ -41,6 +50,11 @@ export const Actions = styled.div`
   align-items: center;
   gap: ${({ theme }) => theme.spacing[3]};
   flex-wrap: wrap;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
 
 export const ActionButton = styled.button`
@@ -67,6 +81,11 @@ export const ActionButton = styled.button`
   svg {
     width: 1rem;
     height: 1rem;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+    justify-content: center;
   }
 `;
 
@@ -116,6 +135,10 @@ export const EmptyState = styled.div`
   padding: ${({ theme }) => theme.spacing[8]};
   text-align: center;
   font-weight: ${({ theme }) => theme.typography.weight.bold};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[5]};
+  }
 `;
 
 export const LogList = styled.div`
@@ -143,6 +166,12 @@ export const LogHeader = styled.div`
   padding: ${({ theme }) => theme.spacing[3]} ${({ theme }) => theme.spacing[4]};
   border-bottom: 1px solid ${({ theme }) => theme.color.border};
   background: ${({ theme }) => theme.color.neutral[50]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: ${({ theme }) => theme.spacing[2]};
+  }
 `;
 
 export const LogTitle = styled.div`

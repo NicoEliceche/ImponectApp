@@ -101,6 +101,8 @@ export const HeaderActions = styled.div`
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
   }
 `;
 
@@ -183,11 +185,22 @@ export const TableCard = styled.section`
   border: 1px solid ${({ theme }) => theme.color.border};
   overflow: hidden;
   box-shadow: ${({ theme }) => theme.shadow.sm}, 0 0 22px rgba(198, 137, 63, 0.1);
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+  }
 `;
 
 export const TableScroller = styled.div`
   width: 100%;
   overflow-x: auto;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    overflow: visible;
+  }
 `;
 
 export const Table = styled.table`
@@ -195,6 +208,31 @@ export const Table = styled.table`
   min-width: 820px;
   text-align: center;
   border-collapse: collapse;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    min-width: 0;
+    display: block;
+
+    thead {
+      display: none;
+    }
+
+    tbody {
+      display: grid;
+      gap: ${({ theme }) => theme.spacing[4]};
+    }
+
+    tr {
+      display: grid;
+      gap: ${({ theme }) => theme.spacing[3]};
+      padding: ${({ theme }) => theme.spacing[4]};
+      border: 1px solid ${({ theme }) => theme.color.border};
+      border-radius: ${({ theme }) => theme.radius.md};
+      background:
+        linear-gradient(180deg, ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.035)' : theme.color.neutral[50]} 0%, ${({ theme }) => theme.color.surface} 100%);
+      box-shadow: ${({ theme }) => theme.shadow.sm}, 0 0 20px rgba(198, 137, 63, 0.1);
+    }
+  }
 `;
 
 export const Th = styled.th`
@@ -222,6 +260,26 @@ export const Td = styled.td`
   strong {
     color: ${({ theme }) => theme.color.text};
     font-weight: ${({ theme }) => theme.typography.weight.bold};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: ${({ theme }) => theme.spacing[3]};
+    padding: 0;
+    border-bottom: none;
+    text-align: left;
+    white-space: normal;
+
+    &::before {
+      content: attr(data-label);
+      color: ${({ theme }) => theme.color.textTertiary};
+      font-size: ${({ theme }) => theme.typography.size.xs};
+      font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+      text-align: left;
+      text-transform: uppercase;
+    }
   }
 `;
 
@@ -277,11 +335,18 @@ export const ActionsCell = styled.div`
   align-items: center;
   justify-content: center;
   gap: ${({ theme }) => theme.spacing[2]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
 `;
 
 export const IconActionButton = styled.button`
   width: 2rem;
   height: 2rem;
+  min-width: 2rem;
+  min-height: 2rem;
   border-radius: ${({ theme }) => theme.radius.md};
   border: 1px solid ${({ theme, $emphasis, $success, $undo }) => {
     if ($success) return theme.color.success;
@@ -320,6 +385,11 @@ export const IconActionButton = styled.button`
     opacity: ${({ $sent }) => ($sent ? 1 : 0.42)};
     cursor: ${({ $sent }) => ($sent ? 'default' : 'not-allowed')};
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    width: ${({ theme }) => theme.layout.buttonHeight};
+    height: ${({ theme }) => theme.layout.buttonHeight};
+  }
 `;
 
 export const EmptyState = styled.div`
@@ -348,6 +418,11 @@ export const ModalOverlay = styled.div`
   align-items: center;
   justify-content: center;
   padding: ${({ theme }) => theme.spacing[6]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    align-items: flex-end;
+    padding: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const Modal = styled.form`
@@ -360,6 +435,13 @@ export const Modal = styled.form`
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing[5]};
   padding: ${({ theme }) => theme.spacing[6]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+    max-height: calc(100dvh - ${({ theme }) => theme.spacing[6]});
+    border-radius: ${({ theme }) => theme.radius.lg} ${({ theme }) => theme.radius.lg} ${({ theme }) => theme.radius.md} ${({ theme }) => theme.radius.md};
+    padding: ${({ theme }) => theme.spacing[4]};
+  }
 `;
 
 export const ModalHeader = styled.div`

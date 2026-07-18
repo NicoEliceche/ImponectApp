@@ -88,6 +88,11 @@ export const ScreenWrapper = styled.div`
     background-size: 46px 46px;
     opacity: 0.8;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    gap: ${({ theme }) => theme.spacing[4]};
+    min-height: auto;
+  }
 `;
 
 export const TopSection = styled.div`
@@ -114,6 +119,10 @@ export const TopSection = styled.div`
     background: linear-gradient(90deg, transparent, rgba(198, 137, 63, 0.14), transparent);
     animation: ${tacticalSweep} 6.5s ease-in-out infinite;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const ChannelBar = styled.div`
@@ -127,6 +136,17 @@ export const ChannelBar = styled.div`
   width: 100%;
   max-width: 100%;
   overflow: visible;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: ${({ theme }) => theme.spacing[1]};
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
 `;
 
 export const ChannelButton = styled.button`
@@ -153,6 +173,11 @@ export const ChannelButton = styled.button`
     transform: translateY(-1px);
     box-shadow: 0 0 18px rgba(198, 137, 63, 0.12);
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+    flex: 0 0 auto;
+  }
 `;
 
 export const ChannelSettingsButton = styled.button`
@@ -177,6 +202,12 @@ export const ChannelSettingsButton = styled.button`
   svg {
     width: 1.2rem;
     height: 1.2rem;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: ${({ theme }) => theme.layout.buttonHeight};
+    height: ${({ theme }) => theme.layout.buttonHeight};
+    flex: 0 0 ${({ theme }) => theme.layout.buttonHeight};
   }
 `;
 
@@ -237,6 +268,11 @@ export const ChatLayout = styled.div`
     cursor: default;
     user-select: auto;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    min-height: auto;
+    border-radius: ${({ theme }) => theme.radius.md};
+  }
 `;
 
 export const ConversationsList = styled.aside`
@@ -251,6 +287,14 @@ export const ConversationsList = styled.aside`
     border-right: none;
     border-bottom: 1px solid ${({ theme }) => theme.color.border};
     max-height: 34rem;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    max-height: min(42dvh, 24rem);
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    max-height: 18rem;
   }
 `;
 
@@ -313,6 +357,10 @@ export const ListTopBar = styled.div`
   gap: ${({ theme }) => theme.spacing[4]};
   padding: ${({ theme }) => theme.spacing[5]} ${({ theme }) => theme.spacing[5]} ${({ theme }) => theme.spacing[3]};
   background: ${({ theme }) => theme.isDark ? 'rgba(198, 137, 63, 0.045)' : 'rgba(198, 137, 63, 0.06)'};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[4]} ${({ theme }) => theme.spacing[4]} ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const ListTitle = styled.h2`
@@ -331,6 +379,8 @@ export const ListActions = styled.div`
 export const IconButton = styled.button`
   width: 2.15rem;
   height: 2.15rem;
+  min-width: 2.15rem;
+  min-height: 2.15rem;
   border: none;
   border-radius: ${({ theme }) => theme.radius.full};
   background: transparent;
@@ -354,6 +404,11 @@ export const IconButton = styled.button`
   svg {
     width: 1.25rem;
     height: 1.25rem;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: ${({ theme }) => theme.layout.buttonHeight};
+    height: ${({ theme }) => theme.layout.buttonHeight};
   }
 `;
 
@@ -383,6 +438,11 @@ export const SearchBox = styled.label`
     font-size: ${({ theme }) => theme.typography.size.sm};
     font-family: inherit;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    height: ${({ theme }) => theme.layout.inputHeight};
+    margin: 0 ${({ theme }) => theme.spacing[4]} ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const QuickFilters = styled.div`
@@ -391,6 +451,15 @@ export const QuickFilters = styled.div`
   gap: ${({ theme }) => theme.spacing[2]};
   padding: 0 ${({ theme }) => theme.spacing[5]} ${({ theme }) => theme.spacing[3]};
   overflow-x: auto;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: 0 ${({ theme }) => theme.spacing[4]} ${({ theme }) => theme.spacing[3]};
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
 `;
 
 export const QuickFilter = styled.button`
@@ -411,6 +480,10 @@ export const QuickFilter = styled.button`
   svg {
     width: 1rem;
     height: 1rem;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
   }
 `;
 
@@ -437,6 +510,11 @@ export const ChatItem = styled.button`
 
   &:hover {
     background: ${({ theme }) => theme.isDark ? 'rgba(198, 137, 63, 0.09)' : theme.color.accentFaded};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: 4.75rem;
+    grid-template-columns: 3rem minmax(0, 1fr) auto;
   }
 `;
 
@@ -608,6 +686,10 @@ export const ChatView = styled.section`
   display: flex;
   flex-direction: column;
   background: ${({ theme }) => theme.isDark ? '#0b141a' : theme.color.primaryFaded};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    min-height: 58dvh;
+  }
 `;
 
 export const ChatHeader = styled.div`
@@ -620,6 +702,13 @@ export const ChatHeader = styled.div`
   padding: 0 ${({ theme }) => theme.spacing[5]};
   border-bottom: 1px solid ${({ theme }) => theme.color.border};
   background: ${({ theme }) => theme.isDark ? '#202c33' : theme.color.surface};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    height: auto;
+    min-height: ${({ theme }) => theme.spacing[16]};
+    padding: ${({ theme }) => theme.spacing[3]} ${({ theme }) => theme.spacing[4]};
+    align-items: flex-start;
+  }
 `;
 
 export const HeaderIdentity = styled.div`
@@ -648,6 +737,10 @@ export const OpenChatActions = styled.div`
   align-items: center;
   gap: ${({ theme }) => theme.spacing[2]};
   flex-shrink: 0;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    align-self: flex-start;
+  }
 `;
 
 export const PolicyBanner = styled.div`
@@ -663,6 +756,10 @@ export const PolicyBanner = styled.div`
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     grid-template-columns: 1fr;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[3]} ${({ theme }) => theme.spacing[4]};
   }
 `;
 
@@ -703,6 +800,11 @@ export const TemplateAction = styled.button`
   &:hover {
     background: ${({ theme }) => theme.color.accentLight};
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+  }
 `;
 
 export const MessageArea = styled.div`
@@ -717,6 +819,11 @@ export const MessageArea = styled.div`
     radial-gradient(circle at 1rem 1rem, ${({ $platform }) => `${getPlatformColor($platform)}16`} 0 0.16rem, transparent 0.17rem),
     linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
   background-size: 2.5rem 2.5rem, auto;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[5]} ${({ theme }) => theme.spacing[3]};
+    min-height: 18rem;
+  }
 `;
 
 export const DateDivider = styled.div`
@@ -741,6 +848,10 @@ export const MessageBubble = styled.div`
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     max-width: 92%;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    max-width: 96%;
   }
 `;
 
@@ -839,11 +950,19 @@ export const Composer = styled.div`
     return theme.isDark ? '#202c33' : theme.color.surface;
   }};
   border-top: 1px solid ${({ $locked, theme }) => ($locked ? theme.color.warning : theme.color.border)};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    align-items: stretch;
+    gap: ${({ theme }) => theme.spacing[2]};
+    padding: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const EmojiButton = styled.button`
   width: 2.15rem;
   height: 2.15rem;
+  min-width: 2.15rem;
+  min-height: 2.15rem;
   border: none;
   border-radius: ${({ theme }) => theme.radius.full};
   background: transparent;
@@ -854,6 +973,11 @@ export const EmojiButton = styled.button`
   &:disabled {
     cursor: not-allowed;
     opacity: 0.35;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: ${({ theme }) => theme.layout.buttonHeight};
+    height: ${({ theme }) => theme.layout.buttonHeight};
   }
 `;
 
@@ -873,6 +997,11 @@ export const ComposerInput = styled.input`
   &:disabled {
     cursor: not-allowed;
     opacity: 0.72;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    height: ${({ theme }) => theme.layout.inputHeight};
+    padding: 0 ${({ theme }) => theme.spacing[4]};
   }
 `;
 

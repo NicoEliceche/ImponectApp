@@ -57,6 +57,17 @@ export const EmailWrapper = styled.div`
     cursor: default;
     user-select: auto;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    min-height: auto;
+    border-radius: ${({ theme }) => theme.radius.md};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    border: none;
+    background: transparent;
+    overflow: visible;
+  }
 `;
 
 export const EmailSidebar = styled.div`
@@ -75,6 +86,18 @@ export const EmailSidebar = styled.div`
     pointer-events: none;
     background: linear-gradient(90deg, transparent, rgba(198, 137, 63, 0.12), transparent);
     animation: ${scan} 7s ease-in-out infinite;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
+    border-bottom: 1px solid ${({ theme }) => theme.color.border};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    border: 1px solid ${({ theme }) => theme.color.border};
+    border-radius: ${({ theme }) => theme.radius.md};
+    padding: ${({ theme }) => theme.spacing[3]};
+    margin-bottom: ${({ theme }) => theme.spacing[3]};
+    overflow: hidden;
   }
 `;
 
@@ -135,6 +158,10 @@ export const AccountSwitcher = styled.div`
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing[2]};
   margin-bottom: ${({ theme }) => theme.spacing[4]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    margin-bottom: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const AccountSelect = styled.select`
@@ -261,6 +288,10 @@ export const SidebarSectionTitle = styled.div`
     letter-spacing: 0.08em;
     margin: 0;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    margin-top: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const ComposeBtn = styled.button`
@@ -305,6 +336,11 @@ export const ComposeBtn = styled.button`
     min-width: 18px;
     min-height: 18px;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+    margin-bottom: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const FolderItem = styled.div`
@@ -342,6 +378,12 @@ export const EmailListContainer = styled.div`
   flex-direction: column;
   background:
     linear-gradient(180deg, ${({ theme }) => theme?.isDark ? 'rgba(255,255,255,0.025)' : '#ffffff'} 0%, ${({ theme }) => theme?.color?.background || '#f4f7f9'} 100%);
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    border: 1px solid ${({ theme }) => theme.color.border};
+    border-radius: ${({ theme }) => theme.radius.md};
+    overflow: hidden;
+  }
 `;
 
 export const ListToolbar = styled.div`
@@ -352,6 +394,13 @@ export const ListToolbar = styled.div`
   gap: 1rem;
   background: ${({ theme }) => theme?.isDark ? 'rgba(198,137,63,0.055)' : '#ffffff'};
   min-height: 3.25rem;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[3]};
+    gap: ${({ theme }) => theme.spacing[2]};
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
 `;
 
 export const SearchHeader = styled.div`
@@ -360,6 +409,10 @@ export const SearchHeader = styled.div`
   border-bottom: 1px solid ${({ theme }) => theme?.color?.border || '#e2e8f0'};
   display: flex;
   justify-content: center;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const SearchWrapper = styled.div`
@@ -382,12 +435,20 @@ export const SearchInput = styled.input`
     background: ${({ theme }) => theme?.color?.surface || '#ffffff'};
     box-shadow: 0 0 0 3px rgba(198, 137, 63, 0.1);
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.inputHeight};
+  }
 `;
 
 export const ActionGroup = styled.div`
   display: flex;
   align-items: center;
   gap: 0.25rem;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-wrap: wrap;
+  }
 `;
 
 export const IconButton = styled.button`
@@ -421,6 +482,11 @@ export const IconButton = styled.button`
     height: 18px !important;
     min-width: 18px;
     min-height: 18px;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-width: ${({ theme }) => theme.layout.buttonHeight};
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
   }
 `;
 
@@ -457,6 +523,11 @@ export const EmailRow = styled.div`
   &:focus-within .email-row-date {
     opacity: 0;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: 4.5rem;
+    padding: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const SenderName = styled.span`
@@ -486,6 +557,11 @@ export const ModalOverlay = styled.div`
   align-items: center;
   justify-content: center;
   z-index: 5000;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    align-items: flex-end;
+    padding: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const ComposeModalUI = styled.div`
@@ -499,6 +575,16 @@ export const ComposeModalUI = styled.div`
   flex-direction: column;
   overflow: hidden;
   animation: ${fadeIn} 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    width: min(100%, 44rem);
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+    height: calc(100dvh - ${({ theme }) => theme.spacing[6]});
+    border-radius: ${({ theme }) => theme.radius.lg} ${({ theme }) => theme.radius.lg} ${({ theme }) => theme.radius.md} ${({ theme }) => theme.radius.md};
+  }
 `;
 
 export const ComposeHeader = styled.div`
@@ -570,6 +656,22 @@ export const ComposeField = styled.div`
     background: ${({ theme }) => theme?.isDark ? 'rgba(198, 137, 63, 0.05)' : '#fffdfa'};
     label { color: #c6893f; border-right-color: #c6893f; }
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    grid-template-columns: 1fr;
+
+    label {
+      justify-content: flex-start;
+      border-right: none;
+      border-bottom: 1px solid ${({ theme }) => theme?.color?.border || '#e2e8f0'};
+      padding: ${({ theme }) => theme.spacing[2]} ${({ theme }) => theme.spacing[3]};
+    }
+
+    input {
+      min-height: ${({ theme }) => theme.layout.inputHeight};
+      padding: 0 ${({ theme }) => theme.spacing[3]};
+    }
+  }
 `;
 
 export const EditorWrapper = styled.div`
@@ -620,6 +722,11 @@ export const EditorArea = styled.div`
   
   ul { list-style-type: disc; }
   ol { list-style-type: decimal; }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[4]};
+    font-size: ${({ theme }) => theme.typography.size.base};
+  }
 `;
 
 export const AttachmentArea = styled.div`
@@ -674,6 +781,11 @@ export const ModalFooter = styled.div`
   justify-content: flex-end;
   gap: 1rem;
   flex-shrink: 0; /* Keep it fixed at the bottom */
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-direction: column-reverse;
+    padding: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const SendButton = styled.button`
@@ -703,6 +815,11 @@ export const SendButton = styled.button`
     opacity: 0.55;
     transform: none;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+  }
 `;
 
 export const CancelButton = styled.button`
@@ -725,6 +842,11 @@ export const CancelButton = styled.button`
     cursor: not-allowed;
     opacity: 0.55;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+  }
 `;
 
 export const ComposeError = styled.div`
@@ -741,6 +863,11 @@ export const ComposeError = styled.div`
     width: 1rem;
     height: 1rem;
     flex-shrink: 0;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+    padding: ${({ theme }) => theme.spacing[3]};
   }
 `;
 
@@ -791,6 +918,13 @@ export const ToastNotification = styled.div`
   font-size: 0.9375rem;
 
   svg { width: 20px !important; height: 20px !important; }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    left: ${({ theme }) => theme.spacing[3]};
+    right: ${({ theme }) => theme.spacing[3]};
+    bottom: calc(5.6rem + env(safe-area-inset-bottom));
+    justify-content: space-between;
+  }
 `;
 
 export const ToastSpinner = styled.span`
@@ -841,6 +975,11 @@ export const ConfigOverlay = styled.div`
   align-items: center;
   justify-content: center;
   z-index: 6000;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    align-items: flex-end;
+    padding: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const ModalUI = styled.div`
@@ -852,6 +991,14 @@ export const ModalUI = styled.div`
   color: ${({ theme }) => theme?.color?.text || '#001a26'};
   box-shadow: ${({ theme }) => theme?.shadow?.['2xl'] || '0 25px 50px -12px rgba(0,0,0,0.25)'};
   border: 1px solid ${({ theme }) => theme?.color?.border || '#e2e8f0'};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    max-width: none;
+    max-height: calc(100dvh - ${({ theme }) => theme.spacing[6]});
+    overflow-y: auto;
+    padding: ${({ theme }) => theme.spacing[4]};
+    border-radius: ${({ theme }) => theme.radius.lg} ${({ theme }) => theme.radius.lg} ${({ theme }) => theme.radius.md} ${({ theme }) => theme.radius.md};
+  }
 `;
 
 export const LargeModalUI = styled(ModalUI)`
@@ -860,6 +1007,11 @@ export const LargeModalUI = styled(ModalUI)`
   height: 85vh;
   display: flex;
   flex-direction: column;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+    height: calc(100dvh - ${({ theme }) => theme.spacing[6]});
+  }
 `;
 
 export const ConfigForm = styled.div`
@@ -899,6 +1051,10 @@ export const FormRow = styled.div`
   display: grid;
   grid-template-columns: 1fr 100px;
   gap: 1rem;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 export const ModalActions = styled.div`
@@ -906,6 +1062,10 @@ export const ModalActions = styled.div`
   gap: 1rem;
   margin-top: 2rem;
   justify-content: flex-end;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-direction: column-reverse;
+  }
 `;
 
 export const CancelBtnUI = styled.button`
@@ -917,6 +1077,11 @@ export const CancelBtnUI = styled.button`
   cursor: pointer;
   font-weight: 700;
   &:hover { background: rgba(0,0,0,0.05); color: ${({ theme }) => theme?.color?.text || '#001a26'}; }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+  }
 `;
 
 export const SubmitBtnUI = styled.button`
@@ -935,12 +1100,21 @@ export const SubmitBtnUI = styled.button`
     opacity: 0.6;
     transform: none;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+  }
 `;
 
 // Shared re-exports
 export const ScrollArea = styled.div`
   flex: 1;
   overflow-y: auto;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    max-height: 48dvh;
+  }
 `;
 
 export const RowContent = styled.div`
@@ -983,6 +1157,11 @@ export const CheckboxWrapper = styled.div`
   pointer-events: ${({ $selected }) => ($selected ? 'auto' : 'none')};
   transition: opacity 0.2s;
   input { cursor: pointer; accent-color: #c6893f; width: 14px; height: 14px; }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    opacity: 1;
+    pointer-events: auto;
+  }
 `;
 
 export const RowActions = styled.div`
@@ -997,6 +1176,11 @@ export const RowActions = styled.div`
   pointer-events: none;
   transform: translateY(-50%);
   transition: opacity 0.15s ease;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    opacity: 1;
+    pointer-events: auto;
+  }
 `;
 
 export const RowActionButton = styled.button`
@@ -1035,6 +1219,11 @@ export const RowActionButton = styled.button`
       opacity: 1;
     }
   `}
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: ${({ theme }) => theme.layout.buttonHeight};
+    height: ${({ theme }) => theme.layout.buttonHeight};
+  }
 `;
 
 export const EmptyState = styled.div`
@@ -1047,6 +1236,10 @@ export const EmptyState = styled.div`
   gap: 1rem;
   svg { width: 4rem; height: 4rem; opacity: 0.2; }
   p { font-weight: 700; margin: 0; }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[8]} ${({ theme }) => theme.spacing[4]};
+  }
 `;
 
 export const Spinner = styled.div`
@@ -1086,6 +1279,21 @@ export const ReadingPane = styled.div`
   overflow-y: auto;
   height: 100%;
   border-left: 1px solid ${({ theme }) => theme?.color?.border || '#e2e8f0'};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
+    min-height: 28rem;
+    border-left: none;
+    border-top: 1px solid ${({ theme }) => theme?.color?.border || '#e2e8f0'};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: 24rem;
+    height: auto;
+    margin-top: ${({ theme }) => theme.spacing[3]};
+    padding: ${({ theme }) => theme.spacing[4]};
+    border: 1px solid ${({ theme }) => theme.color.border};
+    border-radius: ${({ theme }) => theme.radius.md};
+  }
 `;
 
 export const EmailHeaderInfo = styled.div`
@@ -1096,6 +1304,17 @@ export const EmailHeaderInfo = styled.div`
   .meta { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;}
   .sender { font-weight: 700; font-size: 0.875rem; color: #c6893f; }
   .date { font-size: 0.75rem; color: #94a3b8; }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    h2 {
+      font-size: ${({ theme }) => theme.typography.size.xl};
+    }
+
+    .meta {
+      flex-direction: column;
+      gap: ${({ theme }) => theme.spacing[2]};
+    }
+  }
 `;
 
 export const EmailContentBody = styled.div`
@@ -1105,6 +1324,17 @@ export const EmailContentBody = styled.div`
   white-space: pre-wrap;
   flex: 1;
   overflow-y: auto;
+
+  img,
+  table,
+  iframe {
+    max-width: 100%;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+  }
 
   ${({ theme }) => theme?.isDark && css`
     color-scheme: dark;
@@ -1171,6 +1401,11 @@ export const EmailContentBody = styled.div`
       border-color: ${theme.color.border} !important;
     }
   `}
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    font-size: ${({ theme }) => theme.typography.size.base};
+    line-height: ${({ theme }) => theme.typography.lineHeight.relaxed || theme.typography.lineHeight.normal};
+  }
 `;
 
 export const MenuItem = styled.div`

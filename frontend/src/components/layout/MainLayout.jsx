@@ -32,7 +32,7 @@ const LayoutWrapper = styled.div`
   isolation: isolate;
   display: flex;
   min-height: 100vh;
-  width: 100vw;
+  width: 100%;
   background:
     linear-gradient(
       135deg,
@@ -60,7 +60,7 @@ const LayoutWrapper = styled.div`
   font-family: inherit;
   color: ${({ theme }) => theme.color.text};
   transition: background 0.3s ease;
-  overflow: hidden;
+  overflow-x: hidden;
 
   &::before {
     content: '';
@@ -92,6 +92,11 @@ const ContentArea = styled.div`
         0%,
       transparent 18rem
     );
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    min-height: 100dvh;
+    height: auto;
+  }
 `;
 
 const Main = styled.main`
@@ -101,6 +106,7 @@ const Main = styled.main`
   overflow-y: auto;
   padding: ${({ theme }) => theme.spacing[6]};
   width: 100%;
+  overscroll-behavior: contain;
 
   &::before {
     content: '';
@@ -146,6 +152,31 @@ const Main = styled.main`
       opacity: 0;
     }
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
+    padding: ${({ theme }) => theme.spacing[5]};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    min-height: 100dvh;
+    overflow-y: visible;
+    padding: ${({ theme }) => theme.spacing[4]} ${({ theme }) => theme.spacing[3]} calc(5.85rem + env(safe-area-inset-bottom));
+
+    &::before {
+      background-size: 2.5rem 2.5rem;
+      opacity: 0.58;
+    }
+
+    &::after {
+      width: 76%;
+      animation-duration: 9s;
+      opacity: 0.72;
+    }
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[3]} ${({ theme }) => theme.spacing[3]} calc(5.65rem + env(safe-area-inset-bottom));
+  }
 `;
 
 const Container = styled.div`
@@ -154,6 +185,10 @@ const Container = styled.div`
   width: 100%;
   position: relative;
   z-index: 1;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    max-width: none;
+  }
 `;
 
 const MainLayout = () => {

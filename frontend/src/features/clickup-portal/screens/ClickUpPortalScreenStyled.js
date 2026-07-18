@@ -18,6 +18,12 @@ export const PortalHeader = styled.div`
   left: 1rem;
   z-index: 10000;
   pointer-events: none;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    top: ${({ theme }) => theme.spacing[3]};
+    left: ${({ theme }) => theme.spacing[3]};
+    right: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const BackButton = styled.button`
@@ -45,6 +51,12 @@ export const BackButton = styled.button`
   svg {
     width: 1.25rem;
     height: 1.25rem;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+    width: 100%;
+    justify-content: center;
   }
 `;
 

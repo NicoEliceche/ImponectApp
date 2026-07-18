@@ -16,6 +16,12 @@ export const ChatShell = styled.section`
   border-radius: ${({ $panel, theme }) => ($panel ? '0' : theme.radius['2xl'])};
   background: ${({ theme }) => theme.color.surface};
   box-shadow: ${({ $panel, theme }) => ($panel ? 'none' : theme.shadow.lg)};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ $panel }) => ($panel ? '0' : '24rem')};
+    height: ${({ $panel }) => ($panel ? '100%' : 'min(34rem, calc(100dvh - 8rem))')};
+    border-radius: ${({ $panel, theme }) => ($panel ? '0' : theme.radius.lg)};
+  }
 `;
 
 export const Header = styled.header`
@@ -26,6 +32,11 @@ export const Header = styled.header`
   padding: ${({ theme }) => theme.spacing[5]};
   background: linear-gradient(135deg, ${({ theme }) => theme.color.primaryDark}, ${({ theme }) => theme.color.primary});
   color: ${({ theme }) => theme.color.textInverse};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[4]};
+    gap: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const HeaderTitle = styled.div`
@@ -48,6 +59,17 @@ export const HeaderTitle = styled.div`
   svg { width: 1.3rem; height: 1.3rem; }
   h3 { margin: 0; font-size: ${({ theme }) => theme.typography.size.lg}; }
   p { margin: ${({ theme }) => theme.spacing[1]} 0 0; color: rgba(255,255,255,0.68); font-size: ${({ theme }) => theme.typography.size.xs}; }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    > div:first-child {
+      width: 2.25rem;
+      height: 2.25rem;
+    }
+
+    h3 {
+      font-size: ${({ theme }) => theme.typography.size.base};
+    }
+  }
 `;
 
 export const HeaderActions = styled.div`
@@ -68,6 +90,11 @@ export const IconButton = styled.button`
 
   &:hover { background: rgba(255,255,255,0.14); border-color: ${({ theme }) => theme.color.accent}; }
   svg { width: 1rem; height: 1rem; }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: ${({ theme }) => theme.layout.buttonHeight};
+    height: ${({ theme }) => theme.layout.buttonHeight};
+  }
 `;
 
 export const Messages = styled.div`
@@ -79,6 +106,11 @@ export const Messages = styled.div`
   gap: ${({ theme }) => theme.spacing[4]};
   padding: ${({ theme }) => theme.spacing[5]};
   background: ${({ theme }) => theme.isDark ? 'rgba(0,0,0,0.12)' : theme.color.neutral[50]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    gap: ${({ theme }) => theme.spacing[3]};
+    padding: ${({ theme }) => theme.spacing[4]};
+  }
 `;
 
 export const Message = styled.div`
@@ -91,6 +123,11 @@ export const Message = styled.div`
   background: ${({ $user, theme }) => ($user ? theme.color.accent : theme.color.surface)};
   color: ${({ $user, theme }) => ($user ? theme.color.textInverse : theme.color.text)};
   box-shadow: ${({ theme }) => theme.shadow.sm};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    max-width: 96%;
+    padding: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const MessageLabel = styled.div`
@@ -154,6 +191,10 @@ export const Suggestion = styled.button`
   font-weight: ${({ theme }) => theme.typography.weight.bold};
 
   &:hover { border-color: ${({ theme }) => theme.color.accent}; color: ${({ theme }) => theme.color.accent}; }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+  }
 `;
 
 export const Loading = styled.div`
@@ -190,6 +231,12 @@ export const Form = styled.form`
   padding: ${({ theme }) => theme.spacing[4]};
   border-top: 1px solid ${({ theme }) => theme.color.border};
   background: ${({ theme }) => theme.color.surface};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    align-items: stretch;
+    flex-direction: column;
+    padding: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const Input = styled.textarea`
@@ -207,6 +254,10 @@ export const Input = styled.textarea`
   font-size: ${({ theme }) => theme.typography.size.sm};
 
   &:focus { border-color: ${({ theme }) => theme.color.accent}; }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: 5rem;
+  }
 `;
 
 export const SendButton = styled.button`
@@ -223,6 +274,11 @@ export const SendButton = styled.button`
 
   &:disabled { opacity: 0.45; cursor: not-allowed; }
   svg { width: 1.1rem; height: 1.1rem; }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+    height: ${({ theme }) => theme.layout.buttonHeight};
+  }
 `;
 
 export const DrawerBackdrop = styled.div`
@@ -249,6 +305,11 @@ export const Drawer = styled.aside`
   pointer-events: ${({ $open }) => ($open ? 'auto' : 'none')};
   transition: transform 0.25s ease;
   box-shadow: ${({ theme }) => theme.shadow['2xl']};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+    height: 100dvh;
+  }
 `;
 
 export const FloatingButton = styled.button`
@@ -272,4 +333,14 @@ export const FloatingButton = styled.button`
   svg { width: 1.55rem; height: 1.55rem; }
 
   ${({ $hidden }) => $hidden && css`display: none;`}
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    right: ${({ theme }) => theme.spacing[4]};
+    bottom: calc(5.95rem + env(safe-area-inset-bottom));
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 3.35rem;
+    height: 3.35rem;
+  }
 `;

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { useThemeStore } from '../../app/stores/themeStore';
 import { publicAsset } from '../../shared/utils/urls';
@@ -17,7 +17,8 @@ import {
   IconSun,
   IconMoon,
   IconDoubleChevronLeft,
-  IconDoubleChevronRight
+  IconDoubleChevronRight,
+  IconDots,
 } from '../../shared/components/Icons';
 
 const sidebarSweep = keyframes`
@@ -59,6 +60,10 @@ const SidebarWrapper = styled.aside`
     pointer-events: none;
     background: linear-gradient(180deg, transparent, rgba(198, 137, 63, 0.2), transparent);
     animation: ${sidebarSweep} 7s ease-in-out infinite;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    display: none;
   }
 `;
 
@@ -315,14 +320,230 @@ const navItems = [
   { name: 'CATÁLOGO', path: '/catalog', icon: IconCatalog },
 ];
 
+const mobilePrimaryItems = [
+  navItems[0],
+  navItems[1],
+  navItems[3],
+  navItems[4],
+];
+
+const mobileMoreItems = [
+  navItems[2],
+  navItems[5],
+  navItems[6],
+  navItems[7],
+  navItems[8],
+];
+
+const MobileShell = styled.div`
+  display: none;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    display: block;
+  }
+`;
+
+const MobileMoreScrim = styled.button`
+  position: fixed;
+  inset: 0;
+  z-index: 188;
+  display: ${({ $open }) => ($open ? 'block' : 'none')};
+  border: 0;
+  background: ${({ theme }) => theme.isDark ? 'rgba(0, 0, 0, 0.44)' : 'rgba(0, 26, 38, 0.24)'};
+  cursor: pointer;
+`;
+
+const MobileMorePanel = styled.div`
+  position: fixed;
+  left: ${({ theme }) => theme.spacing[4]};
+  right: ${({ theme }) => theme.spacing[4]};
+  bottom: calc(4.85rem + env(safe-area-inset-bottom));
+  z-index: 189;
+  display: ${({ $open }) => ($open ? 'grid' : 'none')};
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: ${({ theme }) => theme.spacing[3]};
+  padding: ${({ theme }) => theme.spacing[4]};
+  border: 1px solid ${({ theme }) => theme.color.border};
+  border-radius: ${({ theme }) => theme.radius.lg};
+  background: ${({ theme }) => theme.isDark ? 'rgba(6, 19, 26, 0.96)' : 'rgba(255, 255, 255, 0.96)'};
+  box-shadow: ${({ theme }) => theme.shadow['2xl']};
+  backdrop-filter: blur(16px);
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    grid-template-columns: 1fr;
+    left: ${({ theme }) => theme.spacing[3]};
+    right: ${({ theme }) => theme.spacing[3]};
+    bottom: calc(4.65rem + env(safe-area-inset-bottom));
+  }
+`;
+
+const MobileNavBar = styled.nav`
+  position: fixed;
+  left: ${({ theme }) => theme.spacing[3]};
+  right: ${({ theme }) => theme.spacing[3]};
+  bottom: calc(${({ theme }) => theme.spacing[3]} + env(safe-area-inset-bottom));
+  z-index: 190;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: ${({ theme }) => theme.spacing[2]};
+  padding: ${({ theme }) => theme.spacing[2]};
+  border: 1px solid rgba(198, 137, 63, 0.28);
+  border-radius: ${({ theme }) => theme.radius.lg};
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(198, 137, 63, 0.10) 1px, transparent 1px),
+    ${({ theme }) => theme.isDark ? 'rgba(4, 15, 21, 0.94)' : 'rgba(255, 255, 255, 0.94)'};
+  background-size: 100% 100%, 100% 2.7rem, 100% 100%;
+  box-shadow: 0 1rem 2.2rem rgba(0, 0, 0, 0.24), 0 0 1.4rem rgba(198, 137, 63, 0.18);
+  backdrop-filter: blur(18px);
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(198, 137, 63, 0.18), transparent);
+    transform: translateX(-120%);
+    animation: ${sidebarSweep} 7s ease-in-out infinite;
+  }
+`;
+
+const MobileNavLink = styled(NavLink)`
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  min-height: ${({ theme }) => theme.layout.buttonHeight};
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing[1]};
+  padding: ${({ theme }) => theme.spacing[2]};
+  border: 1px solid transparent;
+  border-radius: ${({ theme }) => theme.radius.md};
+  color: ${({ theme }) => theme.isDark ? 'rgba(255, 255, 255, 0.72)' : theme.color.textSecondary};
+  text-decoration: none;
+  font-size: ${({ theme }) => theme.typography.size.xs};
+  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+  line-height: ${({ theme }) => theme.typography.lineHeight.tight};
+  letter-spacing: 0;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.18s ease, color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: ${({ theme }) => theme.color.text};
+    border-color: rgba(198, 137, 63, 0.34);
+    background: ${({ theme }) => theme.isDark ? 'rgba(198, 137, 63, 0.13)' : theme.color.accentFaded};
+    outline: none;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &.active {
+    color: ${({ theme }) => theme.color.textInverse};
+    border-color: transparent;
+    background: linear-gradient(135deg, ${({ theme }) => theme.color.accent} 0%, ${({ theme }) => theme.color.accentLight} 100%);
+    box-shadow: 0 0.65rem 1.2rem rgba(0, 0, 0, 0.18), 0 0 1rem rgba(198, 137, 63, 0.24);
+  }
+
+  svg {
+    width: 1.18rem;
+    height: 1.18rem;
+    flex-shrink: 0;
+  }
+`;
+
+const MobileMoreButton = styled.button`
+  position: relative;
+  z-index: 1;
+  min-height: ${({ theme }) => theme.layout.buttonHeight};
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing[1]};
+  padding: ${({ theme }) => theme.spacing[2]};
+  border: 1px solid ${({ $active }) => ($active ? 'transparent' : 'rgba(255, 255, 255, 0.08)')};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ $active, theme }) => (
+    $active
+      ? `linear-gradient(135deg, ${theme.color.accent} 0%, ${theme.color.accentLight} 100%)`
+      : 'transparent'
+  )};
+  color: ${({ $active, theme }) => ($active ? theme.color.textInverse : (theme.isDark ? 'rgba(255, 255, 255, 0.72)' : theme.color.textSecondary))};
+  font-size: ${({ theme }) => theme.typography.size.xs};
+  font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+  line-height: ${({ theme }) => theme.typography.lineHeight.tight};
+  cursor: pointer;
+  transition: transform 0.18s ease, color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: ${({ theme, $active }) => ($active ? theme.color.textInverse : theme.color.text)};
+    border-color: rgba(198, 137, 63, 0.34);
+    background: ${({ $active, theme }) => (
+      $active
+        ? `linear-gradient(135deg, ${theme.color.accent} 0%, ${theme.color.accentLight} 100%)`
+        : (theme.isDark ? 'rgba(198, 137, 63, 0.13)' : theme.color.accentFaded)
+    )};
+    outline: none;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  svg {
+    width: 1.18rem;
+    height: 1.18rem;
+  }
+`;
+
+const MobileMoreLink = styled(MobileNavLink)`
+  flex-direction: row;
+  justify-content: flex-start;
+  min-height: ${({ theme }) => theme.layout.buttonHeight};
+  text-align: left;
+  font-size: ${({ theme }) => theme.typography.size.sm};
+  gap: ${({ theme }) => theme.spacing[3]};
+`;
+
+const MobileUtilityButton = styled(MobileMoreButton)`
+  flex-direction: row;
+  justify-content: flex-start;
+  min-height: ${({ theme }) => theme.layout.buttonHeight};
+  text-align: left;
+  font-size: ${({ theme }) => theme.typography.size.sm};
+  gap: ${({ theme }) => theme.spacing[3]};
+  border-color: rgba(198, 137, 63, 0.22);
+`;
+
+const MobileLabel = styled.span`
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
 const warmRoute = (path) => {
   preloadRoute(path).catch(() => undefined);
 };
 
 const Sidebar = () => {
   const { mode, toggleTheme } = useThemeStore();
+  const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(() => localStorage.getItem('sidebar-collapsed') === 'true');
+  const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
   const ToggleIcon = isCollapsed ? IconDoubleChevronRight : IconDoubleChevronLeft;
+
+  const isMoreActive = mobileMoreItems.some(item => location.pathname === item.path || location.pathname.startsWith(`${item.path}/`));
 
   const toggleSidebar = () => {
     setIsCollapsed((current) => {
@@ -332,67 +553,131 @@ const Sidebar = () => {
     });
   };
 
+  useEffect(() => {
+    setIsMobileMoreOpen(false);
+  }, [location.pathname]);
+
   return (
-    <SidebarWrapper $collapsed={isCollapsed}>
-      <LogoContainer $collapsed={isCollapsed}>
-        <HeaderCollapseButton
-          type="button"
-          onClick={toggleSidebar}
-          $collapsed={isCollapsed}
-          title={isCollapsed ? 'Expandir menú' : 'Colapsar menú'}
-          aria-label={isCollapsed ? 'Expandir menú' : 'Colapsar menú'}
-        >
-          <ToggleIcon />
-        </HeaderCollapseButton>
-        <LogoImage $collapsed={isCollapsed} src={publicAsset('assets/imponect_logo_white.jpg')} alt="Imponect Logo" />
-        <LogoText $collapsed={isCollapsed}>IMPONECT</LogoText>
-      </LogoContainer>
-      
-      <Nav $collapsed={isCollapsed}>
-        {navItems.map((item) => (
-          <StyledNavLink
-            key={item.name}
-            to={item.path}
-            $collapsed={isCollapsed}
-            title={isCollapsed ? item.name : undefined}
-            aria-label={item.name}
-            onMouseEnter={() => warmRoute(item.path)}
-            onFocus={() => warmRoute(item.path)}
-            onTouchStart={() => warmRoute(item.path)}
-          >
-            {item.textIcon ? <NavTextIcon>{item.textIcon}</NavTextIcon> : <item.icon />}
-            {item.labelRows ? (
-              <SplitNavLabel $collapsed={isCollapsed}>
-                <SplitNavText>
-                  {item.labelRows.map(row => <span key={row}>{row}</span>)}
-                </SplitNavText>
-              </SplitNavLabel>
-            ) : (
-              <NavLabel $collapsed={isCollapsed}>{item.name}</NavLabel>
-            )}
-          </StyledNavLink>
-        ))}
-      </Nav>
-      
-      <Footer $collapsed={isCollapsed}>
-        <BottomActions $collapsed={isCollapsed}>
-          <ThemeToggle onClick={toggleTheme} title={mode === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}>
-            {mode === 'dark' ? <IconSun /> : <IconMoon />}
-          </ThemeToggle>
-          <SettingsLink to="/settings" title="Configuración" $collapsed={isCollapsed} aria-label="Configuración">
-            <IconSettings />
-          </SettingsLink>
-          <CollapseButton
+    <>
+      <SidebarWrapper $collapsed={isCollapsed}>
+        <LogoContainer $collapsed={isCollapsed}>
+          <HeaderCollapseButton
             type="button"
             onClick={toggleSidebar}
+            $collapsed={isCollapsed}
             title={isCollapsed ? 'Expandir menú' : 'Colapsar menú'}
             aria-label={isCollapsed ? 'Expandir menú' : 'Colapsar menú'}
           >
             <ToggleIcon />
-          </CollapseButton>
-        </BottomActions>
-      </Footer>
-    </SidebarWrapper>
+          </HeaderCollapseButton>
+          <LogoImage $collapsed={isCollapsed} src={publicAsset('assets/imponect_logo_white.jpg')} alt="Imponect Logo" />
+          <LogoText $collapsed={isCollapsed}>IMPONECT</LogoText>
+        </LogoContainer>
+
+        <Nav $collapsed={isCollapsed}>
+          {navItems.map((item) => (
+            <StyledNavLink
+              key={item.name}
+              to={item.path}
+              $collapsed={isCollapsed}
+              title={isCollapsed ? item.name : undefined}
+              aria-label={item.name}
+              onMouseEnter={() => warmRoute(item.path)}
+              onFocus={() => warmRoute(item.path)}
+              onTouchStart={() => warmRoute(item.path)}
+            >
+              {item.textIcon ? <NavTextIcon>{item.textIcon}</NavTextIcon> : <item.icon />}
+              {item.labelRows ? (
+                <SplitNavLabel $collapsed={isCollapsed}>
+                  <SplitNavText>
+                    {item.labelRows.map(row => <span key={row}>{row}</span>)}
+                  </SplitNavText>
+                </SplitNavLabel>
+              ) : (
+                <NavLabel $collapsed={isCollapsed}>{item.name}</NavLabel>
+              )}
+            </StyledNavLink>
+          ))}
+        </Nav>
+
+        <Footer $collapsed={isCollapsed}>
+          <BottomActions $collapsed={isCollapsed}>
+            <ThemeToggle onClick={toggleTheme} title={mode === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}>
+              {mode === 'dark' ? <IconSun /> : <IconMoon />}
+            </ThemeToggle>
+            <SettingsLink to="/settings" title="Configuración" $collapsed={isCollapsed} aria-label="Configuración">
+              <IconSettings />
+            </SettingsLink>
+            <CollapseButton
+              type="button"
+              onClick={toggleSidebar}
+              title={isCollapsed ? 'Expandir menú' : 'Colapsar menú'}
+              aria-label={isCollapsed ? 'Expandir menú' : 'Colapsar menú'}
+            >
+              <ToggleIcon />
+            </CollapseButton>
+          </BottomActions>
+        </Footer>
+      </SidebarWrapper>
+
+      <MobileShell>
+        <MobileMoreScrim
+          type="button"
+          $open={isMobileMoreOpen}
+          aria-label="Cerrar menú"
+          onClick={() => setIsMobileMoreOpen(false)}
+        />
+        <MobileMorePanel $open={isMobileMoreOpen} aria-hidden={!isMobileMoreOpen}>
+          {mobileMoreItems.map((item) => (
+            <MobileMoreLink
+              key={item.name}
+              to={item.path}
+              aria-label={item.name}
+              onMouseEnter={() => warmRoute(item.path)}
+              onFocus={() => warmRoute(item.path)}
+              onTouchStart={() => warmRoute(item.path)}
+            >
+              {item.textIcon ? <NavTextIcon>{item.textIcon}</NavTextIcon> : <item.icon />}
+              <MobileLabel>{item.name}</MobileLabel>
+            </MobileMoreLink>
+          ))}
+          <MobileMoreLink to="/settings" aria-label="Configuración">
+            <IconSettings />
+            <MobileLabel>CONFIGURACIÓN</MobileLabel>
+          </MobileMoreLink>
+          <MobileUtilityButton type="button" onClick={toggleTheme}>
+            {mode === 'dark' ? <IconSun /> : <IconMoon />}
+            <MobileLabel>{mode === 'dark' ? 'MODO CLARO' : 'MODO OSCURO'}</MobileLabel>
+          </MobileUtilityButton>
+        </MobileMorePanel>
+
+        <MobileNavBar aria-label="Navegación principal mobile">
+          {mobilePrimaryItems.map((item) => (
+            <MobileNavLink
+              key={item.name}
+              to={item.path}
+              aria-label={item.name}
+              onMouseEnter={() => warmRoute(item.path)}
+              onFocus={() => warmRoute(item.path)}
+              onTouchStart={() => warmRoute(item.path)}
+            >
+              {item.textIcon ? <NavTextIcon>{item.textIcon}</NavTextIcon> : <item.icon />}
+              <MobileLabel>{item.name}</MobileLabel>
+            </MobileNavLink>
+          ))}
+          <MobileMoreButton
+            type="button"
+            $active={isMoreActive || isMobileMoreOpen}
+            aria-label="Abrir más secciones"
+            aria-expanded={isMobileMoreOpen}
+            onClick={() => setIsMobileMoreOpen(current => !current)}
+          >
+            <IconDots />
+            <MobileLabel>MÁS</MobileLabel>
+          </MobileMoreButton>
+        </MobileNavBar>
+      </MobileShell>
+    </>
   );
 };
 

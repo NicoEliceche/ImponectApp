@@ -88,6 +88,10 @@ export const ScreenWrapper = styled.div`
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing[5]};
   color: ${({ theme }) => theme.color.text};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    gap: ${({ theme }) => theme.spacing[4]};
+  }
 `;
 
 export const Header = styled.header`
@@ -123,6 +127,10 @@ export const HeaderPanel = styled.div`
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     min-width: 0;
     align-items: stretch;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[3]};
   }
 `;
 
@@ -271,6 +279,10 @@ export const RefreshButton = styled.button`
     width: 1rem;
     height: 1rem;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+  }
 `;
 
 export const ErrorBanner = styled.div`
@@ -303,7 +315,7 @@ export const KpiGrid = styled.section`
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     grid-template-columns: 1fr;
   }
 `;
@@ -394,6 +406,11 @@ export const CommandPanel = styled.article`
   background:
     linear-gradient(180deg, ${({ theme }) => theme.color.surface} 0%, ${({ theme }) => theme.isDark ? 'rgba(22, 46, 58, 0.74)' : theme.color.neutral[50]} 100%);
   box-shadow: ${({ theme }) => theme.shadow.sm};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: 0;
+    padding: ${({ theme }) => theme.spacing[4]};
+  }
 `;
 
 export const ActionPanel = styled(CommandPanel)`
@@ -405,6 +422,12 @@ export const PanelHeader = styled.div`
   align-items: flex-start;
   justify-content: space-between;
   gap: ${({ theme }) => theme.spacing[4]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const PanelTitle = styled.h2`
@@ -450,6 +473,10 @@ export const PanelMetric = styled.strong`
     font-weight: ${({ theme }) => theme.typography.weight.bold};
     text-transform: uppercase;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    align-items: flex-start;
+  }
 `;
 
 export const PanelAction = styled.button`
@@ -474,6 +501,12 @@ export const PanelAction = styled.button`
   svg {
     width: 0.9rem;
     height: 0.9rem;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+    justify-content: center;
+    width: 100%;
   }
 `;
 
@@ -668,6 +701,15 @@ export const ReportItem = styled.div`
     color: ${({ theme }) => theme.color.textSecondary};
     font-size: ${({ theme }) => theme.typography.size.xs};
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    grid-template-columns: auto minmax(0, 1fr);
+
+    > :last-child {
+      grid-column: 1 / -1;
+      justify-self: start;
+    }
+  }
 `;
 
 export const ReportState = styled.span`
@@ -704,6 +746,11 @@ export const IconButton = styled.button`
     width: 0.95rem;
     height: 0.95rem;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: ${({ theme }) => theme.layout.buttonHeight};
+    height: ${({ theme }) => theme.layout.buttonHeight};
+  }
 `;
 
 // ── Channels ───────────────────────────────────────────────────────────────
@@ -723,6 +770,11 @@ export const ChannelItem = styled.div`
   border: 1px solid ${({ theme }) => theme.color.border};
   border-radius: ${({ theme }) => theme.radius.md};
   background: ${({ theme }) => theme.color.surface};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    grid-template-columns: 1fr;
+    gap: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const ChannelInfo = styled.div`

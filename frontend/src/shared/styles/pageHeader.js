@@ -106,9 +106,11 @@ export const pageHeaderSurface = css`
     }
   }
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     min-height: auto;
     padding: ${({ theme }) => theme.spacing[3]};
+    gap: ${({ theme }) => theme.spacing[3]};
+    background-size: ${({ theme }) => theme.spacing[10]} ${({ theme }) => theme.spacing[10]};
   }
 `;
 
@@ -148,8 +150,9 @@ export const pageHeaderTitle = css`
   font-weight: ${({ theme }) => theme.typography.weight.extrabold};
   line-height: ${({ theme }) => theme.typography.lineHeight.tight};
   letter-spacing: 0;
+  overflow-wrap: anywhere;
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     font-size: ${({ theme }) => theme.typography.size['3xl']};
   }
 `;
@@ -161,4 +164,9 @@ export const pageHeaderSubtitle = css`
   font-size: ${({ theme }) => theme.typography.size.lg};
   font-weight: ${({ theme }) => theme.typography.weight.medium};
   line-height: ${({ theme }) => theme.typography.lineHeight.normal};
+  overflow-wrap: anywhere;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    font-size: ${({ theme }) => theme.typography.size.base};
+  }
 `;

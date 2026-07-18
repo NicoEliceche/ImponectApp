@@ -519,12 +519,12 @@ export const DocumentsScreen = () => {
           <ScrollArea>
             {documentItems.map(item => (
               <FileRow data-document-id={item.id} key={item.id} $selected={selectedIds.includes(item.id)} draggable onDragStart={(e) => onDragStart(e, item)} onDragOver={(e) => e.preventDefault()} onDrop={(e) => onDrop(e, item)} onClick={(e) => handleSelection(e, item)} onDoubleClick={() => handleAction('open', item)} onContextMenu={(e) => handleContextMenu(e, item)}>
-                <Cell>{item.folder ? <IconFolder style={{ width: '1.25rem', marginRight: '0.5rem', color: '#fbbf24' }} /> : <IconFile style={{ width: '1.25rem', marginRight: '0.5rem', color: '#60a5fa' }} />}{item.name}</Cell>
-                <Cell><StatusBadge>Sincronizado</StatusBadge></Cell>
-                <Cell>{new Date(item.lastModifiedDateTime).toLocaleDateString()}</Cell>
-                <Cell>{item.folder ? 'Carpeta' : item.name.split('.').pop().toUpperCase()}</Cell>
-                <Cell>{formatSize(item.size)}</Cell>
-                <Cell>{item.video ? formatDuration(item.video.duration) : '-'}</Cell>
+                <Cell data-label="Nombre">{item.folder ? <IconFolder style={{ width: '1.25rem', marginRight: '0.5rem', color: '#fbbf24' }} /> : <IconFile style={{ width: '1.25rem', marginRight: '0.5rem', color: '#60a5fa' }} />}{item.name}</Cell>
+                <Cell data-label="Status"><StatusBadge>Sincronizado</StatusBadge></Cell>
+                <Cell data-label="Modificado">{new Date(item.lastModifiedDateTime).toLocaleDateString()}</Cell>
+                <Cell data-label="Tipo">{item.folder ? 'Carpeta' : item.name.split('.').pop().toUpperCase()}</Cell>
+                <Cell data-label="Peso">{formatSize(item.size)}</Cell>
+                <Cell data-label="Duración">{item.video ? formatDuration(item.video.duration) : '-'}</Cell>
               </FileRow>
             ))}
             {documentItems.length === 0 && (

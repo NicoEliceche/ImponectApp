@@ -103,6 +103,10 @@ export const MainArea = styled.main`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing[5]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    gap: ${({ theme }) => theme.spacing[4]};
+  }
 `;
 
 export const Header = styled.header`
@@ -223,6 +227,11 @@ export const ControlDock = styled.section`
     grid-template-columns: 1fr;
     margin-top: calc(-1 * ${({ theme }) => theme.spacing[2]});
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    gap: ${({ theme }) => theme.spacing[3]};
+    margin-top: 0;
+  }
 `;
 
 export const SearchBox = styled.label`
@@ -320,6 +329,10 @@ export const AudienceSwitch = styled.div`
       animation: none;
     }
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 export const AudienceButton = styled.button`
@@ -413,6 +426,10 @@ export const ExportButton = styled.button`
       animation: none;
     }
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    width: 100%;
+  }
 `;
 
 // ── Workspace ───────────────────────────────────────────────────────────────
@@ -445,11 +462,8 @@ export const ProductGrid = styled.div`
   }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
     grid-template-columns: 1fr;
+    gap: ${({ theme }) => theme.spacing[3]};
   }
 `;
 
@@ -481,6 +495,10 @@ export const ProductCard = styled.article`
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    min-height: 0;
   }
 `;
 
@@ -617,6 +635,10 @@ export const CardFooter = styled.div`
   padding: ${({ theme }) => theme.spacing[3]};
   border-top: 1px solid ${({ theme }) => theme.color.border};
   background: ${({ theme }) => theme.color.neutral[50]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    align-items: stretch;
+  }
 `;
 
 export const PriceBlock = styled.div`
@@ -663,7 +685,7 @@ export const AuthorityBand = styled.section`
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     grid-template-columns: 1fr;
   }
 `;

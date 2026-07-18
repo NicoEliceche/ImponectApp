@@ -329,25 +329,25 @@ export const QuotesScreen = () => {
               <tbody>
                 {quoteRows.map(quote => (
                   <tr key={quote.id}>
-                    <S.Td $nowrap>
+                    <S.Td $nowrap data-label="ID">
                       <S.QuoteId>#{quote.id}</S.QuoteId>
                     </S.Td>
-                    <S.Td>
+                    <S.Td data-label="Razón social cliente">
                       <strong>{quote.razon_social_cliente}</strong>
                     </S.Td>
-                    <S.Td $nowrap>{formatDate(quote.generation_date)}</S.Td>
-                    <S.Td $nowrap>
+                    <S.Td $nowrap data-label="Fecha generación">{formatDate(quote.generation_date)}</S.Td>
+                    <S.Td $nowrap data-label="Monto">
                       <S.Amount>{formatMoney(quote.amount)}</S.Amount>
                     </S.Td>
-                    <S.Td $nowrap>
+                    <S.Td $nowrap data-label="Estado">
                       <S.StatusBadge $variant={getStatusVariant(quote.status)}>
                         {quote.status}
                       </S.StatusBadge>
                     </S.Td>
-                    <S.Td $nowrap>
+                    <S.Td $nowrap data-label="Tipo">
                       <S.MethodBadge $method={quote.method}>{getMethodLabel(quote.method)}</S.MethodBadge>
                     </S.Td>
-                    <S.Td $nowrap>
+                    <S.Td $nowrap data-label="Acciones">
                       <S.ActionsCell>
                         <S.IconActionButton
                           type="button"

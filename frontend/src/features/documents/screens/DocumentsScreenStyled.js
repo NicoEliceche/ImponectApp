@@ -52,6 +52,13 @@ export const FloatingBackButton = styled.button`
     width: 1.25rem;
     height: 1.25rem;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    top: ${({ theme }) => theme.spacing[3]};
+    left: ${({ theme }) => theme.spacing[3]};
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+    padding: 0 ${({ theme }) => theme.spacing[4]};
+  }
 `;
 
 export const ViewerHeader = styled.div`
@@ -62,11 +69,29 @@ export const ViewerHeader = styled.div`
   align-items: center;
   padding: 0 1.5rem 0 10rem;
   justify-content: space-between;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: 7.25rem;
+    height: auto;
+    align-items: flex-end;
+    flex-direction: column;
+    gap: ${({ theme }) => theme.spacing[3]};
+    padding: ${({ theme }) => theme.spacing[3]};
+    padding-top: ${({ theme }) => theme.spacing[16]};
+  }
 `;
 
 export const FileName = styled.div`
   font-weight: 600;
   font-size: 1rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+  }
 `;
 
 export const IframeContainer = styled.div`
@@ -90,6 +115,15 @@ export const ExplorerWrapper = styled.div`
   border: 1px solid ${({ theme }) => theme.color.border};
   border-radius: ${({ theme }) => theme.radius.md};
   overflow: hidden;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    height: auto;
+    min-height: calc(100dvh - 8.5rem);
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    background-size: 34px 34px, 34px 34px, 100% 100%;
+  }
 `;
 
 export const Toolbar = styled.div`
@@ -111,11 +145,26 @@ export const Toolbar = styled.div`
     background: linear-gradient(90deg, transparent, rgba(198, 137, 63, 0.14), transparent);
     animation: ${scan} 7s ease-in-out infinite;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
+    flex-wrap: wrap;
+    padding: ${({ theme }) => theme.spacing[4]};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    gap: ${({ theme }) => theme.spacing[3]};
+    padding: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const NavButtons = styled.div`
   display: flex;
   gap: 0.5rem;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+    justify-content: space-between;
+  }
 `;
 
 export const NavBtn = styled.button`
@@ -135,6 +184,11 @@ export const NavBtn = styled.button`
     width: 1.25rem;
     height: 1.25rem;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: ${({ theme }) => theme.layout.buttonHeight};
+    height: ${({ theme }) => theme.layout.buttonHeight};
+  }
 `;
 
 export const PathBar = styled.div`
@@ -147,6 +201,18 @@ export const PathBar = styled.div`
   color: ${({ theme }) => theme.color.textSecondary};
   display: flex;
   align-items: center;
+  min-width: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
+    order: 3;
+    flex-basis: 100%;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.inputHeight};
+  }
 `;
 
 export const BreadcrumbItem = styled.span`
@@ -161,6 +227,10 @@ export const BreadcrumbItem = styled.span`
 export const ToolbarActions = styled.div`
   display: flex;
   gap: 0.5rem;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: 100%;
+  }
 `;
 
 export const ActionBtn = styled.button`
@@ -183,6 +253,12 @@ export const ActionBtn = styled.button`
     svg {
       color: white !important;
     }
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+    justify-content: center;
+    width: 100%;
   }
 `;
 
@@ -215,6 +291,17 @@ export const SearchWrapper = styled.div`
   flex: 1;
   max-width: 400px;
   margin: 0 1rem;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.lg}) {
+    margin: 0;
+    max-width: none;
+    min-width: min(100%, 18rem);
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-basis: 100%;
+    order: 2;
+  }
 `;
 
 export const SearchInput = styled.input`
@@ -232,6 +319,10 @@ export const SearchInput = styled.input`
     border-color: #c6893f;
     background: ${({ theme }) => theme.color.surface};
     box-shadow: 0 0 0 2px rgba(198, 137, 63, 0.2);
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.inputHeight};
   }
 `;
 
@@ -256,6 +347,12 @@ export const ClearSearchBtn = styled.button`
   align-items: center;
   &:hover { color: #ef4444; }
   svg { width: 1rem; height: 1rem; }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    width: ${({ theme }) => theme.layout.buttonHeight};
+    height: ${({ theme }) => theme.layout.buttonHeight};
+    justify-content: center;
+  }
 `;
 
 export const FileListContainer = styled.div`
@@ -263,6 +360,10 @@ export const FileListContainer = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    overflow: visible;
+  }
 `;
 
 export const FileHeader = styled.div`
@@ -276,6 +377,10 @@ export const FileHeader = styled.div`
   text-transform: uppercase;
   letter-spacing: 0;
   color: ${({ theme }) => theme.color.textSecondary};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    display: none;
+  }
 `;
 
 export const HeaderCell = styled.div``;
@@ -283,6 +388,13 @@ export const HeaderCell = styled.div``;
 export const ScrollArea = styled.div`
   flex: 1;
   overflow-y: auto;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    display: grid;
+    gap: ${({ theme }) => theme.spacing[3]};
+    padding: ${({ theme }) => theme.spacing[3]};
+    overflow-y: visible;
+  }
 `;
 
 export const FileRow = styled.div`
@@ -296,6 +408,20 @@ export const FileRow = styled.div`
   background-color: ${({ $selected, theme }) => $selected ? (theme.isDark ? 'rgba(198, 137, 63, 0.14)' : theme.color.accentFaded) : 'transparent'};
   &:hover {
     background: ${({ $selected, theme }) => $selected ? (theme.isDark ? 'rgba(198, 137, 63, 0.18)' : theme.color.accentFaded) : theme.isDark ? 'rgba(198, 137, 63, 0.08)' : '#f3f4f6'};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    grid-template-columns: 1fr;
+    gap: ${({ theme }) => theme.spacing[3]};
+    padding: ${({ theme }) => theme.spacing[4]};
+    border: 1px solid ${({ $selected, theme }) => ($selected ? theme.color.accent : theme.color.border)};
+    border-radius: ${({ theme }) => theme.radius.md};
+    background: ${({ $selected, theme }) => ($selected ? (theme.isDark ? 'rgba(198, 137, 63, 0.14)' : theme.color.accentFaded) : theme.color.surface)};
+    box-shadow: ${({ theme }) => theme.shadow.sm};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    grid-template-columns: 1fr;
   }
 `;
 
@@ -334,6 +460,12 @@ export const PlayerControls = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing[4]};
+    padding-bottom: calc(${({ theme }) => theme.spacing[5]} + env(safe-area-inset-bottom));
+    gap: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const ControlBar = styled.div`
@@ -368,6 +500,22 @@ export const ControlBar = styled.div`
     &:hover { background: #d4a373; }
     svg { width: 2.5rem; height: 2.5rem; margin-left: ${({ $playing }) => $playing ? '0' : '4px'}; }
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    gap: ${({ theme }) => theme.spacing[3]};
+    flex-wrap: wrap;
+    justify-content: center;
+
+    button {
+      min-width: ${({ theme }) => theme.layout.buttonHeight};
+      min-height: ${({ theme }) => theme.layout.buttonHeight};
+    }
+
+    .play-btn {
+      width: 3.5rem;
+      height: 3.5rem;
+    }
+  }
 `;
 
 export const VolumeGroup = styled.div`
@@ -399,6 +547,13 @@ export const VolumeGroup = styled.div`
     text-align: center;
     font-variant-numeric: tabular-nums;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    position: static;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
 `;
 
 export const ProgressContainer = styled.div`
@@ -412,6 +567,10 @@ export const ProgressContainer = styled.div`
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     min-width: 3rem;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    gap: ${({ theme }) => theme.spacing[2]};
   }
 `;
 
@@ -439,6 +598,26 @@ export const Cell = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: ${({ theme }) => theme.spacing[1]};
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    color: ${({ theme }) => theme.color.text};
+    line-height: ${({ theme }) => theme.typography.lineHeight.snug};
+
+    &::before {
+      content: attr(data-label);
+      color: ${({ theme }) => theme.color.textSecondary};
+      font-size: ${({ theme }) => theme.typography.size.xs};
+      font-weight: ${({ theme }) => theme.typography.weight.extrabold};
+      text-transform: uppercase;
+    }
+  }
 `;
 
 export const StatusBadge = styled.span`
@@ -460,6 +639,14 @@ export const ContextMenu = styled.div`
   z-index: 1000;
   min-width: 180px;
   color: ${({ theme }) => theme.color.text};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    left: ${({ theme }) => theme.spacing[3]} !important;
+    right: ${({ theme }) => theme.spacing[3]};
+    top: auto !important;
+    bottom: calc(${({ theme }) => theme.spacing[4]} + env(safe-area-inset-bottom));
+    min-width: 0;
+  }
 `;
 
 export const MenuItem = styled.div`
@@ -473,6 +660,10 @@ export const MenuItem = styled.div`
   &:hover {
     background: ${({ $isDelete, theme }) => $isDelete ? '#fef2f2' : theme.isDark ? 'rgba(255,255,255,0.05)' : '#f3f4f6'};
     color: ${({ $isDelete }) => $isDelete ? '#ef4444' : 'inherit'};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
   }
 `;
 
@@ -503,6 +694,11 @@ export const ErrorState = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing[3]};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    margin: ${({ theme }) => theme.spacing[3]};
+    padding: ${({ theme }) => theme.spacing[4]};
+  }
 `;
 
 export const ErrorTitle = styled.h2`
@@ -537,6 +733,11 @@ export const ErrorActions = styled.div`
   align-items: center;
   gap: ${({ theme }) => theme.spacing[3]};
   flex-wrap: wrap;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
 
 export const DiagnosticBtn = styled.button`
@@ -560,6 +761,11 @@ export const DiagnosticBtn = styled.button`
     width: 1rem;
     height: 1rem;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+    justify-content: center;
+  }
 `;
 
 export const ModalOverlay = styled.div`
@@ -574,6 +780,11 @@ export const ModalOverlay = styled.div`
   align-items: center;
   justify-content: center;
   z-index: 2000;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    align-items: flex-end;
+    padding: ${({ theme }) => theme.spacing[3]};
+  }
 `;
 
 export const ModalUI = styled.div`
@@ -586,6 +797,14 @@ export const ModalUI = styled.div`
   color: ${({ theme }) => theme.color.text};
   box-shadow: ${({ theme }) => theme.shadow['2xl']};
   border: 1px solid ${({ theme }) => theme.color.border};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    max-width: none;
+    max-height: calc(100dvh - ${({ theme }) => theme.spacing[6]});
+    overflow-y: auto;
+    padding: ${({ theme }) => theme.spacing[4]};
+    border-radius: ${({ theme }) => theme.radius.lg} ${({ theme }) => theme.radius.lg} 0 0;
+  }
 `;
 
 export const ModalTitle = styled.h3`
@@ -615,6 +834,10 @@ export const ModalActions = styled.div`
   display: flex;
   gap: 1rem;
   justify-content: center;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    flex-direction: column-reverse;
+  }
 `;
 
 export const CancelBtnUI = styled.button`
@@ -628,6 +851,10 @@ export const CancelBtnUI = styled.button`
   font-weight: 600;
   &:hover {
     background: ${({ theme }) => theme.isDark ? 'rgba(255,255,255,0.05)' : '#f3f4f6'};
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
   }
 `;
 
@@ -643,6 +870,10 @@ export const SubmitBtnUI = styled.button`
   &:hover {
     opacity: 0.9;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+  }
 `;
 
 export const DeleteBtnUI = styled.button`
@@ -657,6 +888,10 @@ export const DeleteBtnUI = styled.button`
   &:hover {
     background: #dc2626;
   }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+  }
 `;
 
 export const CreationGrid = styled.div`
@@ -664,6 +899,10 @@ export const CreationGrid = styled.div`
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
   margin: 1.5rem 0;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 export const CreationOption = styled.div`
@@ -691,5 +930,11 @@ export const CreationOption = styled.div`
   span {
     font-size: 0.75rem;
     font-weight: 600;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    min-height: ${({ theme }) => theme.layout.buttonHeight};
+    flex-direction: row;
+    justify-content: flex-start;
   }
 `;
