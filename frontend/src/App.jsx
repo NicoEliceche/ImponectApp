@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout';
 import { useAuth } from './app/stores/authStore';
+import { AuthGate } from './features/auth';
 import { RouteSkeleton } from './shared/components/RouteSkeleton';
 import { initClientLogging } from './shared/utils/clientLogger';
 import { preloadRoute, scheduleRoutePreloads } from './shared/utils/routePreload';
@@ -31,6 +32,7 @@ const routerBasename = import.meta.env.BASE_URL === '/'
   : import.meta.env.BASE_URL.replace(/\/$/, '');
 
 function App() {
+  const authStatus = useAuth(state => state.status);
   const checkConnections = useAuth(state => state.checkConnections);
 
   useEffect(() => {
@@ -38,29 +40,38 @@ function App() {
   }, []);
 
   useEffect(() => {
-    checkConnections();
-  }, [checkConnections]);
+    if (authStatus === 'authenticated') {
+      checkConnections();
+    }
+  }, [authStatus, checkConnections]);
 
-  useEffect(() => scheduleRoutePreloads(), []);
+  useEffect(() => {
+    if (authStatus === 'authenticated') {
+      return scheduleRoutePreloads();
+    }
+    return undefined;
+  }, [authStatus]);
 
   return (
     <Router basename={routerBasename}>
-      <Routes>
-        <Route path="/clickup-portal" element={lazyRoute(ClickUpPortalScreen)} />
-        <Route element={<MainLayout />}>
-          <Route path="/" element={lazyRoute(HomeScreen)} />
-          <Route path="/ai-hub" element={lazyRoute(AIHubScreen)} />
-          <Route path="/crm" element={lazyRoute(CRMScreen)} />
-          <Route path="/quotes" element={lazyRoute(QuotesScreen)} />
-          <Route path="/cotizador" element={lazyRoute(CotizadorScreen)} />
-          <Route path="/business" element={lazyRoute(BusinessScreen)} />
-          <Route path="/catalog" element={lazyRoute(CatalogScreen)} />
-          <Route path="/documents" element={lazyRoute(DocumentsScreen)} />
-          <Route path="/documents/:folderId" element={lazyRoute(DocumentsScreen)} />
-          <Route path="/email" element={lazyRoute(EmailScreen)} />
-          <Route path="/logs" element={lazyRoute(LogsScreen)} />
-        </Route>
-      </Routes>
+      <AuthGate>
+        <Routes>
+          <Route path="/clickup-portal" element={lazyRoute(ClickUpPortalScreen)} />
+          <Route element={<MainLayout />}>
+            <Route path="/" element={lazyRoute(HomeScreen)} />
+            <Route path="/ai-hub" element={lazyRoute(AIHubScreen)} />
+            <Route path="/crm" element={lazyRoute(CRMScreen)} />
+            <Route path="/quotes" element={lazyRoute(QuotesScreen)} />
+            <Route path="/cotizador" element={lazyRoute(CotizadorScreen)} />
+            <Route path="/business" element={lazyRoute(BusinessScreen)} />
+            <Route path="/catalog" element={lazyRoute(CatalogScreen)} />
+            <Route path="/documents" element={lazyRoute(DocumentsScreen)} />
+            <Route path="/documents/:folderId" element={lazyRoute(DocumentsScreen)} />
+            <Route path="/email" element={lazyRoute(EmailScreen)} />
+            <Route path="/logs" element={lazyRoute(LogsScreen)} />
+          </Route>
+        </Routes>
+      </AuthGate>
     </Router>
   );
 }

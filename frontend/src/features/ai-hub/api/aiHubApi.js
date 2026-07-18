@@ -1,4 +1,4 @@
-import { apiUrl } from '../../../shared/utils/urls';
+import { apiFetch, apiUrl } from '../../../shared/utils/urls';
 
 const parseResponse = async (response, fallbackMessage) => {
   const payload = await response.json().catch(() => ({}));
@@ -9,14 +9,14 @@ const parseResponse = async (response, fallbackMessage) => {
 };
 
 export const fetchAiAgents = async () => {
-  const response = await fetch(apiUrl('/api/ai/agents'));
+  const response = await apiFetch(apiUrl('/api/ai/agents'));
   if (!response.ok) return [];
   const payload = await response.json();
   return Array.isArray(payload) ? payload : [];
 };
 
 export const deleteAiAgent = async (agentId) => {
-  const response = await fetch(apiUrl(`/api/ai/agents/${agentId}`), {
+  const response = await apiFetch(apiUrl(`/api/ai/agents/${agentId}`), {
     method: 'DELETE',
   });
 
@@ -24,7 +24,7 @@ export const deleteAiAgent = async (agentId) => {
 };
 
 export const sendAgentChatMessage = async ({ messages, options }) => {
-  const response = await fetch(apiUrl('/api/ai/chat'), {
+  const response = await apiFetch(apiUrl('/api/ai/chat'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages, options })

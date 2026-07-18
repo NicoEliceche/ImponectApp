@@ -17,6 +17,17 @@ export const apiUrl = (path) => {
   return `${apiBaseUrl}${normalizedPath}`
 }
 
+export const apiFetch = (path, options = {}) => {
+  const input = typeof path === 'string' && path.startsWith('/api')
+    ? apiUrl(path)
+    : path
+
+  return fetch(input, {
+    ...options,
+    credentials: options.credentials || 'include',
+  })
+}
+
 export const getRuntimeDiagnostics = () => {
   const apiBaseUrl = getApiBaseUrl()
   const locationValue = typeof window === 'undefined' ? null : window.location

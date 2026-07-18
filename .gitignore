@@ -32,7 +32,7 @@ Thumbs.db
 # Local workspace files
 MEMORY.md
 /Skills/
-.codex-screenshots/
+.codex-screenshots*/
 .codex-chrome*/
 {{WORKSPACE_DIR}}/
 run-openclaw.bat

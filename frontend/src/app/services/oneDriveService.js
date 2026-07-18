@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { apiUrl, getRuntimeDiagnostics } from '../../shared/utils/urls';
+import { apiFetch, apiUrl, getRuntimeDiagnostics } from '../../shared/utils/urls';
 import { logClientEvent } from '../../shared/utils/clientLogger';
 
 const API_URL = apiUrl('/api/onedrive');
@@ -45,7 +45,7 @@ export const requestOneDriveJson = async (url, operation, details = {}) => {
   });
 
   try {
-    const response = await fetch(url);
+    const response = await apiFetch(url);
     const body = await readResponseBody(response);
     const durationMs = Math.round(performance.now() - startedAt);
 

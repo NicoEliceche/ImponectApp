@@ -86,6 +86,13 @@ export const IconSettings = (props) => (
   </svg>
 );
 
+export const IconLogout = (props) => (
+  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.75 9V5.75A1.75 1.75 0 0014 4H6.75A1.75 1.75 0 005 5.75v12.5C5 19.216 5.784 20 6.75 20H14a1.75 1.75 0 001.75-1.75V15" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 12h8m0 0l-3-3m3 3l-3 3" />
+  </svg>
+);
+
 export const IconDoubleChevronLeft = (props) => (
   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" {...props}>
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.4} d="M11 17l-5-5 5-5M18 17l-5-5 5-5" />

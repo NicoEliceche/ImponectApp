@@ -1,4 +1,4 @@
-import { apiUrl } from '../../../shared/utils/urls';
+import { apiFetch, apiUrl } from '../../../shared/utils/urls';
 
 const API_BASE = apiUrl('/api/quotes');
 
@@ -17,17 +17,17 @@ const parseResponse = async (response, fallbackMessage) => {
 };
 
 export const fetchQuotes = async () => {
-  const response = await fetch(API_BASE);
+  const response = await apiFetch(API_BASE);
   return parseResponse(response, 'No se pudieron cargar los presupuestos.');
 };
 
 export const fetchQuote = async (id) => {
-  const response = await fetch(`${API_BASE}/${id}`);
+  const response = await apiFetch(`${API_BASE}/${id}`);
   return parseResponse(response, 'No se pudo cargar el presupuesto.');
 };
 
 export const createQuote = async (payload) => {
-  const response = await fetch(API_BASE, {
+  const response = await apiFetch(API_BASE, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -37,7 +37,7 @@ export const createQuote = async (payload) => {
 };
 
 export const updateQuote = async (id, payload) => {
-  const response = await fetch(`${API_BASE}/${id}`, {
+  const response = await apiFetch(`${API_BASE}/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -47,7 +47,7 @@ export const updateQuote = async (id, payload) => {
 };
 
 export const markQuoteAsSent = async (id, payload) => {
-  const response = await fetch(`${API_BASE}/${id}/status`, {
+  const response = await apiFetch(`${API_BASE}/${id}/status`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -60,7 +60,7 @@ export const markQuoteAsSent = async (id, payload) => {
 };
 
 export const returnQuoteToPending = async (id) => {
-  const response = await fetch(`${API_BASE}/${id}/status`, {
+  const response = await apiFetch(`${API_BASE}/${id}/status`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

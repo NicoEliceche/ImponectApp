@@ -11,6 +11,7 @@ import { apiUrl, getRuntimeDiagnostics } from '../../../shared/utils/urls';
 import { logClientEvent } from '../../../shared/utils/clientLogger';
 
 const API_URL = apiUrl('/api/onedrive');
+const axiosAuthConfig = { withCredentials: true };
 
 const requestOneDriveMutation = async (operation, request, details = {}) => {
   const startedAt = performance.now();
@@ -52,7 +53,7 @@ const requestOneDriveMutation = async (operation, request, details = {}) => {
 export const createOneDriveFolder = async ({ parentId = null, name }) => {
   return requestOneDriveMutation(
     'create folder',
-    () => axios.post(`${API_URL}/folder`, { parentId, name }),
+    () => axios.post(`${API_URL}/folder`, { parentId, name }, axiosAuthConfig),
     { parentId, name }
   );
 };
@@ -60,7 +61,7 @@ export const createOneDriveFolder = async ({ parentId = null, name }) => {
 export const createOneDriveFile = async ({ parentId = null, name, type }) => {
   return requestOneDriveMutation(
     'create file',
-    () => axios.post(`${API_URL}/file`, { parentId, name, type }),
+    () => axios.post(`${API_URL}/file`, { parentId, name, type }, axiosAuthConfig),
     { parentId, name, type }
   );
 };
@@ -87,7 +88,7 @@ export const useOneDriveActions = () => {
     mutationFn: async ({ itemId }) => {
       return requestOneDriveMutation(
         'delete item',
-        () => axios.delete(`${API_URL}/item/${itemId}`),
+        () => axios.delete(`${API_URL}/item/${itemId}`, axiosAuthConfig),
         { itemId }
       );
     },
@@ -98,7 +99,7 @@ export const useOneDriveActions = () => {
     mutationFn: async ({ itemId, newName }) => {
       return requestOneDriveMutation(
         'rename item',
-        () => axios.patch(`${API_URL}/item/${itemId}`, { name: newName }),
+        () => axios.patch(`${API_URL}/item/${itemId}`, { name: newName }, axiosAuthConfig),
         { itemId, newName }
       );
     },
@@ -114,7 +115,7 @@ export const useOneDriveActions = () => {
     mutationFn: async ({ itemId, parentId, name }) => {
       return requestOneDriveMutation(
         'move item',
-        () => axios.patch(`${API_URL}/item/${itemId}/move`, { parentId, name }),
+        () => axios.patch(`${API_URL}/item/${itemId}/move`, { parentId, name }, axiosAuthConfig),
         { itemId, parentId, name }
       );
     },
@@ -125,7 +126,7 @@ export const useOneDriveActions = () => {
     mutationFn: async ({ itemId, parentId, name }) => {
       return requestOneDriveMutation(
         'copy item',
-        () => axios.post(`${API_URL}/item/${itemId}/copy`, { parentId, name }),
+        () => axios.post(`${API_URL}/item/${itemId}/copy`, { parentId, name }, axiosAuthConfig),
         { itemId, parentId, name }
       );
     },

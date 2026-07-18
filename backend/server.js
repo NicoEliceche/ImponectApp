@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 5000;
+const { requireAppAuth } = require('./middleware/authMiddleware');
 const parseCorsOrigins = (values) => values
   .split(',')
   .map(value => value.trim())
@@ -31,11 +32,15 @@ app.use(cors({
     }
 
     callback(new Error(`CORS blocked origin: ${origin}`));
-  }
+  },
+  credentials: true
 }));
 app.use(express.json({ limit: '70mb' }));
 
 // Routes
+app.use('/api/auth/google', require('./routes/auth/google'));
+app.use('/api/webhooks/whatsapp', require('./routes/whatsappWebhook'));
+app.use('/api', requireAppAuth);
 app.use('/api/auth/microsoft', require('./routes/auth/microsoft'));
 app.use('/api/auth/clickup', require('./routes/auth/clickup'));
 app.use('/api/onedrive', require('./routes/onedrive'));
@@ -44,7 +49,6 @@ app.use('/api/email', require('./routes/email'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/quotes', require('./routes/quotes'));
 app.use('/api/crm', require('./routes/crm'));
-app.use('/api/webhooks/whatsapp', require('./routes/whatsappWebhook'));
 
 app.get('/', (req, res) => {
   res.send('Imponect API Orchestrator is running');
@@ -97,6 +101,9 @@ const initDb = async () => {
     await db.query(`
       ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS name TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS google_sub TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS picture TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP;
     `);
 
     await db.query(`
@@ -280,13 +287,21 @@ const initDb = async () => {
       await db.query("INSERT INTO users (id, email, name) VALUES (1, 'admin@imponect.com', 'Admin User')");
       console.log('Default user created.');
     }
+
+    await db.query(`
+      SELECT setval(
+        pg_get_serial_sequence('users', 'id'),
+        COALESCE((SELECT MAX(id) FROM users), 1),
+        true
+      );
+    `);
     console.log('Database tables verified.');
   } catch (err) {
     console.error('Database init error:', err);
   }
 };
-initDb();
-
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+initDb().finally(() => {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
 });

@@ -1,4 +1,4 @@
-import { apiUrl } from '../../../shared/utils/urls';
+import { apiFetch, apiUrl } from '../../../shared/utils/urls';
 
 const parseResponse = async (response, fallbackMessage) => {
   const contentType = response.headers.get('content-type') || '';
@@ -15,12 +15,12 @@ const parseResponse = async (response, fallbackMessage) => {
 };
 
 export const fetchWhatsAppIntegrationStatus = async () => {
-  const response = await fetch(apiUrl('/api/crm/integrations/whatsapp/status'));
+  const response = await apiFetch(apiUrl('/api/crm/integrations/whatsapp/status'));
   return parseResponse(response, 'No se pudo consultar el estado de WhatsApp.');
 };
 
 export const saveWhatsAppManualConfig = async (payload) => {
-  const response = await fetch(apiUrl('/api/crm/integrations/whatsapp/manual'), {
+  const response = await apiFetch(apiUrl('/api/crm/integrations/whatsapp/manual'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -30,7 +30,7 @@ export const saveWhatsAppManualConfig = async (payload) => {
 };
 
 export const testWhatsAppIntegration = async () => {
-  const response = await fetch(apiUrl('/api/crm/integrations/whatsapp/test'), {
+  const response = await apiFetch(apiUrl('/api/crm/integrations/whatsapp/test'), {
     method: 'POST',
   });
 
@@ -38,7 +38,7 @@ export const testWhatsAppIntegration = async () => {
 };
 
 export const disconnectWhatsAppIntegration = async () => {
-  const response = await fetch(apiUrl('/api/crm/integrations/whatsapp/disconnect'), {
+  const response = await apiFetch(apiUrl('/api/crm/integrations/whatsapp/disconnect'), {
     method: 'POST',
   });
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { useThemeStore } from '../../app/stores/themeStore';
+import { useAuth } from '../../app/stores/authStore';
 import { publicAsset } from '../../shared/utils/urls';
 import { preloadRoute } from '../../shared/utils/routePreload';
 import { 
@@ -16,6 +17,7 @@ import {
   IconFolder,
   IconSun,
   IconMoon,
+  IconLogout,
   IconDoubleChevronLeft,
   IconDoubleChevronRight,
   IconDots,
@@ -255,7 +257,7 @@ const Footer = styled.div`
 
 const BottomActions = styled.div`
   display: grid;
-  grid-template-columns: ${({ $collapsed }) => ($collapsed ? '1fr' : 'repeat(3, 2.5rem)')};
+  grid-template-columns: ${({ $collapsed }) => ($collapsed ? '1fr' : 'repeat(4, 2.5rem)')};
   align-items: center;
   justify-items: center;
   justify-content: center;
@@ -300,6 +302,13 @@ const SettingsLink = styled(StyledNavLink)`
   svg {
     width: 1.25rem !important;
     height: 1.25rem !important;
+  }
+`;
+
+const LogoutButton = styled(ThemeToggle)`
+  &:hover {
+    border-color: ${({ theme }) => theme.color.error};
+    color: ${({ theme }) => theme.color.textInverse};
   }
 `;
 
@@ -538,6 +547,8 @@ const warmRoute = (path) => {
 
 const Sidebar = () => {
   const { mode, toggleTheme } = useThemeStore();
+  const user = useAuth(state => state.user);
+  const logout = useAuth(state => state.logout);
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(() => localStorage.getItem('sidebar-collapsed') === 'true');
   const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
@@ -616,6 +627,14 @@ const Sidebar = () => {
             >
               <ToggleIcon />
             </CollapseButton>
+            <LogoutButton
+              type="button"
+              onClick={logout}
+              title={user?.email ? `Cerrar sesión: ${user.email}` : 'Cerrar sesión'}
+              aria-label="Cerrar sesión"
+            >
+              <IconLogout />
+            </LogoutButton>
           </BottomActions>
         </Footer>
       </SidebarWrapper>
@@ -648,6 +667,10 @@ const Sidebar = () => {
           <MobileUtilityButton type="button" onClick={toggleTheme}>
             {mode === 'dark' ? <IconSun /> : <IconMoon />}
             <MobileLabel>{mode === 'dark' ? 'MODO CLARO' : 'MODO OSCURO'}</MobileLabel>
+          </MobileUtilityButton>
+          <MobileUtilityButton type="button" onClick={logout}>
+            <IconLogout />
+            <MobileLabel>CERRAR SESIÓN</MobileLabel>
           </MobileUtilityButton>
         </MobileMorePanel>
 

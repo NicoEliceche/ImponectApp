@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { apiUrl } from '../../utils/urls';
+import { apiFetch, apiUrl } from '../../utils/urls';
 
 const WidgetCard = styled.div`
   background-color: ${({ theme }) => theme.color.surface};
@@ -95,7 +95,7 @@ const ClickUpPanel = () => {
     queryKey: ['clickupTasks'],
     queryFn: async () => {
       // Por ahora mockeamos o intentamos fetch si existe el endpoint
-      const res = await fetch(apiUrl('/api/clickup/tasks'));
+      const res = await apiFetch(apiUrl('/api/clickup/tasks'));
       if (res.status === 401) throw new Error('No ClickUp token found');
       if (!res.ok) throw new Error('Failed to fetch ClickUp tasks');
       return res.json();

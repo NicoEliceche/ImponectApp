@@ -1,4 +1,4 @@
-import { apiUrl } from '../../../shared/utils/urls';
+import { apiFetch, apiUrl } from '../../../shared/utils/urls';
 
 const API_BASE = apiUrl('/api/email');
 
@@ -40,7 +40,7 @@ const serializeComposePayload = async (payload) => ({
 
 const postComposePayload = async (path, payload) => {
   try {
-    const response = await fetch(`${API_BASE}/${path}`, {
+    const response = await apiFetch(`${API_BASE}/${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(await serializeComposePayload(payload))
@@ -55,17 +55,17 @@ const postComposePayload = async (path, payload) => {
 };
 
 export const getEmailAccounts = async () => {
-  const response = await fetch(`${API_BASE}/accounts`);
+  const response = await apiFetch(`${API_BASE}/accounts`);
   return parseResponse(response);
 };
 
 export const getEmailConfig = async (accountId) => {
-  const response = await fetch(withAccountId(`${API_BASE}/config`, accountId));
+  const response = await apiFetch(withAccountId(`${API_BASE}/config`, accountId));
   return parseResponse(response);
 };
 
 export const saveEmailConfig = async (config) => {
-  const response = await fetch(`${API_BASE}/config`, {
+  const response = await apiFetch(`${API_BASE}/config`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(config)
@@ -74,12 +74,12 @@ export const saveEmailConfig = async (config) => {
 };
 
 export const getEmails = async ({ folder, accountId }) => {
-  const response = await fetch(withAccountId(`${API_BASE}/inbox/${folder}`, accountId));
+  const response = await apiFetch(withAccountId(`${API_BASE}/inbox/${folder}`, accountId));
   return parseResponse(response);
 };
 
 export const performEmailAction = async (payload) => {
-  const response = await fetch(`${API_BASE}/action`, {
+  const response = await apiFetch(`${API_BASE}/action`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)

@@ -7,7 +7,7 @@ import {
   inferAgentSection,
   normalizeAgentSection,
 } from '../utils/agentSections';
-import { apiUrl } from '../utils/urls';
+import { apiFetch, apiUrl } from '../utils/urls';
 import {
   IconClose,
   IconCode,
@@ -777,11 +777,17 @@ export const AgentModal = () => {
   };
 
   const saveAgentMutation = useMutation({
-    mutationFn: (agentPayload) => fetch(apiUrl(isEditingAgent ? `/api/ai/agents/${editingAgent.id}` : '/api/ai/agents'), {
+    mutationFn: (agentPayload) => apiFetch(apiUrl(isEditingAgent ? `/api/ai/agents/${editingAgent.id}` : '/api/ai/agents'), {
       method: isEditingAgent ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(agentPayload),
-    }).then(r => r.json()),
+    }).then(async (response) => {
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.error || 'No se pudo guardar la IA.');
+      }
+      return payload;
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aiAgents'] });
       closeAgentModal();
